@@ -81,12 +81,38 @@ export interface HistoryEntry {
   changedFiles?: string[];
 }
 
+// AI Generation history entry
+export interface AIHistoryEntry {
+  id: string;
+  timestamp: number;
+  prompt: string;
+  model: string;
+  provider: string;
+  // Request info
+  hasSketch: boolean;
+  hasBrand: boolean;
+  isUpdate: boolean;
+  // Response info
+  rawResponse: string;
+  responseChars: number;
+  responseChunks: number;
+  durationMs: number;
+  // Result
+  success: boolean;
+  error?: string;
+  truncated?: boolean;
+  filesGenerated?: string[];
+  explanation?: string;
+}
+
 export interface ProjectContext {
   history: HistoryEntry[];
   currentIndex: number;
   activeFile?: string;
   activeTab?: string;
   savedAt: number;
+  // AI generation history
+  aiHistory?: AIHistoryEntry[];
 }
 
 export interface GitRemote {

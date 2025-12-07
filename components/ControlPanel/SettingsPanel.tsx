@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, ChevronUp, ChevronDown, CheckCircle, AlertCircle, GraduationCap, Bug, Settings2, ChevronRight } from 'lucide-react';
+import { Settings, ChevronUp, ChevronDown, CheckCircle, AlertCircle, GraduationCap, Bug, Settings2, ChevronRight, History } from 'lucide-react';
 import { useDebugStore } from '../../hooks/useDebugStore';
 import { getProviderManager } from '../../services/ai';
 
@@ -11,6 +11,8 @@ interface SettingsPanelProps {
   onModelChange: (modelId: string) => void;
   onProviderChange?: (providerId: string, modelId: string) => void;
   onOpenAISettings?: () => void;
+  aiHistoryCount?: number;
+  onOpenAIHistory?: () => void;
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
@@ -20,7 +22,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   selectedModel,
   onModelChange,
   onProviderChange,
-  onOpenAISettings
+  onOpenAISettings,
+  aiHistoryCount = 0,
+  onOpenAIHistory
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { enabled: debugEnabled, setEnabled: setDebugEnabled, logs } = useDebugStore();
@@ -188,6 +192,35 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 </p>
               )}
             </div>
+
+            {/* AI History */}
+            {onOpenAIHistory && (
+              <div className="pt-2 border-t border-white/5">
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    onOpenAIHistory();
+                  }}
+                  className="w-full flex items-center justify-between p-2 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <History className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>AI Generation History</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {aiHistoryCount > 0 && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                        {aiHistoryCount}
+                      </span>
+                    )}
+                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                  </div>
+                </button>
+                <p className="text-[10px] text-slate-500 pl-5 mt-1">
+                  View raw responses, debug truncated outputs
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}

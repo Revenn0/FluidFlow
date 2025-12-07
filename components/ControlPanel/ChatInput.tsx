@@ -1,21 +1,24 @@
 import React, { useState, useRef } from 'react';
-import { Send, Mic, MicOff, Loader2, Wand2, Paperclip, Image, Palette, X } from 'lucide-react';
-import { ChatAttachment } from '../../types';
+import { Send, Mic, MicOff, Loader2, Wand2, Paperclip, Image, Palette, X, Maximize2 } from 'lucide-react';
+import { ChatAttachment, FileSystem } from '../../types';
 import { PromptLibrary, PromptDropdown } from './PromptLibrary';
 import { UploadCards } from './UploadCards';
+import { ExpandedPromptModal } from './ExpandedPromptModal';
 
 interface ChatInputProps {
-  onSend: (prompt: string, attachments: ChatAttachment[]) => void;
+  onSend: (prompt: string, attachments: ChatAttachment[], fileContext?: string[]) => void;
   isGenerating: boolean;
   hasExistingApp: boolean;
   placeholder?: string;
+  files?: FileSystem;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   isGenerating,
   hasExistingApp,
-  placeholder
+  placeholder,
+  files = {}
 }) => {
   const [prompt, setPrompt] = useState('');
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
@@ -23,6 +26,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const [showPromptDropdown, setShowPromptDropdown] = useState(false);
   const [showPromptLibrary, setShowPromptLibrary] = useState(false);
   const [showAttachMenu, setShowAttachMenu] = useState(false);
+  const [showExpandedModal, setShowExpandedModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,6 +74,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
+    }
+    // Ctrl+Shift+E to expand
+    if (e.key === 'e' && e.ctrlKey && e.shiftKey) {
+      e.preventDefault();
+      setShowExpandedModal(true);
     }
   };
 
@@ -263,18 +272,27 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               placeholder={placeholder || (hasExistingApp ? "Describe changes..." : "Describe your app (optional)...")}
               disabled={isGenerating}
               rows={1}
-              className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2.5 pr-10 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 resize-none disabled:opacity-50"
+              className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2.5 pr-20 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 resize-none disabled:opacity-50"
               style={{ minHeight: '42px', maxHeight: '120px' }}
             />
-            <button
-              onClick={toggleListening}
-              className={`absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg transition-colors ${
-                isListening ? 'text-red-400 bg-red-500/20' : 'text-slate-400 hover:text-white'
-              }`}
-              title={isListening ? 'Stop listening' : 'Voice input'}
-            >
-              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-            </button>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <button
+                onClick={() => setShowExpandedModal(true)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                title="Expand editor (Ctrl+Shift+E)"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
+              <button
+                onClick={toggleListening}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  isListening ? 'text-red-400 bg-red-500/20' : 'text-slate-400 hover:text-white'
+                }`}
+                title={isListening ? 'Stop listening' : 'Voice input'}
+              >
+                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           {/* Send button */}
@@ -322,6 +340,22 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         isOpen={showPromptLibrary}
         onClose={() => setShowPromptLibrary(false)}
         onSelectPrompt={(p) => setPrompt(prev => prev ? `${prev}\n${p}` : p)}
+      />
+
+      {/* Expanded Prompt Modal */}
+      <ExpandedPromptModal
+        isOpen={showExpandedModal}
+        onClose={() => setShowExpandedModal(false)}
+        onSend={(modalPrompt, modalAttachments, fileContext) => {
+          onSend(modalPrompt, modalAttachments, fileContext);
+          setPrompt('');
+          setAttachments([]);
+        }}
+        isGenerating={isGenerating}
+        hasExistingApp={hasExistingApp}
+        files={files}
+        initialPrompt={prompt}
+        initialAttachments={attachments}
       />
     </div>
   );

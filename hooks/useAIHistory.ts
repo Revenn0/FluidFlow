@@ -1,0 +1,246 @@
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { AIHistoryEntry, projectApi } from '../services/projectApi';
+
+export interface UseAIHistoryReturn {
+  history: AIHistoryEntry[];
+  addEntry: (entry: Omit<AIHistoryEntry, 'id'>) => string;
+  getEntry: (id: string) => AIHistoryEntry | undefined;
+  clearHistory: () => void;
+  deleteEntry: (id: string) => void;
+  isLoading: boolean;
+  lastSaved: number | null;
+  // For debugging - get last N entries
+  getRecent: (count?: number) => AIHistoryEntry[];
+  // Export for backup
+  exportHistory: () => string;
+  // Get raw response by ID (for debugging truncated responses)
+  getRawResponse: (id: string) => string | undefined;
+}
+
+const MAX_HISTORY_SIZE = 100; // Keep last 100 generations
+const SAVE_DEBOUNCE_MS = 1000; // Reduced for faster saves
+
+export function useAIHistory(projectId: string | null): UseAIHistoryReturn {
+  const [history, setHistory] = useState<AIHistoryEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastSaved, setLastSaved] = useState<number | null>(null);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const loadedProjectRef = useRef<string | null>(null);
+  const pendingHistoryRef = useRef<AIHistoryEntry[] | null>(null);
+  const projectIdRef = useRef<string | null>(null);
+
+  // Keep projectId ref updated for beforeunload
+  useEffect(() => {
+    projectIdRef.current = projectId;
+  }, [projectId]);
+
+  // Load history from backend when project changes
+  useEffect(() => {
+    console.log(`[AIHistory] useEffect triggered - projectId: ${projectId}, loadedRef: ${loadedProjectRef.current}`);
+
+    if (!projectId) {
+      console.log('[AIHistory] No projectId, skipping load');
+      return;
+    }
+
+    if (projectId === loadedProjectRef.current) {
+      console.log('[AIHistory] Already loaded for this project, skipping');
+      return;
+    }
+
+    const loadHistory = async () => {
+      console.log(`[AIHistory] Loading history for project: ${projectId}`);
+      setIsLoading(true);
+      try {
+        const context = await projectApi.getContext(projectId);
+        console.log(`[AIHistory] Got context:`, {
+          hasAiHistory: !!context.aiHistory,
+          aiHistoryLength: context.aiHistory?.length || 0,
+          contextKeys: Object.keys(context)
+        });
+
+        if (context.aiHistory && context.aiHistory.length > 0) {
+          setHistory(context.aiHistory);
+          console.log(`[AIHistory] ✓ Loaded ${context.aiHistory.length} entries for project ${projectId}`);
+        } else {
+          setHistory([]);
+          console.log('[AIHistory] No history found in context');
+        }
+        loadedProjectRef.current = projectId;
+      } catch (error) {
+        console.error('[AIHistory] Failed to load:', error);
+        setHistory([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadHistory();
+  }, [projectId]);
+
+  // Debounced save to backend (fallback for failed immediate saves)
+  const saveToBackend = useCallback(async (entries: AIHistoryEntry[]) => {
+    if (!projectId) return;
+
+    // Track pending save
+    pendingHistoryRef.current = entries;
+
+    // Clear existing timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Debounce save
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        await projectApi.saveContext(projectId, { aiHistory: entries });
+        setLastSaved(Date.now());
+        pendingHistoryRef.current = null; // Clear pending after successful save
+        console.log(`[AIHistory] Saved ${entries.length} entries to backend`);
+      } catch (error) {
+        console.error('[AIHistory] Failed to save to backend:', error);
+      }
+    }, SAVE_DEBOUNCE_MS);
+  }, [projectId]);
+
+  // Add new entry
+  const addEntry = useCallback((entry: Omit<AIHistoryEntry, 'id'>): string => {
+    const id = crypto.randomUUID();
+    const newEntry: AIHistoryEntry = { ...entry, id };
+
+    setHistory(prev => {
+      const updated = [newEntry, ...prev].slice(0, MAX_HISTORY_SIZE);
+
+      // Track in pendingHistoryRef for beforeunload
+      pendingHistoryRef.current = updated;
+
+      // IMPORTANT: Do immediate save (no debounce) for AI history
+      // This ensures data is saved even if user closes tab immediately
+      if (projectIdRef.current) {
+        projectApi.saveContext(projectIdRef.current, { aiHistory: updated })
+          .then(() => {
+            setLastSaved(Date.now());
+            pendingHistoryRef.current = null;
+            console.log(`[AIHistory] Immediately saved ${updated.length} entries`);
+          })
+          .catch(err => {
+            console.error('[AIHistory] Immediate save failed, will retry via debounce:', err);
+            // Fall back to debounced save
+            saveToBackend(updated);
+          });
+      }
+
+      return updated;
+    });
+
+    // Also store in window for immediate debugging access
+    try {
+      (window as any).__lastAIHistoryEntry = newEntry;
+      (window as any).__aiHistoryCount = history.length + 1;
+    } catch (e) {
+      // Ignore
+    }
+
+    console.log(`[AIHistory] Added entry ${id} (${entry.success ? 'success' : 'failed'})`);
+    return id;
+  }, [history.length, saveToBackend]);
+
+  // Get entry by ID
+  const getEntry = useCallback((id: string): AIHistoryEntry | undefined => {
+    return history.find(e => e.id === id);
+  }, [history]);
+
+  // Clear all history
+  const clearHistory = useCallback(() => {
+    setHistory([]);
+    if (projectId) {
+      projectApi.saveContext(projectId, { aiHistory: [] }).catch(console.error);
+    }
+    console.log('[AIHistory] Cleared all history');
+  }, [projectId]);
+
+  // Delete single entry
+  const deleteEntry = useCallback((id: string) => {
+    setHistory(prev => {
+      const updated = prev.filter(e => e.id !== id);
+
+      // Immediate save
+      if (projectIdRef.current) {
+        pendingHistoryRef.current = updated;
+        projectApi.saveContext(projectIdRef.current, { aiHistory: updated })
+          .then(() => {
+            pendingHistoryRef.current = null;
+            console.log(`[AIHistory] Deleted entry ${id}, saved ${updated.length} entries`);
+          })
+          .catch(console.error);
+      }
+
+      return updated;
+    });
+  }, []);
+
+  // Get recent entries
+  const getRecent = useCallback((count: number = 10): AIHistoryEntry[] => {
+    return history.slice(0, count);
+  }, [history]);
+
+  // Export history as JSON
+  const exportHistory = useCallback((): string => {
+    return JSON.stringify(history, null, 2);
+  }, [history]);
+
+  // Get raw response by ID
+  const getRawResponse = useCallback((id: string): string | undefined => {
+    const entry = history.find(e => e.id === id);
+    return entry?.rawResponse;
+  }, [history]);
+
+  // Handle beforeunload - save pending changes
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      const pid = projectIdRef.current;
+      const pending = pendingHistoryRef.current;
+
+      if (pid && pending && pending.length > 0) {
+        console.log('[AIHistory] Page unload - saving pending changes via beacon');
+        // Use sendBeacon for reliable saves during page unload
+        // Use full API base URL like App.tsx does
+        const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:3200/api';
+        const url = `${apiBase}/projects/${pid}/context`;
+        const data = JSON.stringify({ aiHistory: pending });
+        navigator.sendBeacon(url, new Blob([data], { type: 'application/json' }));
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+
+      // Also flush pending on unmount
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+
+      const pid = projectIdRef.current;
+      const pending = pendingHistoryRef.current;
+      if (pid && pending && pending.length > 0) {
+        // Sync save on unmount (not page close, so fetch is fine)
+        projectApi.saveContext(pid, { aiHistory: pending }).catch(console.error);
+      }
+    };
+  }, []);
+
+  return {
+    history,
+    addEntry,
+    getEntry,
+    clearHistory,
+    deleteEntry,
+    isLoading,
+    lastSaved,
+    getRecent,
+    exportHistory,
+    getRawResponse,
+  };
+}

@@ -46,67 +46,182 @@ export function cleanGeneratedCode(code: string): string {
 }
 
 /**
- * Parses AI response that might contain multiple files in JSON format
+ * Attempts to repair truncated JSON from AI responses
+ * Returns the repaired JSON string or throws a descriptive error
  */
-export function parseMultiFileResponse(response: string): Record<string, string> | null {
+export function repairTruncatedJson(jsonStr: string): string {
+  let json = jsonStr.trim();
+
+  // Count open/close braces and brackets
+  let braceCount = 0;
+  let bracketCount = 0;
+  let inString = false;
+  let escapeNext = false;
+
+  for (let i = 0; i < json.length; i++) {
+    const char = json[i];
+
+    if (escapeNext) {
+      escapeNext = false;
+      continue;
+    }
+
+    if (char === '\\' && inString) {
+      escapeNext = true;
+      continue;
+    }
+
+    if (char === '"' && !escapeNext) {
+      inString = !inString;
+      continue;
+    }
+
+    if (!inString) {
+      if (char === '{') braceCount++;
+      else if (char === '}') braceCount--;
+      else if (char === '[') bracketCount++;
+      else if (char === ']') bracketCount--;
+    }
+  }
+
+  // If balanced, return as-is
+  if (braceCount === 0 && bracketCount === 0 && !inString) {
+    return json;
+  }
+
+  console.log(`[JSON Repair] Unbalanced: braces=${braceCount}, brackets=${bracketCount}, inString=${inString}`);
+
+  // Try to repair truncated JSON
+  let repaired = json;
+
+  // If we're in the middle of a string, try to close it
+  if (inString) {
+    // Find the last quote and truncate any partial content after it
+    // Or close the string if it seems to be the value
+    repaired += '"';
+    inString = false;
+  }
+
+  // Remove trailing partial content (incomplete key or value)
+  // Look for the last complete value
+  const patterns = [
+    // Remove trailing comma and whitespace
+    /,\s*$/,
+    // Remove incomplete key (": after key name without value)
+    /,?\s*"[^"]*"\s*:\s*$/,
+    // Remove partial string value
+    /,?\s*"[^"]*"\s*:\s*"[^"]*$/,
+  ];
+
+  for (const pattern of patterns) {
+    if (pattern.test(repaired)) {
+      repaired = repaired.replace(pattern, '');
+      break;
+    }
+  }
+
+  // Close remaining brackets and braces
+  // Re-count after repairs
+  braceCount = 0;
+  bracketCount = 0;
+  inString = false;
+  escapeNext = false;
+
+  for (let i = 0; i < repaired.length; i++) {
+    const char = repaired[i];
+    if (escapeNext) { escapeNext = false; continue; }
+    if (char === '\\' && inString) { escapeNext = true; continue; }
+    if (char === '"' && !escapeNext) { inString = !inString; continue; }
+    if (!inString) {
+      if (char === '{') braceCount++;
+      else if (char === '}') braceCount--;
+      else if (char === '[') bracketCount++;
+      else if (char === ']') bracketCount--;
+    }
+  }
+
+  // Close brackets first, then braces
+  repaired += ']'.repeat(Math.max(0, bracketCount));
+  repaired += '}'.repeat(Math.max(0, braceCount));
+
+  return repaired;
+}
+
+/**
+ * Parses AI response that might contain multiple files in JSON format
+ * Includes enhanced repair for truncated responses
+ */
+export function parseMultiFileResponse(response: string): { files: Record<string, string>; explanation?: string; truncated?: boolean } | null {
   try {
     // First, try to extract JSON from markdown code blocks
     const codeBlockMatch = response.match(/```(?:json)?\s*\n?([\s\S]*?)\n?```/);
     let jsonString = codeBlockMatch ? codeBlockMatch[1] : response;
 
     // Try to find JSON object in the string
-    const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+    const jsonMatch = jsonString.match(/\{[\s\S]*\}?/);
     if (jsonMatch) {
-      // Try to parse the matched JSON
+      let jsonToParse = jsonMatch[0];
+      let wasTruncated = false;
+
+      // Try direct parse first
       let parsed;
       try {
-        parsed = JSON.parse(jsonMatch[0]);
+        parsed = JSON.parse(jsonToParse);
       } catch (parseError) {
-        // If direct parse fails, try to fix common issues
-        let fixedJson = jsonMatch[0];
-
-        // Remove trailing commas before closing braces/brackets
-        fixedJson = fixedJson.replace(/,\s*([\]}])/g, '$1');
-
-        // Try to close unclosed JSON (truncated response)
-        const openBraces = (fixedJson.match(/\{/g) || []).length;
-        const closeBraces = (fixedJson.match(/\}/g) || []).length;
-        if (openBraces > closeBraces) {
-          // Truncated response - try to salvage what we can
-          // Find the last complete key-value pair
-          const lastCompleteMatch = fixedJson.match(/^([\s\S]*"[^"]+"\s*:\s*(?:"[^"]*"|[\d.]+|true|false|null|\{[^{}]*\}|\[[^\[\]]*\]))\s*,?\s*$/);
-          if (lastCompleteMatch) {
-            fixedJson = lastCompleteMatch[1] + '}';
-          } else {
-            // Can't salvage, throw to outer catch
-            throw new Error('Response appears to be truncated. The model may have hit token limits.');
-          }
-        }
+        // Try to repair truncated JSON
+        console.log('[parseMultiFileResponse] Direct parse failed, attempting repair...');
+        wasTruncated = true;
 
         try {
-          parsed = JSON.parse(fixedJson);
-        } catch {
-          throw new Error('Invalid JSON response from model. Try a different model that supports code generation.');
+          const repaired = repairTruncatedJson(jsonToParse);
+          parsed = JSON.parse(repaired);
+          console.log('[parseMultiFileResponse] Repair successful');
+        } catch (repairError) {
+          // Last resort: try to extract just the files object
+          const filesMatch = jsonString.match(/"files"\s*:\s*\{([\s\S]*)/);
+          if (filesMatch) {
+            try {
+              const filesJson = '{' + filesMatch[1];
+              const repairedFiles = repairTruncatedJson(filesJson);
+              const filesObj = JSON.parse(repairedFiles);
+              parsed = { files: filesObj, explanation: 'Response was truncated - showing partial results.' };
+              console.log('[parseMultiFileResponse] Extracted partial files object');
+            } catch {
+              throw new Error('Response was truncated and could not be repaired. The model may have hit token limits. Try a shorter prompt or different model.');
+            }
+          } else {
+            throw new Error('Response was truncated and could not be repaired. The model may have hit token limits. Try a shorter prompt or different model.');
+          }
         }
       }
 
-      // Validate that parsed is an object with file paths
+      // Validate that parsed is an object
       if (typeof parsed !== 'object' || parsed === null) {
         return null;
       }
 
-      // If it has an "explanation" key but no file paths, it's not what we want
-      const keys = Object.keys(parsed);
-      const nonMetaKeys = keys.filter(k => k !== 'explanation' && k !== 'description');
-      if (nonMetaKeys.length === 0) {
-        throw new Error('Model returned explanation only, no code files. Try a model better suited for code generation.');
+      // Extract explanation if present
+      const explanation = parsed.explanation || parsed.description;
+
+      // Get the files - could be in "files" key or at root level
+      let filesObj = parsed.files || parsed;
+      if (filesObj.explanation) delete filesObj.explanation;
+      if (filesObj.description) delete filesObj.description;
+
+      // If no file-like keys found, error
+      const fileKeys = Object.keys(filesObj).filter(k =>
+        k.includes('.') || k.includes('/') // Has extension or path separator
+      );
+
+      if (fileKeys.length === 0) {
+        throw new Error('Model returned no code files. Try a model better suited for code generation.');
       }
 
       // Clean each file's content
       const cleaned: Record<string, string> = {};
-      for (const [path, content] of Object.entries(parsed)) {
-        // Skip non-file keys like "explanation"
-        if (path === 'explanation' || path === 'description') continue;
+      for (const [path, content] of Object.entries(filesObj)) {
+        // Skip non-file keys
+        if (!path.includes('.') && !path.includes('/')) continue;
 
         // Skip ignored paths like .git, node_modules
         if (isIgnoredFilePath(path)) {
@@ -124,7 +239,11 @@ export function parseMultiFileResponse(response: string): Record<string, string>
         return null;
       }
 
-      return cleaned;
+      return {
+        files: cleaned,
+        explanation: typeof explanation === 'string' ? explanation : undefined,
+        truncated: wasTruncated
+      };
     }
 
     // No JSON found in response

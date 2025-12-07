@@ -52,6 +52,26 @@ interface HistoryEntry {
   changedFiles?: string[];
 }
 
+interface AIHistoryEntry {
+  id: string;
+  timestamp: number;
+  prompt: string;
+  model: string;
+  provider: string;
+  hasSketch: boolean;
+  hasBrand: boolean;
+  isUpdate: boolean;
+  rawResponse: string;
+  responseChars: number;
+  responseChunks: number;
+  durationMs: number;
+  success: boolean;
+  error?: string;
+  truncated?: boolean;
+  filesGenerated?: string[];
+  explanation?: string;
+}
+
 interface ProjectContext {
   // Version history
   history: HistoryEntry[];
@@ -60,6 +80,9 @@ interface ProjectContext {
   // UI state
   activeFile?: string;
   activeTab?: string;
+
+  // AI generation history
+  aiHistory?: AIHistoryEntry[];
 
   // Saved at timestamp
   savedAt: number;
@@ -448,16 +471,27 @@ router.get('/:id/context', async (req, res) => {
 router.put('/:id/context', async (req, res) => {
   try {
     const { id } = req.params;
-    const { history, currentIndex, activeFile, activeTab } = req.body;
+    const { history, currentIndex, activeFile, activeTab, aiHistory } = req.body;
     const projectPath = getProjectPath(id);
 
     if (!existsSync(projectPath)) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
+    // Load existing context to merge with (for partial updates like aiHistory-only)
+    const contextPath = getContextPath(id);
+    let existingContext: Partial<ProjectContext> = {};
+    if (existsSync(contextPath)) {
+      try {
+        existingContext = JSON.parse(await fs.readFile(contextPath, 'utf-8'));
+      } catch {
+        // Ignore parse errors
+      }
+    }
+
     // Validate and limit history size (max 30 entries to avoid huge files)
     const MAX_HISTORY = 30;
-    let limitedHistory = history || [];
+    let limitedHistory = history ?? existingContext.history ?? [];
     if (limitedHistory.length > MAX_HISTORY) {
       // Keep most recent entries, but preserve snapshots
       const snapshots = limitedHistory.filter((h: HistoryEntry) => h.type === 'snapshot');
@@ -469,15 +503,23 @@ router.put('/:id/context', async (req, res) => {
         .sort((a: HistoryEntry, b: HistoryEntry) => a.timestamp - b.timestamp);
     }
 
+    // Limit AI history to 100 entries
+    const MAX_AI_HISTORY = 100;
+    let limitedAiHistory = aiHistory ?? existingContext.aiHistory ?? [];
+    if (limitedAiHistory.length > MAX_AI_HISTORY) {
+      limitedAiHistory = limitedAiHistory.slice(0, MAX_AI_HISTORY);
+    }
+
     const context: ProjectContext = {
       history: limitedHistory,
-      currentIndex: Math.min(currentIndex || 0, limitedHistory.length - 1),
-      activeFile,
-      activeTab,
+      currentIndex: Math.min(currentIndex ?? existingContext.currentIndex ?? 0, Math.max(0, limitedHistory.length - 1)),
+      activeFile: activeFile ?? existingContext.activeFile,
+      activeTab: activeTab ?? existingContext.activeTab,
+      aiHistory: limitedAiHistory,
       savedAt: Date.now()
     };
 
-    await fs.writeFile(getContextPath(id), JSON.stringify(context, null, 2));
+    await fs.writeFile(contextPath, JSON.stringify(context, null, 2));
 
     // Also update project meta updatedAt
     const metaPath = getMetaPath(id);
@@ -496,16 +538,27 @@ router.put('/:id/context', async (req, res) => {
 router.post('/:id/context', async (req, res) => {
   try {
     const { id } = req.params;
-    const { history, currentIndex, activeFile, activeTab } = req.body;
+    const { history, currentIndex, activeFile, activeTab, aiHistory } = req.body;
     const projectPath = getProjectPath(id);
 
     if (!existsSync(projectPath)) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
+    // Load existing context to merge with (for partial updates like aiHistory-only)
+    const contextPath = getContextPath(id);
+    let existingContext: Partial<ProjectContext> = {};
+    if (existsSync(contextPath)) {
+      try {
+        existingContext = JSON.parse(await fs.readFile(contextPath, 'utf-8'));
+      } catch {
+        // Ignore parse errors
+      }
+    }
+
     // Validate and limit history size (max 30 entries to avoid huge files)
     const MAX_HISTORY = 30;
-    let limitedHistory = history || [];
+    let limitedHistory = history ?? existingContext.history ?? [];
     if (limitedHistory.length > MAX_HISTORY) {
       // Keep most recent entries, but preserve snapshots
       const snapshots = limitedHistory.filter((h: HistoryEntry) => h.type === 'snapshot');
@@ -517,15 +570,23 @@ router.post('/:id/context', async (req, res) => {
         .sort((a: HistoryEntry, b: HistoryEntry) => a.timestamp - b.timestamp);
     }
 
+    // Limit AI history to 100 entries
+    const MAX_AI_HISTORY = 100;
+    let limitedAiHistory = aiHistory ?? existingContext.aiHistory ?? [];
+    if (limitedAiHistory.length > MAX_AI_HISTORY) {
+      limitedAiHistory = limitedAiHistory.slice(0, MAX_AI_HISTORY);
+    }
+
     const context: ProjectContext = {
       history: limitedHistory,
-      currentIndex: Math.min(currentIndex || 0, limitedHistory.length - 1),
-      activeFile,
-      activeTab,
+      currentIndex: Math.min(currentIndex ?? existingContext.currentIndex ?? 0, Math.max(0, limitedHistory.length - 1)),
+      activeFile: activeFile ?? existingContext.activeFile,
+      activeTab: activeTab ?? existingContext.activeTab,
+      aiHistory: limitedAiHistory,
       savedAt: Date.now()
     };
 
-    await fs.writeFile(getContextPath(id), JSON.stringify(context, null, 2));
+    await fs.writeFile(contextPath, JSON.stringify(context, null, 2));
 
     // Also update project meta updatedAt
     const metaPath = getMetaPath(id);

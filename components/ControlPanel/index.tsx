@@ -1,11 +1,13 @@
 import React, { useState, useCallback, useImperativeHandle, forwardRef } from 'react';
 import { Layers, Trash2, AlertTriangle, X, MessageSquare, FileCode, History } from 'lucide-react';
 import { FileSystem, ChatMessage, ChatAttachment, FileChange } from '../../types';
-import { cleanGeneratedCode } from '../../utils/cleanCode';
+import { cleanGeneratedCode, parseMultiFileResponse } from '../../utils/cleanCode';
 import { generateContextForPrompt } from '../../utils/codemap';
 import { debugLog } from '../../hooks/useDebugStore';
 import { getProviderManager, GenerationRequest } from '../../services/ai';
 import { InspectedElement } from '../PreviewPanel/ComponentInspector';
+import { useAIHistory } from '../../hooks/useAIHistory';
+import { AIHistoryModal } from '../AIHistoryModal';
 
 // Sub-components
 import { ChatPanel } from './ChatPanel';
@@ -122,11 +124,15 @@ export const ControlPanel = forwardRef<ControlPanelRef, ControlPanelProps>(({
   const [isEducationMode, setIsEducationMode] = useState(false);
   const [, forceUpdate] = useState({});
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showAIHistory, setShowAIHistory] = useState(false);
 
   // Streaming state
   const [streamingStatus, setStreamingStatus] = useState<string>('');
   const [streamingChars, setStreamingChars] = useState(0);
   const [streamingFiles, setStreamingFiles] = useState<string[]>([]);
+
+  // AI History - persists across refreshes
+  const aiHistory = useAIHistory(currentProject?.id || null);
 
   const existingApp = files['src/App.tsx'];
 
@@ -138,7 +144,7 @@ export const ControlPanel = forwardRef<ControlPanelRef, ControlPanelProps>(({
     onModelChange(modelId);
   }, [onModelChange]);
 
-  const handleSend = async (prompt: string, attachments: ChatAttachment[]) => {
+  const handleSend = async (prompt: string, attachments: ChatAttachment[], _fileContext?: string[]) => {
     // Create user message
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -227,7 +233,7 @@ Output ONLY a raw JSON array of strings containing your specific suggestions. Do
 **CODE REQUIREMENTS**:
 - Entry point MUST be 'src/App.tsx'
 - Break UI into logical sub-components in 'src/components/'
-- Use absolute import paths matching file keys (e.g., 'src/components/Header')
+- Use RELATIVE import paths (e.g., './components/Header' from App.tsx, '../Header' from nested components)
 - Use Tailwind CSS for styling
 - Use 'lucide-react' for icons
 - Create realistic mock data (5-8 entries), NO "Lorem Ipsum"
@@ -366,12 +372,34 @@ Write a clear markdown explanation including:
 
         setStreamingStatus('✨ Parsing response...');
 
+        // Save raw response for debugging (stored in window for easy access)
         try {
-          // Clean any markdown artifacts from the response
-          const cleanedText = cleanGeneratedCode(fullText);
-          const result = JSON.parse(cleanedText);
-          const explanation = result.explanation || 'App generated successfully.';
-          const newFiles = result.files || result; // Support both formats
+          (window as any).__lastAIResponse = {
+            raw: fullText,
+            timestamp: Date.now(),
+            chars: fullText.length,
+            filesDetected: detectedFiles
+          };
+          console.log('[Debug] Raw response saved to window.__lastAIResponse (' + fullText.length + ' chars)');
+        } catch (e) {
+          console.debug('[Debug] Could not save raw response:', e);
+        }
+
+        try {
+          // Use robust parser with truncation repair
+          const parseResult = parseMultiFileResponse(fullText);
+          if (!parseResult) {
+            throw new Error('Could not parse response - no valid file content found');
+          }
+
+          const explanation = parseResult.explanation || 'App generated successfully.';
+          const newFiles = parseResult.files;
+
+          // Warn if response was truncated but we recovered
+          if (parseResult.truncated) {
+            console.warn('[Generation] Response was truncated but partially recovered');
+            setStreamingStatus('⚠️ Response truncated - showing recovered files');
+          }
 
           debugLog.response('generation', {
             id: genRequestId,
@@ -398,6 +426,25 @@ Write a clear markdown explanation including:
 
           setStreamingStatus(`✅ Generated ${Object.keys(newFiles).length} files!`);
 
+          // Save to AI history (persistent)
+          aiHistory.addEntry({
+            timestamp: Date.now(),
+            prompt: prompt || 'Generate app',
+            model: currentModel,
+            provider: providerName,
+            hasSketch: !!sketchAtt,
+            hasBrand: !!brandAtt,
+            isUpdate: !!existingApp,
+            rawResponse: fullText,
+            responseChars: fullText.length,
+            responseChunks: chunkCount,
+            durationMs: Date.now() - genStartTime,
+            success: true,
+            truncated: parseResult.truncated,
+            filesGenerated: Object.keys(newFiles),
+            explanation
+          });
+
           // Add assistant message
           const assistantMessage: ChatMessage = {
             id: crypto.randomUUID(),
@@ -413,22 +460,49 @@ Write a clear markdown explanation including:
           // Show diff modal
           reviewChange(existingApp ? 'Updated App' : 'Generated Initial App', mergedFiles);
         } catch (e) {
-          console.error('Parse error:', e, fullText.slice(0, 500));
-          setStreamingStatus('❌ Failed to parse response');
+          const errorMsg = e instanceof Error ? e.message : 'Parse error';
+          console.error('Parse error:', errorMsg);
+          console.error('Response preview:', fullText.slice(0, 500));
+          console.error('Response end:', fullText.slice(-200));
+          setStreamingStatus('❌ ' + errorMsg);
 
-          debugLog.error('generation', e instanceof Error ? e.message : 'Parse error', {
+          debugLog.error('generation', errorMsg, {
             id: genRequestId,
             model: currentModel,
             duration: Date.now() - genStartTime,
-            response: fullText.slice(0, 1000),
-            metadata: { mode: 'generator', totalChunks: chunkCount, provider: providerName }
+            response: fullText.slice(0, 1000) + '\n...\n' + fullText.slice(-500),
+            metadata: {
+              mode: 'generator',
+              totalChunks: chunkCount,
+              totalChars: fullText.length,
+              provider: providerName,
+              hint: 'Check window.__lastAIResponse in console for full response'
+            }
+          });
+
+          // Save failed attempt to AI history
+          aiHistory.addEntry({
+            timestamp: Date.now(),
+            prompt: prompt || 'Generate app',
+            model: currentModel,
+            provider: providerName,
+            hasSketch: !!sketchAtt,
+            hasBrand: !!brandAtt,
+            isUpdate: !!existingApp,
+            rawResponse: fullText,
+            responseChars: fullText.length,
+            responseChunks: chunkCount,
+            durationMs: Date.now() - genStartTime,
+            success: false,
+            error: errorMsg,
+            truncated: true
           });
 
           const errorMessage: ChatMessage = {
             id: crypto.randomUUID(),
             role: 'assistant',
             timestamp: Date.now(),
-            error: 'Failed to generate project. Please try again.',
+            error: errorMsg + ' (Check browser console for raw response)',
             snapshotFiles: { ...files }
           };
           setMessages(prev => [...prev, errorMessage]);
@@ -571,23 +645,23 @@ Only return files that need changes. Maintain all existing functionality.`;
 
       setStreamingStatus('✨ Applying changes...');
 
-      const cleanedText = cleanGeneratedCode(fullText);
-      const result = JSON.parse(cleanedText);
-      const explanation = result.explanation || 'Component updated successfully.';
-      const newFilesFromResult = result.files || {};
+      // Save raw response for debugging
+      (window as any).__lastAIResponse = { raw: fullText, timestamp: Date.now(), type: 'inspect-edit' };
+
+      // Use robust parser with truncation repair
+      const parseResult = parseMultiFileResponse(fullText);
+      const explanation = parseResult?.explanation || 'Component updated successfully.';
+      const newFilesFromResult = parseResult?.files || {};
+
+      if (parseResult?.truncated) {
+        console.warn('[InspectEdit] Response was truncated but partially recovered');
+      }
 
       if (Object.keys(newFilesFromResult).length > 0) {
-        // Clean code in each file
-        for (const [path, content] of Object.entries(newFilesFromResult)) {
-          if (typeof content === 'string') {
-            newFilesFromResult[path] = cleanGeneratedCode(content);
-          }
-        }
-
         const mergedFiles = { ...files, ...newFilesFromResult };
         const fileChanges = calculateFileChanges(files, mergedFiles);
 
-        setStreamingStatus(`✅ Modified ${Object.keys(newFilesFromResult).length} file(s)`);
+        setStreamingStatus(`✅ Modified ${Object.keys(newFilesFromResult).length} file(s)${parseResult?.truncated ? ' (truncated)' : ''}`);
 
         // Add assistant message
         const assistantMessage: ChatMessage = {
@@ -698,6 +772,7 @@ Only return files that need changes. Maintain all existing functionality.`;
         isGenerating={isGenerating}
         hasExistingApp={!!existingApp}
         placeholder={isConsultantMode ? "Describe what to analyze..." : undefined}
+        files={files}
       />
 
       {/* Settings Panel */}
@@ -713,6 +788,8 @@ Only return files that need changes. Maintain all existing functionality.`;
         onModelChange={onModelChange}
         onProviderChange={handleProviderChange}
         onOpenAISettings={onOpenAISettings}
+        aiHistoryCount={aiHistory.history.length}
+        onOpenAIHistory={() => setShowAIHistory(true)}
       />
 
       {/* Project Panel */}
@@ -834,6 +911,16 @@ Only return files that need changes. Maintain all existing functionality.`;
           </div>
         </div>
       )}
+
+      {/* AI History Modal */}
+      <AIHistoryModal
+        isOpen={showAIHistory}
+        onClose={() => setShowAIHistory(false)}
+        history={aiHistory.history}
+        onClearHistory={aiHistory.clearHistory}
+        onDeleteEntry={aiHistory.deleteEntry}
+        onExportHistory={aiHistory.exportHistory}
+      />
     </aside>
   );
 });
