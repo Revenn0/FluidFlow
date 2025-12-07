@@ -25,6 +25,8 @@ const ProviderIcon: React.FC<{ type: ProviderType; className?: string }> = ({ ty
       return <div className={`${className} rounded-sm bg-emerald-500 flex items-center justify-center text-[10px] font-bold text-white`}>AI</div>;
     case 'anthropic':
       return <div className={`${className} rounded-sm bg-orange-500 flex items-center justify-center text-[10px] font-bold text-white`}>A</div>;
+    case 'zai':
+      return <div className={`${className} rounded-sm bg-indigo-500 flex items-center justify-center text-[10px] font-bold text-white`}>Z</div>;
     case 'ollama':
       return <Server className={`${className} text-purple-400`} />;
     case 'lmstudio':
@@ -674,6 +676,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                       { name: 'Google AI Studio', url: 'https://aistudio.google.com/apikey' },
                       { name: 'OpenAI', url: 'https://platform.openai.com/api-keys' },
                       { name: 'Anthropic', url: 'https://console.anthropic.com/settings/keys' },
+                      { name: 'Z.AI', url: 'https://z.ai' },
                       { name: 'OpenRouter', url: 'https://openrouter.ai/keys' },
                     ].map(link => (
                       <a

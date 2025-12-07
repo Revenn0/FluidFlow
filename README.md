@@ -4,14 +4,14 @@
 
 **Sketch-to-App AI Prototyping Tool**
 
-Transform wireframes and sketches into functional React applications using Google's Gemini AI.
+Transform wireframes and sketches into functional React applications using AI.
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite)](https://vitejs.dev/)
-[![Gemini AI](https://img.shields.io/badge/Gemini-AI-4285F4?logo=google)](https://ai.google.dev/)
+[![Multi-AI](https://img.shields.io/badge/AI-Multi--Provider-8B5CF6)](https://ai.google.dev/)
 
-[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Architecture](#architecture) | [Debug Mode](#debug-mode)
+[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Architecture](#architecture)
 
 </div>
 
@@ -26,6 +26,24 @@ Transform wireframes and sketches into functional React applications using Googl
 - **Multi-File Generation** - Creates organized project structure with components, utilities, and styles
 - **Live Preview** - Real-time preview with device simulation (desktop, tablet, mobile)
 - **Code Editor** - Monaco-powered editor with syntax highlighting and split view
+
+### Multi-Provider AI Support
+
+| Provider | Models |
+|----------|--------|
+| **Google Gemini** | Gemini 3 Pro Preview, Gemini 2.5 Flash, Gemini 2.5 Pro |
+| **OpenAI** | GPT-5.1 Codex, GPT-5.1, GPT-4o, GPT-4o Mini |
+| **Anthropic** | Claude 4.5 Sonnet, Claude 4.5 Opus |
+| **Z.AI (GLM)** | GLM-4.6, GLM-4.5, GLM-4.5-air |
+| **OpenRouter** | Access to 100+ models |
+
+### Project Management
+
+- **Cloud Projects** - Save and manage multiple projects with backend sync
+- **Git Integration** - Built-in version control with commit history
+- **WIP Persistence** - Uncommitted changes survive page refresh (IndexedDB)
+- **Discard Changes** - Restore to last commit with one click
+- **AI Commit Messages** - Generate commit messages with AI
 
 ### AI-Powered Features
 
@@ -49,8 +67,9 @@ Transform wireframes and sketches into functional React applications using Googl
 - **Console Panel** - View logs, warnings, and errors from preview
 - **Network Panel** - Monitor HTTP requests
 - **Debug Mode** - Track all AI API calls with JSON inspection
-- **Version History** - Undo/redo with 50-step history
-- **Education Mode** - Detailed code comments for learning
+- **Version History** - Undo/redo with full timeline navigation
+- **Database Studio** - Visual SQLite database management
+- **Environment Panel** - Manage environment variables
 
 ---
 
@@ -59,7 +78,7 @@ Transform wireframes and sketches into functional React applications using Googl
 ### Prerequisites
 
 - Node.js 18+
-- Google Gemini API Key ([Get one here](https://ai.google.dev/))
+- API Key from any supported provider
 
 ### Quick Start
 
@@ -71,12 +90,11 @@ cd fluidflow
 # Install dependencies
 npm install
 
-# Configure environment
-cp .env.example .env.local
-# Edit .env.local and add your GEMINI_API_KEY
-
 # Start development server
 npm run dev
+
+# Start backend server (for project management)
+cd server && npm install && npm run dev
 ```
 
 ### Environment Variables
@@ -84,7 +102,14 @@ npm run dev
 Create a `.env.local` file in the project root:
 
 ```env
-GEMINI_API_KEY=your_gemini_api_key_here
+# At least one API key required
+GEMINI_API_KEY=your_gemini_api_key
+OPENAI_API_KEY=your_openai_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+OPENROUTER_API_KEY=your_openrouter_api_key
+
+# Backend API (optional)
+VITE_API_URL=http://localhost:3200/api
 ```
 
 ### Available Scripts
@@ -116,13 +141,9 @@ Generates complete React applications from sketches.
 #### Consultant Mode
 Analyzes designs and provides UX improvement suggestions before code generation.
 
-### AI Models
+### AI Provider Selection
 
-| Model | Best For |
-|-------|----------|
-| Gemini 2.5 Flash | Fast iterations, simple apps |
-| Gemini 2.5 Pro | Complex applications, better quality |
-| Gemini 3 Pro Preview | Latest features (experimental) |
+Configure your preferred AI provider in the Settings modal (gear icon). Each provider offers different models optimized for various use cases.
 
 ---
 
@@ -239,10 +260,14 @@ Monitor all AI API interactions in real-time.
 | Shortcut | Action |
 |----------|--------|
 | `Ctrl/Cmd + K` | Open command palette |
+| `Ctrl/Cmd + O` | Open project manager |
 | `Ctrl/Cmd + Z` | Undo |
-| `Ctrl/Cmd + Shift + Z` | Redo |
-| `Ctrl/Cmd + S` | Save current file |
-| `Ctrl/Cmd + P` | Quick file open |
+| `Ctrl/Cmd + Y` | Redo |
+| `Ctrl/Cmd + S` | Save to server |
+| `Ctrl/Cmd + Shift + G` | Toggle Git tab |
+| `Ctrl/Cmd + Shift + H` | Toggle History panel |
+| `Ctrl/Cmd + 1` | Switch to Preview |
+| `Ctrl/Cmd + 2` | Switch to Code |
 
 ---
 
@@ -253,12 +278,14 @@ Monitor all AI API interactions in real-time.
 | Framework | React 19 |
 | Language | TypeScript 5.8 |
 | Build Tool | Vite 6 |
-| AI | Google Gemini API |
+| AI | Multi-provider (Gemini, OpenAI, Claude, OpenRouter) |
 | Styling | Tailwind CSS |
 | Icons | Lucide React |
 | Editor | Monaco Editor |
-| Diff | diff (npm) |
-| Export | JSZip, FileSaver |
+| Backend | Express.js |
+| Storage | File system + IndexedDB |
+| Version Control | simple-git |
+| Export | JSZip, FileSaver, StackBlitz SDK |
 
 ---
 
@@ -289,10 +316,11 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-- [Google Gemini](https://ai.google.dev/) for AI capabilities
+- [Google Gemini](https://ai.google.dev/), [OpenAI](https://openai.com/), [Anthropic](https://anthropic.com/) for AI capabilities
 - [Tailwind CSS](https://tailwindcss.com/) for styling
 - [Monaco Editor](https://microsoft.github.io/monaco-editor/) for code editing
 - [Lucide](https://lucide.dev/) for icons
+- [simple-git](https://github.com/steveukx/git-js) for Git integration
 
 ---
 

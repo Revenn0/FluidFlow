@@ -13,8 +13,9 @@ export function createProvider(config: ProviderConfig): AIProvider {
       return new GeminiProvider(config);
     case 'openai':
     case 'openrouter':
+    case 'zai':
     case 'custom':
-      // OpenAI-compatible API
+      // OpenAI-compatible API (Z.AI GLM uses OpenAI-compatible endpoint)
       return new OpenAIProvider(config);
     case 'anthropic':
       return new AnthropicProvider(config);

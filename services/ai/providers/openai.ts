@@ -46,7 +46,7 @@ export class OpenAIProvider implements AIProvider {
     const body: any = {
       model,
       messages,
-      max_tokens: request.maxTokens || 4096,
+      max_tokens: request.maxTokens || 16384,
       temperature: request.temperature ?? 0.7,
     };
 
@@ -113,7 +113,7 @@ export class OpenAIProvider implements AIProvider {
     const body: any = {
       model,
       messages,
-      max_tokens: request.maxTokens || 4096,
+      max_tokens: request.maxTokens || 16384,
       temperature: request.temperature ?? 0.7,
       stream: true,
     };
@@ -143,28 +143,60 @@ export class OpenAIProvider implements AIProvider {
     const reader = response.body?.getReader();
     const decoder = new TextDecoder();
     let fullText = '';
+    let buffer = ''; // Buffer for incomplete SSE lines
 
     if (reader) {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n').filter(line => line.trim().startsWith('data:'));
+        // Append new data to buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // Split by newlines but keep processing incomplete lines
+        const lines = buffer.split('\n');
+
+        // Keep the last line in buffer if it doesn't end with newline (incomplete)
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
-          const data = line.replace('data: ', '').trim();
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data:')) continue;
+
+          const data = trimmed.slice(5).trim(); // Remove 'data:' prefix
           if (data === '[DONE]') continue;
+          if (!data) continue;
 
           try {
             const parsed = JSON.parse(data);
-            const text = parsed.choices[0]?.delta?.content || '';
+            const text = parsed.choices?.[0]?.delta?.content || '';
             if (text) {
               fullText += text;
               onChunk({ text, done: false });
             }
-          } catch {
-            // Skip invalid JSON
+          } catch (e) {
+            // Log but don't fail on parse errors - might be partial data
+            console.debug('[OpenAI Stream] Parse error, skipping chunk:', data.slice(0, 100));
+          }
+        }
+      }
+
+      // Process any remaining data in buffer
+      if (buffer.trim()) {
+        const trimmed = buffer.trim();
+        if (trimmed.startsWith('data:')) {
+          const data = trimmed.slice(5).trim();
+          if (data && data !== '[DONE]') {
+            try {
+              const parsed = JSON.parse(data);
+              const text = parsed.choices?.[0]?.delta?.content || '';
+              if (text) {
+                fullText += text;
+                onChunk({ text, done: false });
+              }
+            } catch {
+              // Ignore final buffer parse errors
+            }
           }
         }
       }

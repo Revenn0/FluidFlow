@@ -1,6 +1,6 @@
 // AI Provider Types and Interfaces
 
-export type ProviderType = 'gemini' | 'openai' | 'anthropic' | 'ollama' | 'lmstudio' | 'openrouter' | 'custom';
+export type ProviderType = 'gemini' | 'openai' | 'anthropic' | 'zai' | 'ollama' | 'lmstudio' | 'openrouter' | 'custom';
 
 export interface ProviderConfig {
   id: string;
@@ -109,6 +109,17 @@ export const DEFAULT_PROVIDERS: Record<ProviderType, Omit<ProviderConfig, 'id' |
       { id: 'claude-haiku-4-5-20251001', name: 'Claude Haiku 4.5', description: 'Fast & cheap', supportsVision: true, supportsStreaming: true, contextWindow: 200000 },
     ],
     defaultModel: 'claude-sonnet-4-5-20250929',
+  },
+  zai: {
+    type: 'zai',
+    name: 'Z.AI (GLM)',
+    baseUrl: 'https://api.z.ai/api/coding/paas/v4',
+    models: [
+      { id: 'GLM-4.6', name: 'GLM-4.6', description: 'Latest flagship', supportsVision: true, supportsStreaming: true, contextWindow: 128000 },
+      { id: 'GLM-4.5', name: 'GLM-4.5', description: 'Powerful model', supportsVision: true, supportsStreaming: true, contextWindow: 128000 },
+      { id: 'GLM-4.5-air', name: 'GLM-4.5 Air', description: 'Fast & efficient', supportsVision: true, supportsStreaming: true, contextWindow: 128000 },
+    ],
+    defaultModel: 'GLM-4.6',
   },
   ollama: {
     type: 'ollama',
