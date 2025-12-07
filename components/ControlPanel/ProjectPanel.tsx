@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   FolderOpen, ChevronUp, ChevronDown, Cloud, CloudOff, Plus,
   Clock, GitBranch, Check, Loader2, RefreshCw, X, Search, Trash2, Copy,
-  AlertCircle, FolderPlus, MoreVertical
+  AlertCircle, FolderPlus, MoreVertical, Save, FolderInput, AlertTriangle, Merge
 } from 'lucide-react';
 import type { ProjectMeta } from '@/services/projectApi';
 
@@ -29,6 +30,10 @@ interface ProjectPanelProps {
   gitStatus?: GitStatus | null;
   hasUncommittedChanges?: boolean;
   onOpenGitTab?: () => void;
+  // Unsaved work handling
+  hasUnsavedWork?: boolean;
+  fileCount?: number;
+  onSaveCurrentAsProject?: (name: string, description?: string) => Promise<ProjectMeta | null>;
 }
 
 function formatDate(timestamp: number): string {
@@ -60,6 +65,9 @@ export const ProjectPanel: React.FC<ProjectPanelProps> = ({
   gitStatus,
   hasUncommittedChanges,
   onOpenGitTab,
+  hasUnsavedWork,
+  fileCount = 0,
+  onSaveCurrentAsProject,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -69,6 +77,15 @@ export const ProjectPanel: React.FC<ProjectPanelProps> = ({
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Unsaved work modal state
+  const [unsavedWorkModal, setUnsavedWorkModal] = useState<{
+    isOpen: boolean;
+    targetProjectId: string | null;
+    targetProjectName?: string;
+  }>({ isOpen: false, targetProjectId: null });
+  const [saveAsName, setSaveAsName] = useState('');
+  const [saveAsDescription, setSaveAsDescription] = useState('');
 
   // Filter projects
   const filteredProjects = projects.filter(project => {
@@ -95,14 +112,61 @@ export const ProjectPanel: React.FC<ProjectPanelProps> = ({
     }
   };
 
-  // Handle open project
+  // Handle open project - check for unsaved work first
   const handleOpen = async (id: string) => {
+    // If there's unsaved work and no current project, show the modal
+    if (hasUnsavedWork && !currentProject) {
+      const targetProject = projects.find(p => p.id === id);
+      setUnsavedWorkModal({
+        isOpen: true,
+        targetProjectId: id,
+        targetProjectName: targetProject?.name
+      });
+      return;
+    }
+
+    // Otherwise, open directly
+    await doOpenProject(id);
+  };
+
+  // Actually open the project
+  const doOpenProject = async (id: string) => {
     setActionLoading(id);
     try {
       await onOpenProject(id);
       setIsOpen(false);
+      setUnsavedWorkModal({ isOpen: false, targetProjectId: null });
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  // Handle save current work as new project then open target
+  const handleSaveAsNewThenOpen = async () => {
+    if (!saveAsName.trim() || !onSaveCurrentAsProject) return;
+
+    setActionLoading('save-as-new');
+    try {
+      await onSaveCurrentAsProject(saveAsName.trim(), saveAsDescription.trim() || undefined);
+      setSaveAsName('');
+      setSaveAsDescription('');
+
+      // Now open the target project if one was selected
+      if (unsavedWorkModal.targetProjectId) {
+        await doOpenProject(unsavedWorkModal.targetProjectId);
+      } else {
+        setUnsavedWorkModal({ isOpen: false, targetProjectId: null });
+        setIsOpen(false);
+      }
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Handle open anyway (discard unsaved work)
+  const handleOpenAnyway = async () => {
+    if (unsavedWorkModal.targetProjectId) {
+      await doOpenProject(unsavedWorkModal.targetProjectId);
     }
   };
 
@@ -507,6 +571,116 @@ export const ProjectPanel: React.FC<ProjectPanelProps> = ({
           {/* Click outside to close */}
           <div className="absolute inset-0 -z-10" onClick={() => setIsOpen(false)} />
         </div>
+      )}
+
+      {/* Unsaved Work Modal */}
+      {unsavedWorkModal.isOpen && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+          onClick={() => setUnsavedWorkModal({ isOpen: false, targetProjectId: null })}
+        >
+          <div
+            className="w-full max-w-md bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden mx-4 animate-in zoom-in-95 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center gap-3 p-5 border-b border-white/10 bg-amber-500/5">
+              <div className="p-2.5 bg-amber-500/20 rounded-xl">
+                <AlertTriangle className="w-6 h-6 text-amber-400" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-white">Unsaved Work Detected</h3>
+                <p className="text-sm text-slate-400">
+                  {fileCount} file{fileCount !== 1 ? 's' : ''} generated without a project
+                </p>
+              </div>
+              <button
+                onClick={() => setUnsavedWorkModal({ isOpen: false, targetProjectId: null })}
+                className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-5 space-y-4">
+              <p className="text-sm text-slate-300">
+                You have generated code that isn't saved to any project.
+                {unsavedWorkModal.targetProjectName && (
+                  <span className="text-amber-400"> Opening "{unsavedWorkModal.targetProjectName}" will replace your current work.</span>
+                )}
+              </p>
+
+              {/* Option 1: Save as New Project */}
+              <div className="p-4 bg-slate-800/50 rounded-xl border border-white/5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Save className="w-4 h-4 text-emerald-400" />
+                  <span className="text-sm font-medium text-white">Save as New Project</span>
+                </div>
+                <input
+                  type="text"
+                  value={saveAsName}
+                  onChange={(e) => setSaveAsName(e.target.value)}
+                  placeholder="Project name"
+                  className="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-emerald-500/50"
+                />
+                <input
+                  type="text"
+                  value={saveAsDescription}
+                  onChange={(e) => setSaveAsDescription(e.target.value)}
+                  placeholder="Description (optional)"
+                  className="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-emerald-500/50"
+                />
+                <button
+                  onClick={handleSaveAsNewThenOpen}
+                  disabled={!saveAsName.trim() || actionLoading === 'save-as-new' || !onSaveCurrentAsProject}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  {actionLoading === 'save-as-new' ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  Save & {unsavedWorkModal.targetProjectId ? 'Continue' : 'Done'}
+                </button>
+              </div>
+
+              {/* Option 2: Open Anyway */}
+              {unsavedWorkModal.targetProjectId && (
+                <button
+                  onClick={handleOpenAnyway}
+                  disabled={actionLoading === unsavedWorkModal.targetProjectId}
+                  className="w-full flex items-center justify-center gap-2 p-3 bg-slate-800/50 hover:bg-slate-800 border border-white/5 hover:border-red-500/30 rounded-xl text-sm transition-all group"
+                >
+                  <FolderInput className="w-4 h-4 text-slate-400 group-hover:text-red-400" />
+                  <span className="text-slate-300 group-hover:text-red-300">
+                    Open Anyway
+                  </span>
+                  <span className="text-xs text-slate-500 group-hover:text-red-400/70">
+                    (lose current work)
+                  </span>
+                </button>
+              )}
+
+              {/* Info */}
+              <div className="flex items-start gap-2 text-xs text-slate-500">
+                <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                <span>Your generated code only exists in memory. Saving to a project will persist it to disk.</span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-3 p-4 border-t border-white/10 bg-slate-950/50">
+              <button
+                onClick={() => setUnsavedWorkModal({ isOpen: false, targetProjectId: null })}
+                className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -940,6 +940,16 @@ Only return files that need changes. Maintain all existing functionality.`;
           gitStatus={gitStatus}
           hasUncommittedChanges={hasUncommittedChanges}
           onOpenGitTab={onOpenGitTab}
+          // Unsaved work props - only show if more files than default template (9 files)
+          // or if files have been modified (we check count as a simple proxy)
+          hasUnsavedWork={!currentProject && Object.keys(files).length > 9}
+          fileCount={Object.keys(files).length}
+          onSaveCurrentAsProject={async (name, description) => {
+            // Create new project with current files
+            // onCreateProject captures 'files' from App.tsx scope
+            const newProject = await onCreateProject?.(name, description);
+            return newProject || null;
+          }}
         />
       )}
 
