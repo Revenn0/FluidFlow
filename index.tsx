@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import './style.css';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -10,6 +12,13 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        console.error('Application error:', error, errorInfo);
+        // Here you could send the error to a service like Sentry
+      }}
+    >
+      <App />
+    </ErrorBoundary>
   </React.StrictMode>
 );

@@ -26,3 +26,4 @@ dist-ssr
 .env
 projects/
 global.json
+BUG*.md

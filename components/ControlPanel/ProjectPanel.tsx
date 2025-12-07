@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
   FolderOpen, ChevronUp, ChevronDown, Cloud, CloudOff, Plus,
@@ -34,6 +34,10 @@ interface ProjectPanelProps {
   hasUnsavedWork?: boolean;
   fileCount?: number;
   onSaveCurrentAsProject?: (name: string, description?: string) => Promise<ProjectMeta | null>;
+  // Props for modal exclusivity
+  shouldClose?: boolean;
+  onClosed?: () => void;
+  onOpened?: () => void;
 }
 
 function formatDate(timestamp: number): string {
@@ -68,6 +72,9 @@ export const ProjectPanel: React.FC<ProjectPanelProps> = ({
   hasUnsavedWork,
   fileCount = 0,
   onSaveCurrentAsProject,
+  shouldClose,
+  onClosed,
+  onOpened
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -86,6 +93,14 @@ export const ProjectPanel: React.FC<ProjectPanelProps> = ({
   }>({ isOpen: false, targetProjectId: null });
   const [saveAsName, setSaveAsName] = useState('');
   const [saveAsDescription, setSaveAsDescription] = useState('');
+
+  // Handle modal exclusivity - close when shouldClose is true
+  useEffect(() => {
+    if (shouldClose && isOpen) {
+      setIsOpen(false);
+      onClosed?.();
+    }
+  }, [shouldClose, isOpen, onClosed]);
 
   // Filter projects
   const filteredProjects = projects.filter(project => {
@@ -196,7 +211,13 @@ export const ProjectPanel: React.FC<ProjectPanelProps> = ({
     <div className="border-t border-white/5 pt-2 flex-none">
       {/* Main Project Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          const newOpenState = !isOpen;
+          setIsOpen(newOpenState);
+          if (newOpenState) {
+            onOpened?.();
+          }
+        }}
         className="flex items-center justify-between w-full p-2 text-slate-400 hover:text-slate-200 transition-colors rounded-lg hover:bg-white/5"
         aria-expanded={isOpen}
         aria-controls="project-panel"

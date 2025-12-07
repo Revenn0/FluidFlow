@@ -13,7 +13,12 @@ export default defineConfig(({ mode }) => {
         ignored: ['**/projects/**', '**/node_modules/**', '**/.git/**'],
       },
     },
-    plugins: [react()],
+    plugins: [
+      react(),
+    ],
+    css: {
+      postcss: './postcss.config.js',
+    },
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)

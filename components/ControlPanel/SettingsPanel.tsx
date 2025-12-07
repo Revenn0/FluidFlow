@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Settings, ChevronUp, ChevronDown, CheckCircle, AlertCircle, GraduationCap, Bug, Settings2, ChevronRight, History } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Settings, ChevronUp, ChevronDown, CheckCircle, AlertCircle, GraduationCap, Bug, Settings2, ChevronRight, History, X } from 'lucide-react';
 import { useDebugStore } from '../../hooks/useDebugStore';
 import { getProviderManager } from '../../services/ai';
 
@@ -13,6 +13,10 @@ interface SettingsPanelProps {
   onOpenAISettings?: () => void;
   aiHistoryCount?: number;
   onOpenAIHistory?: () => void;
+  // Props for modal exclusivity
+  shouldClose?: boolean;
+  onClosed?: () => void;
+  onOpened?: () => void;
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({
@@ -24,7 +28,10 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onProviderChange,
   onOpenAISettings,
   aiHistoryCount = 0,
-  onOpenAIHistory
+  onOpenAIHistory,
+  shouldClose,
+  onClosed,
+  onOpened
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { enabled: debugEnabled, setEnabled: setDebugEnabled, logs } = useDebugStore();
@@ -33,6 +40,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   const manager = getProviderManager();
   const activeProvider = manager.getActiveConfig();
   const providers = manager.getConfigs();
+
+  // Handle modal exclusivity - close when shouldClose is true
+  useEffect(() => {
+    if (shouldClose && isOpen) {
+      setIsOpen(false);
+      onClosed?.();
+    }
+  }, [shouldClose, isOpen, onClosed]);
 
   const handleProviderChange = (providerId: string) => {
     manager.setActiveProvider(providerId);
@@ -54,7 +69,13 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   return (
     <div className="border-t border-white/5 pt-2 flex-none">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          const newOpenState = !isOpen;
+          setIsOpen(newOpenState);
+          if (newOpenState) {
+            onOpened?.();
+          }
+        }}
         className="flex items-center justify-between w-full p-2 text-slate-400 hover:text-slate-200 transition-colors rounded-lg hover:bg-white/5"
         aria-expanded={isOpen}
         aria-controls="settings-panel"
@@ -67,11 +88,29 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       </button>
 
       {isOpen && (
-        <div
-          id="settings-panel"
-          className="absolute bottom-16 left-6 right-6 bg-slate-950/90 backdrop-blur-xl rounded-xl border border-white/10 animate-in fade-in slide-in-from-bottom-2 duration-200 shadow-2xl z-50 overflow-hidden"
-        >
-          <div className="p-4 space-y-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div
+            id="settings-panel"
+            className="w-full max-w-md bg-slate-950/98 backdrop-blur-xl rounded-2xl border border-white/10 animate-in zoom-in-95 duration-200 shadow-2xl overflow-hidden mx-4"
+            style={{ maxHeight: 'calc(100vh - 100px)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header with Close Button */}
+          <div className="flex items-center justify-between p-3 border-b border-white/5">
+            <div className="flex items-center gap-2">
+              <Settings className="w-4 h-4 text-blue-400" />
+              <span className="text-sm font-medium text-white">Settings</span>
+            </div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+              title="Close settings"
+            >
+              <X className="w-4 h-4 text-slate-400" />
+            </button>
+          </div>
+
+          <div className="p-4 space-y-4 pt-2">
             {/* AI Provider Quick Select */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -83,11 +122,11 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     setIsOpen(false);
                     onOpenAISettings?.();
                   }}
-                  className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300 transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-sm text-blue-300 font-medium rounded-lg transition-colors"
                 >
-                  <Settings2 className="w-3 h-3" />
-                  Full Settings
-                  <ChevronRight className="w-3 h-3" />
+                  <Settings2 className="w-4 h-4" />
+                  <span>AI Provider Settings</span>
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
 
@@ -222,6 +261,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               </div>
             )}
           </div>
+          </div>
+          {/* Click outside to close */}
+          <div className="absolute inset-0 -z-10" onClick={() => setIsOpen(false)} />
         </div>
       )}
     </div>

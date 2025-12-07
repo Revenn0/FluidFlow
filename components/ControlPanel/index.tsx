@@ -129,6 +129,9 @@ export const ControlPanel = forwardRef<ControlPanelRef, ControlPanelProps>(({
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [showAIHistory, setShowAIHistory] = useState(false);
 
+  // Modal exclusivity state
+  const [openModal, setOpenModal] = useState<'settings' | 'projects' | null>(null);
+
   // Streaming state
   const [streamingStatus, setStreamingStatus] = useState<string>('');
   const [streamingChars, setStreamingChars] = useState(0);
@@ -145,6 +148,15 @@ export const ControlPanel = forwardRef<ControlPanelRef, ControlPanelProps>(({
   useEffect(() => {
     sessionIdRef.current = `${CONTEXT_IDS.MAIN_CHAT}-${currentProject?.id || 'default'}`;
   }, [currentProject?.id]);
+
+  // Modal exclusivity handlers
+  const handleModalOpen = (modalType: 'settings' | 'projects') => {
+    setOpenModal(modalType);
+  };
+
+  const handleModalClose = (modalType: 'settings' | 'projects') => {
+    setOpenModal(prev => prev === modalType ? null : prev);
+  };
 
   // Sync messages with context manager
   useEffect(() => {
@@ -920,6 +932,9 @@ Only return files that need changes. Maintain all existing functionality.`;
         onOpenAISettings={onOpenAISettings}
         aiHistoryCount={aiHistory.history.length}
         onOpenAIHistory={() => setShowAIHistory(true)}
+        shouldClose={openModal === 'projects'}
+        onClosed={() => handleModalClose('settings')}
+        onOpened={() => handleModalOpen('settings')}
       />
 
       {/* Project Panel */}
@@ -950,6 +965,9 @@ Only return files that need changes. Maintain all existing functionality.`;
             const newProject = await onCreateProject?.(name, description);
             return newProject || null;
           }}
+          shouldClose={openModal === 'settings'}
+          onClosed={() => handleModalClose('projects')}
+          onOpened={() => handleModalOpen('projects')}
         />
       )}
 
