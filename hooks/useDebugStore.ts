@@ -68,6 +68,16 @@ export const debugLog = {
     });
   },
 
+  // Update an existing stream log entry (for live streaming updates)
+  // Pass complete=true when streaming finishes to immediately update UI
+  streamUpdate: (id: string, data: Partial<DebugLogEntry>, complete = false) => {
+    if (!globalDebugState.enabled) return;
+    updateLog(id, {
+      ...data,
+      timestamp: Date.now(), // Update timestamp to show "live" status
+    }, complete); // notifyNow = complete
+  },
+
   error: (category: DebugLogEntry['category'], error: string, data?: Partial<DebugLogEntry>) => {
     if (!globalDebugState.enabled) return;
     addLog({
@@ -99,6 +109,41 @@ function addLog(entry: DebugLogEntry) {
     logs: [entry, ...globalDebugState.logs].slice(0, globalDebugState.maxLogs),
   };
   globalListeners.forEach(listener => listener());
+}
+
+// Debounce timer for log updates
+let updateDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+function updateLog(id: string, updates: Partial<DebugLogEntry>, notifyNow = false) {
+  const logIndex = globalDebugState.logs.findIndex(log => log.id === id);
+  if (logIndex === -1) return false;
+
+  const updatedLogs = [...globalDebugState.logs];
+  updatedLogs[logIndex] = { ...updatedLogs[logIndex], ...updates };
+
+  globalDebugState = {
+    ...globalDebugState,
+    logs: updatedLogs,
+  };
+
+  // Debounce listener notifications to avoid blocking during rapid updates
+  if (notifyNow) {
+    // Immediate notification (e.g., when stream completes)
+    if (updateDebounceTimer) {
+      clearTimeout(updateDebounceTimer);
+      updateDebounceTimer = null;
+    }
+    globalListeners.forEach(listener => listener());
+  } else {
+    // Debounced notification (during streaming)
+    if (!updateDebounceTimer) {
+      updateDebounceTimer = setTimeout(() => {
+        updateDebounceTimer = null;
+        globalListeners.forEach(listener => listener());
+      }, 500); // Update UI every 500ms max
+    }
+  }
+  return true;
 }
 
 export function useDebugStore() {
@@ -170,6 +215,7 @@ export function useDebugStore() {
     clearLogs,
     setFilter,
     addLog,
+    updateLog,
   };
 }
 

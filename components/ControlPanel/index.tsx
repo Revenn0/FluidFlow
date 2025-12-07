@@ -303,6 +303,15 @@ Write a clear markdown explanation including:
         let detectedFiles: string[] = [];
         let chunkCount = 0;
 
+        // Create initial stream log entry (will be updated during streaming)
+        const streamLogId = `stream-${genRequestId}`;
+        debugLog.stream('generation', {
+          id: streamLogId,
+          model: currentModel,
+          response: 'Streaming started...',
+          metadata: { chunkCount: 0, totalChars: 0, filesDetected: 0, status: 'streaming' }
+        });
+
         // Use streaming API
         await manager.generateStream(
           request,
@@ -312,12 +321,16 @@ Write a clear markdown explanation including:
             chunkCount++;
             setStreamingChars(fullText.length);
 
-            // Log every 10th chunk to avoid spam
-            if (chunkCount % 10 === 0) {
-              debugLog.stream('generation', {
-                id: genRequestId,
-                metadata: { chunkCount, totalChars: fullText.length, filesDetected: detectedFiles.length }
-              });
+            // Update the stream log every 50 chunks (less frequent to avoid re-render issues)
+            if (chunkCount % 50 === 0) {
+              try {
+                debugLog.streamUpdate(streamLogId, {
+                  response: `Streaming... ${Math.round(fullText.length / 1024)}KB received`,
+                  metadata: { chunkCount, totalChars: fullText.length, filesDetected: detectedFiles.length, status: 'streaming' }
+                });
+              } catch (e) {
+                console.debug('[Debug] Stream update failed:', e);
+              }
             }
 
             // Try to detect file paths as they appear (match any file path in JSON)
@@ -340,6 +353,16 @@ Write a clear markdown explanation including:
           },
           currentModel
         );
+
+        // Mark stream as complete (pass true to immediately notify UI)
+        try {
+          debugLog.streamUpdate(streamLogId, {
+            response: `Completed: ${Math.round(fullText.length / 1024)}KB, ${chunkCount} chunks`,
+            metadata: { chunkCount, totalChars: fullText.length, filesDetected: detectedFiles.length, status: 'complete' }
+          }, true); // complete=true for immediate UI update
+        } catch (e) {
+          console.debug('[Debug] Final stream update failed:', e);
+        }
 
         setStreamingStatus('✨ Parsing response...');
 

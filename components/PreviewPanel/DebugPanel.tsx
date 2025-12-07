@@ -109,6 +109,32 @@ function JsonViewer({ data, collapsed = false, depth = 0 }: JsonViewerProps) {
   return <span className="text-gray-400">{String(data)}</span>;
 }
 
+// Safe JSON display component with error handling
+function SafeJsonDisplay({ content }: { content: string }) {
+  // Check if it looks like JSON
+  const trimmed = content.trim();
+  if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+    return <pre className="whitespace-pre-wrap text-gray-300">{content}</pre>;
+  }
+
+  // Try to parse JSON safely
+  try {
+    const parsed = JSON.parse(content);
+    return <JsonViewer data={parsed} />;
+  } catch {
+    // Show as text with warning for malformed JSON
+    return (
+      <div>
+        <div className="flex items-center gap-1.5 text-yellow-400 text-xs mb-2 pb-2 border-b border-white/10">
+          <AlertCircle size={12} />
+          <span>Malformed JSON (truncated or invalid)</span>
+        </div>
+        <pre className="whitespace-pre-wrap text-gray-300">{content}</pre>
+      </div>
+    );
+  }
+}
+
 interface LogEntryCardProps {
   entry: DebugLogEntry;
   isExpanded: boolean;
@@ -220,11 +246,7 @@ const LogEntryCard: React.FC<LogEntryCardProps> = ({ entry, isExpanded, onToggle
             <div>
               <div className="text-xs text-gray-400 mb-1 font-medium">Response:</div>
               <div className="bg-black/30 rounded p-2 text-xs font-mono overflow-auto max-h-96">
-                {entry.response.startsWith('{') || entry.response.startsWith('[') ? (
-                  <JsonViewer data={JSON.parse(entry.response)} />
-                ) : (
-                  <pre className="whitespace-pre-wrap text-gray-300">{entry.response}</pre>
-                )}
+                <SafeJsonDisplay content={entry.response} />
               </div>
             </div>
           )}
