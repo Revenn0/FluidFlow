@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import { FileSystem } from '../../types';
 import { getProviderManager } from '../../services/ai';
+import { getContextManager, CONTEXT_IDS } from '../../services/conversationContext';
+import { getFluidFlowConfig } from '../../services/fluidflowConfig';
+import { ContextIndicator } from '../ContextIndicator';
 
 interface Message {
   id: string;
@@ -87,6 +90,9 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
   const [copied, setCopied] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const contextManager = getContextManager();
+  const fluidflowConfig = getFluidFlowConfig();
+  const sessionIdRef = useRef<string>(`${CONTEXT_IDS.PROMPT_IMPROVER}-${Date.now()}`);
 
   // Generate project context summary
   const getProjectContext = () => {
@@ -106,17 +112,50 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
     return `Project: ${fileList.length} files, ${components.length} components (${componentNames.join(', ')}${components.length > 8 ? '...' : ''}), ${hasTypeScript ? 'TypeScript' : 'JavaScript'}, React + Tailwind CSS`;
   };
 
-  // Build conversation history for AI
-  const buildConversationHistory = (msgs: Message[]) => {
-    return msgs.map(m => ({
-      role: m.role as 'user' | 'assistant',
-      content: m.content
-    }));
+  // Handle context compaction
+  const handleCompaction = async () => {
+    const sessionId = sessionIdRef.current;
+    const manager = getProviderManager();
+    const provider = manager.getProvider();
+    const config = manager.getActiveConfig();
+
+    if (!provider || !config) {
+      throw new Error('No AI provider configured');
+    }
+
+    const beforeStats = contextManager.getStats(sessionId);
+
+    // Use AI to summarize the conversation
+    await contextManager.compactContext(sessionId, async (text) => {
+      const response = await provider.generate(
+        {
+          prompt: `Summarize this conversation concisely, preserving key decisions and context:\n\n${text}`,
+          systemInstruction: 'You are a summarization assistant. Create a brief summary that captures the essential points of the conversation.',
+          maxTokens: 500
+        },
+        config.defaultModel
+      );
+      return response.text;
+    });
+
+    const afterStats = contextManager.getStats(sessionId);
+
+    // Log the compaction
+    if (beforeStats && afterStats) {
+      fluidflowConfig.addCompactionLog({
+        contextId: sessionId,
+        beforeTokens: beforeStats.tokens,
+        afterTokens: afterStats.tokens,
+        messagesSummarized: beforeStats.messages - afterStats.messages + 1, // +1 for summary
+        summary: `Compacted ${beforeStats.messages} messages to ${afterStats.messages}`
+      });
+    }
   };
 
   // Send message to AI
   const sendToAI = async (userMessage?: string) => {
     setIsLoading(true);
+    const sessionId = sessionIdRef.current;
 
     try {
       const manager = getProviderManager();
@@ -127,24 +166,26 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
         throw new Error('No AI provider configured');
       }
 
-      // Build messages array for context
-      const currentMessages = userMessage
-        ? [...messages, { id: crypto.randomUUID(), role: 'user' as const, content: userMessage, timestamp: Date.now() }]
-        : messages;
+      // Add user message to context if provided
+      if (userMessage) {
+        contextManager.addMessage(sessionId, 'user', userMessage);
+        const newUserMessage: Message = {
+          id: crypto.randomUUID(),
+          role: 'user',
+          content: userMessage,
+          timestamp: Date.now()
+        };
+        setMessages(prev => [...prev, newUserMessage]);
+      }
 
-      // Build the full prompt with conversation history
+      // Build the full prompt with conversation history from context manager
       const projectContext = getProjectContext();
       const taskType = hasExistingApp ? 'modifying an existing app' : 'creating a new app';
-
-      // Build conversation history as text
-      const historyText = currentMessages
-        .filter(m => m.content)
-        .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
-        .join('\n\n');
+      const historyText = contextManager.getConversationAsText(sessionId);
 
       // Build the prompt
       let prompt = '';
-      if (currentMessages.length === 0 || (currentMessages.length === 1 && !userMessage)) {
+      if (!historyText || messages.length === 0) {
         // First message - include original prompt and context
         prompt = `## Project Context
 ${projectContext}
@@ -157,7 +198,7 @@ User is ${taskType}
 
 Please analyze this prompt and ask clarifying questions to help improve it. Start by acknowledging what you understand, then ask 2-3 specific questions.`;
       } else {
-        // Subsequent messages - include conversation history
+        // Subsequent messages - use context from manager
         prompt = `## Project Context
 ${projectContext}
 
@@ -173,17 +214,6 @@ ${historyText}
 Continue the conversation naturally. Either ask follow-up questions or if you have enough information, generate the final improved prompt.`;
       }
 
-      // Add user message to state if provided
-      if (userMessage) {
-        const newUserMessage: Message = {
-          id: crypto.randomUUID(),
-          role: 'user',
-          content: userMessage,
-          timestamp: Date.now()
-        };
-        setMessages(prev => [...prev, newUserMessage]);
-      }
-
       // Create assistant message placeholder
       const assistantMessageId = crypto.randomUUID();
       const assistantMessage: Message = {
@@ -193,6 +223,9 @@ Continue the conversation naturally. Either ask follow-up questions or if you ha
         timestamp: Date.now()
       };
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Add placeholder to context
+      contextManager.addMessage(sessionId, 'assistant', '');
 
       let fullResponse = '';
 
@@ -206,6 +239,8 @@ Continue the conversation naturally. Either ask follow-up questions or if you ha
         config.defaultModel,
         (chunk) => {
           fullResponse += chunk.text;
+          // Update context manager with streaming content
+          contextManager.updateLastMessage(sessionId, fullResponse);
           setMessages(prev =>
             prev.map(m =>
               m.id === assistantMessageId
@@ -215,6 +250,9 @@ Continue the conversation naturally. Either ask follow-up questions or if you ha
           );
         }
       );
+
+      // Finalize the message in context
+      contextManager.finalizeMessage(sessionId);
 
       // Check if this response contains a final prompt
       const finalPromptMatch = fullResponse.match(/```(?:text|prompt)?\n?([\s\S]*?)```/);
@@ -228,6 +266,12 @@ Continue the conversation naturally. Either ask follow-up questions or if you ha
               : m
           )
         );
+      }
+
+      // Check if context needs compaction
+      if (contextManager.needsCompaction(sessionId)) {
+        console.log('[PromptImprover] Context needs compaction');
+        // Could trigger auto-compaction here
       }
 
     } catch (err) {
@@ -304,6 +348,9 @@ Continue the conversation naturally. Either ask follow-up questions or if you ha
   };
 
   const handleRestart = () => {
+    // Clear context and start fresh with new session
+    contextManager.clearContext(sessionIdRef.current);
+    sessionIdRef.current = `${CONTEXT_IDS.PROMPT_IMPROVER}-${Date.now()}`;
     setMessages([]);
     setFinalPrompt(null);
     setTimeout(() => sendToAI(), 100);
@@ -431,10 +478,19 @@ Continue the conversation naturally. Either ask follow-up questions or if you ha
 
         {/* Input */}
         <div className="p-4 border-t border-white/10 bg-slate-900/50">
-          {/* Project context badge */}
-          <div className="flex items-center gap-2 mb-3">
-            <FileCode className="w-3.5 h-3.5 text-slate-500" />
-            <span className="text-[11px] text-slate-500">{getProjectContext()}</span>
+          {/* Context stats and project info */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <FileCode className="w-3.5 h-3.5 text-slate-500" />
+              <span className="text-[11px] text-slate-500 truncate max-w-[200px]">{getProjectContext()}</span>
+            </div>
+
+            {/* Context Indicator - Click for detailed modal */}
+            <ContextIndicator
+              contextId={sessionIdRef.current}
+              showLabel={true}
+              onCompact={handleCompaction}
+            />
           </div>
 
           <div className="flex gap-2">
