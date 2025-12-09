@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useImperativeHandle, forwardRef, useRef, useEffect } from 'react';
-import { Layers, RotateCcw, AlertTriangle, X, MessageSquare, FileCode, History } from 'lucide-react';
+import { Layers, RotateCcw, AlertTriangle, X, MessageSquare, FileCode, History, Settings, ChevronDown } from 'lucide-react';
 import { FileSystem, ChatMessage, ChatAttachment, FileChange } from '../../types';
 import { cleanGeneratedCode, parseMultiFileResponse, GenerationMeta } from '../../utils/cleanCode';
 import { extractFilesFromTruncatedResponse } from '../../utils/extractPartialFiles';
@@ -435,11 +435,13 @@ Original prompt: ${prompt}`;
     // Seamless progress - user sees smooth generation
     setStreamingStatus(`✨ Generating... ${completedFiles.length}/${generationMeta.totalFilesPlanned} files`);
 
+    const manager = getProviderManager();
+    const activeConfig = manager.getActiveConfig();
+    const currentModel = activeConfig?.defaultModel || selectedModel;
+    const providerName = activeConfig?.name || 'AI';
+    const continuationStartTime = Date.now();
+
     try {
-      const manager = getProviderManager();
-      const activeConfig = manager.getActiveConfig();
-      const currentModel = activeConfig?.defaultModel || selectedModel;
-      const providerName = activeConfig?.name || 'AI';
 
       // Build continuation prompt (internal - user doesn't see this)
       const continuationPrompt = `Continue generating the remaining files for the project.
@@ -627,7 +629,15 @@ Generate the remaining files. Each file must be COMPLETE and FUNCTIONAL.`;
           explanation: explanationText,
           files: validFiles,
           fileChanges,
-          snapshotFiles: { ...files }
+          snapshotFiles: { ...files },
+          model: currentModel,
+          provider: providerName,
+          generationTime: Date.now() - continuationStartTime,
+          tokenUsage: response?.usage ? {
+            inputTokens: response.usage.inputTokens || 0,
+            outputTokens: response.usage.outputTokens || 0,
+            totalTokens: (response.usage.inputTokens || 0) + (response.usage.outputTokens || 0)
+          } : undefined
         };
         setMessages(prev => [...prev, completionMessage]);
 
@@ -684,6 +694,7 @@ Generate the remaining files. Each file must be COMPLETE and FUNCTIONAL.`;
 
         const generatedFileList = Object.keys(accumulatedFiles);
         const finalFiles = existingFiles ? { ...existingFiles, ...accumulatedFiles } : accumulatedFiles;
+        const fileChanges = calculateFileChanges(files, finalFiles);
 
         // IMPORTANT: Add completion message FIRST (before clearing generating UI)
         const completionMessage: ChatMessage = {
@@ -692,7 +703,11 @@ Generate the remaining files. Each file must be COMPLETE and FUNCTIONAL.`;
           timestamp: Date.now(),
           explanation: `⚠️ **Generation completed with ${generatedFileList.length} files** (some may be missing):\n${generatedFileList.map(f => `- \`${f}\``).join('\n')}`,
           files: accumulatedFiles,
-          snapshotFiles: { ...files }
+          fileChanges,
+          snapshotFiles: { ...files },
+          model: currentModel,
+          provider: providerName,
+          generationTime: Date.now() - continuationStartTime
         };
         setMessages(prev => [...prev, completionMessage]);
 
@@ -1522,6 +1537,9 @@ Return JSON with explanation and files:
                   // Show success and use the recovered files
                   setStreamingStatus(`✅ Generated ${completeCount} files!`);
 
+                  // Calculate file changes for display
+                  const recoveryFileChanges = calculateFileChanges(files, recoveredFiles);
+
                   // Create completion message
                   const assistantMessage: ChatMessage = {
                     id: crypto.randomUUID(),
@@ -1529,7 +1547,16 @@ Return JSON with explanation and files:
                     timestamp: Date.now(),
                     explanation: 'Generation complete.',
                     files: extraction.completeFiles,
-                    snapshotFiles: { ...files }
+                    fileChanges: recoveryFileChanges,
+                    snapshotFiles: { ...files },
+                    model: currentModel,
+                    provider: providerName,
+                    generationTime: Date.now() - genStartTime,
+                    tokenUsage: streamResponse?.usage ? {
+                      inputTokens: streamResponse.usage.inputTokens || 0,
+                      outputTokens: streamResponse.usage.outputTokens || 0,
+                      totalTokens: (streamResponse.usage.inputTokens || 0) + (streamResponse.usage.outputTokens || 0)
+                    } : undefined
                   };
                   setMessages(prev => [...prev, assistantMessage]);
 
@@ -1714,6 +1741,9 @@ Generate ONLY these files. Each file must be COMPLETE and FUNCTIONAL.`;
 
               setStreamingStatus(`✅ Generated ${completeCount} files!`);
 
+              // Calculate file changes for display
+              const truncRecoveryFileChanges = calculateFileChanges(files, recoveredFiles);
+
               // Add chat message showing what was generated
               const assistantMessage: ChatMessage = {
                 id: crypto.randomUUID(),
@@ -1721,7 +1751,16 @@ Generate ONLY these files. Each file must be COMPLETE and FUNCTIONAL.`;
                 timestamp: Date.now(),
                 explanation: 'Generation complete (recovered from truncated response).',
                 files: extraction.completeFiles,
-                snapshotFiles: { ...files }
+                fileChanges: truncRecoveryFileChanges,
+                snapshotFiles: { ...files },
+                model: currentModel,
+                provider: providerName,
+                generationTime: Date.now() - genStartTime,
+                tokenUsage: streamResponse?.usage ? {
+                  inputTokens: streamResponse.usage.inputTokens || 0,
+                  outputTokens: streamResponse.usage.outputTokens || 0,
+                  totalTokens: (streamResponse.usage.inputTokens || 0) + (streamResponse.usage.outputTokens || 0)
+                } : undefined
               };
               setMessages(prev => [...prev, assistantMessage]);
 
@@ -1769,6 +1808,7 @@ Generate ONLY these files. Each file must be COMPLETE and FUNCTIONAL.`;
                 if (Object.keys(fixedPartialFiles).length > 0) {
                   console.log(`[Truncation] Successfully fixed ${Object.keys(fixedPartialFiles).length} partial files`);
                   const recoveredFiles = { ...files, ...fixedPartialFiles };
+                  const partialFileChanges = calculateFileChanges(files, recoveredFiles);
 
                   const assistantMessage: ChatMessage = {
                     id: crypto.randomUUID(),
@@ -1776,7 +1816,16 @@ Generate ONLY these files. Each file must be COMPLETE and FUNCTIONAL.`;
                     timestamp: Date.now(),
                     explanation: 'Generation incomplete (recovered partial files from truncated response).',
                     files: fixedPartialFiles,
-                    snapshotFiles: { ...files }
+                    fileChanges: partialFileChanges,
+                    snapshotFiles: { ...files },
+                    model: currentModel,
+                    provider: providerName,
+                    generationTime: Date.now() - genStartTime,
+                    tokenUsage: streamResponse?.usage ? {
+                      inputTokens: streamResponse.usage.inputTokens || 0,
+                      outputTokens: streamResponse.usage.outputTokens || 0,
+                      totalTokens: (streamResponse.usage.inputTokens || 0) + (streamResponse.usage.outputTokens || 0)
+                    } : undefined
                   };
                   setMessages(prev => [...prev, assistantMessage]);
 
@@ -1809,6 +1858,7 @@ Generate ONLY these files. Each file must be COMPLETE and FUNCTIONAL.`;
                   if (Object.keys(emergencyFiles).length > 0) {
                     console.log(`[Truncation] Emergency recovery: ${Object.keys(emergencyFiles).length} code blocks`);
                     const recoveredFiles = { ...files, ...emergencyFiles };
+                    const emergencyFileChanges = calculateFileChanges(files, recoveredFiles);
 
                     const assistantMessage: ChatMessage = {
                       id: crypto.randomUUID(),
@@ -1816,7 +1866,16 @@ Generate ONLY these files. Each file must be COMPLETE and FUNCTIONAL.`;
                       timestamp: Date.now(),
                       explanation: `Generation was truncated but recovered ${Object.keys(emergencyFiles).length} code sections.`,
                       files: emergencyFiles,
-                      snapshotFiles: { ...files }
+                      fileChanges: emergencyFileChanges,
+                      snapshotFiles: { ...files },
+                      model: currentModel,
+                      provider: providerName,
+                      generationTime: Date.now() - genStartTime,
+                      tokenUsage: streamResponse?.usage ? {
+                        inputTokens: streamResponse.usage.inputTokens || 0,
+                        outputTokens: streamResponse.usage.outputTokens || 0,
+                        totalTokens: (streamResponse.usage.inputTokens || 0) + (streamResponse.usage.outputTokens || 0)
+                      } : undefined
                     };
                     setMessages(prev => [...prev, assistantMessage]);
 
@@ -2006,6 +2065,50 @@ ${prompt}`;
         </button>
       </div>
 
+      {/* AI Provider Quick Selector */}
+      <div className="px-4 py-2 border-b border-white/5 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          {/* Model Selector Dropdown */}
+          <div className="flex-1 relative">
+            <select
+              value={selectedModel}
+              onChange={(e) => onModelChange(e.target.value)}
+              className="w-full appearance-none bg-slate-800/50 border border-white/10 rounded-lg px-3 py-1.5 pr-8 text-sm text-slate-200 focus:outline-none focus:border-blue-500/50 cursor-pointer hover:bg-slate-800/70 transition-colors"
+            >
+              {(() => {
+                const manager = getProviderManager();
+                const activeConfig = manager.getActiveConfig();
+                if (!activeConfig?.models?.length) {
+                  return <option value={selectedModel}>{selectedModel || 'No models'}</option>;
+                }
+                return activeConfig.models.map(model => (
+                  <option key={model.id} value={model.id}>
+                    {model.name}
+                  </option>
+                ));
+              })()}
+            </select>
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+          </div>
+
+          {/* Provider Badge & Settings Button */}
+          <button
+            onClick={onOpenAISettings}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
+            title="AI Provider Settings"
+          >
+            <span className="text-blue-400">
+              {(() => {
+                const manager = getProviderManager();
+                const activeConfig = manager.getActiveConfig();
+                return activeConfig?.name?.split(' ')[0] || 'AI';
+              })()}
+            </span>
+            <Settings className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+
       {/* Context Indicator */}
       <div className="px-4 py-2 border-b border-white/5 flex-shrink-0">
         <ContextIndicator
@@ -2040,7 +2143,28 @@ ${prompt}`;
         continuationState={continuationState}
         onContinueGeneration={() => handleContinueGeneration()}
         filePlan={filePlan}
-        onSaveCheckpoint={aiHistory.addEntry}
+        onSaveCheckpoint={() => {
+          // Create a checkpoint with current files
+          const filesJson = JSON.stringify({ files, explanation: 'Manual checkpoint' });
+          const checkpointEntry: Omit<typeof aiHistory.history[0], 'id'> = {
+            timestamp: Date.now(),
+            prompt: 'Manual checkpoint',
+            model: 'checkpoint',
+            provider: 'manual',
+            hasSketch: false,
+            hasBrand: false,
+            isUpdate: true,
+            rawResponse: filesJson,
+            responseChars: filesJson.length,
+            responseChunks: 1,
+            durationMs: 0,
+            success: true,
+            truncated: false,
+            filesGenerated: Object.keys(files),
+            explanation: `Checkpoint with ${Object.keys(files).length} files`
+          };
+          aiHistory.addEntry(checkpointEntry);
+        }}
         onRestoreFromHistory={() => {
           // Restore the most recent successful entry directly
           const lastEntry = aiHistory.history.find(h => h.success);

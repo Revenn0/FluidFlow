@@ -28,3 +28,5 @@ projects/
 global.json
 BUG_*.*
 bug_*.*
+.enc
+.encryption_key

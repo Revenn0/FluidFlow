@@ -23,6 +23,7 @@ import { Check, Split, FileCode, AlertCircle, Undo2, Redo2, History, ChevronLeft
 import { FileSystem, TabType } from './types';
 import { InspectedElement } from './components/PreviewPanel/ComponentInspector';
 import { gitApi, projectApi } from './services/projectApi';
+import { getContextManager } from './services/conversationContext';
 
 // Re-export types for backwards compatibility
 export type { FileSystem } from './types';
@@ -593,6 +594,17 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   const [resetKey, setResetKey] = useState(0);
   const [selectedModel, setSelectedModel] = useState('models/gemini-2.5-flash');
 
+  // Handle model/provider change - also clears conversation context
+  const handleModelChange = useCallback((newModel: string) => {
+    if (newModel !== selectedModel) {
+      setSelectedModel(newModel);
+      // Clear the main chat context when model changes
+      const contextManager = getContextManager();
+      contextManager.clearContext('main-chat');
+      console.log('[App] Model changed, context cleared:', newModel);
+    }
+  }, [selectedModel]);
+
   // Track uncommitted changes (WIP)
   const [hasUncommittedChanges, setHasUncommittedChanges] = useState(false);
   const lastCommittedFilesRef = useRef<string>('');
@@ -942,7 +954,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             setIsGenerating={setIsGenerating}
             reviewChange={reviewChange}
             selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
+            onModelChange={handleModelChange}
             onOpenAISettings={() => setIsAISettingsOpen(true)}
             onOpenCodeMap={() => setIsCodeMapModalOpen(true)}
             autoAcceptChanges={autoAcceptChanges}
@@ -1183,7 +1195,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
        <AISettingsModal
          isOpen={isAISettingsOpen}
          onClose={() => setIsAISettingsOpen(false)}
-         onProviderChange={(providerId, modelId) => setSelectedModel(modelId)}
+         onProviderChange={(providerId, modelId) => handleModelChange(modelId)}
        />
 
        {/* Floating History Toolbar */}

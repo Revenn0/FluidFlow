@@ -33,6 +33,8 @@ Transform wireframes and sketches into functional React applications using AI.
 | **Anthropic** | Claude 4.5 Sonnet, Claude 4.5 Opus |
 | **ZAI (GLM)** | GLM-4.6, GLM-4.5, GLM-4.5-air [Coding Plans](https://z.ai/subscribe?ic=JQZ7TPPRA6) |
 | **OpenRouter** | Access to 100+ models |
+| **Ollama** | Local LLMs (Llama, Mistral, etc.) |
+| **LMStudio** | Local LLM inference |
 
 ### Project Management
 
@@ -92,17 +94,14 @@ Transform wireframes and sketches into functional React applications using AI.
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/fluidflow.git
+git clone https://github.com/ersinkoc/fluidflow.git
 cd fluidflow
 
 # Install dependencies
 npm install
 
-# Start development server
+# Start development servers (frontend + backend)
 npm run dev
-
-# Start backend server (for project management)
-cd server && npm install && npm run dev
 ```
 
 ### Environment Variables
@@ -124,9 +123,31 @@ VITE_API_URL=http://localhost:3200/api
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start development server (port 3100) |
+| `npm run dev` | Start both frontend (port 3100) and backend (port 3200) |
+| `npm run dev:frontend` | Start only frontend development server |
+| `npm run dev:server` | Start only backend development server |
 | `npm run build` | Build for production |
 | `npm run preview` | Preview production build |
+
+### Code Quality
+
+| Command | Description |
+|---------|-------------|
+| `npm run type-check` | TypeScript type checking |
+| `npm run lint` | ESLint checking |
+| `npm run lint:fix` | Auto-fix ESLint issues |
+| `npm run format` | Format code with Prettier |
+| `npm run format:check` | Check Prettier formatting |
+
+### Testing
+
+| Command | Description |
+|---------|-------------|
+| `npm test` | Run tests in watch mode (Vitest) |
+| `npm run test:run` | Run tests once (CI mode) |
+| `npm run test:coverage` | Run tests with coverage report |
+| `npm run test:ui` | Run tests with Vitest UI |
+| `npm run test:security` | Run security tests only |
 
 ---
 
@@ -161,6 +182,15 @@ Configure your preferred AI provider in the Settings modal (gear icon). Each pro
 
 ```
 fluidflow/
+├── server/                    # Backend API (Express.js)
+│   ├── index.ts               # Main server with CORS
+│   └── api/
+│       ├── projects.ts        # Project CRUD operations
+│       ├── git.ts             # Git operations
+│       ├── github.ts          # GitHub integration
+│       ├── settings.ts        # Settings persistence
+│       └── runner.ts          # Project execution server
+│
 ├── components/
 │   ├── ControlPanel/          # Left sidebar
 │   │   ├── index.tsx          # Main orchestrator + AI calls
@@ -177,7 +207,9 @@ fluidflow/
 │   │   ├── ConsolePanel.tsx   # DevTools console
 │   │   ├── FileExplorer.tsx   # Virtual file tree
 │   │   ├── DebugPanel.tsx     # API call inspector
-│   │   └── GitPanel.tsx       # Git integration UI
+│   │   ├── GitPanel.tsx       # Git integration UI
+│   │   ├── RunnerPanel.tsx    # Project execution
+│   │   └── ComponentInspector.tsx  # Element inspection
 │   │
 │   ├── ContextIndicator.tsx   # Token usage & context management
 │   ├── CompactionConfirmModal.tsx  # Context compaction UI
@@ -193,17 +225,28 @@ fluidflow/
 │
 ├── services/
 │   ├── ai/                    # Multi-provider AI abstraction
+│   │   ├── index.ts           # Provider manager
+│   │   ├── types.ts           # Provider interfaces
+│   │   └── providers/         # Individual provider implementations
 │   ├── conversationContext.ts # Context management & compaction
 │   ├── fluidflowConfig.ts     # App configuration & logs
 │   └── projectApi.ts          # Backend API client
 │
 ├── utils/
 │   ├── cleanCode.ts           # AI response cleaning
-│   └── codemap.ts             # Project structure analysis
+│   ├── codemap.ts             # Project structure analysis
+│   ├── validation.ts          # Security validation
+│   └── safeJson.ts            # Safe JSON parsing
 │
 ├── types/
 │   └── index.ts               # TypeScript definitions
 │
+├── tests/                     # Test files
+│   ├── setup.ts               # Test configuration
+│   ├── utils/                 # Utility tests
+│   └── security/              # Security tests
+│
+├── projects/                  # Local project storage (auto-generated)
 ├── App.tsx                    # Main app + diff modal
 └── index.tsx                  # Entry point
 ```
@@ -213,13 +256,13 @@ fluidflow/
 ```
 User Input → ControlPanel.handleSend()
     ↓
-Gemini API (streaming)
+AI Provider (streaming)
     ↓
 Parse Response → Extract Files
     ↓
 DiffModal (review changes)
     ↓
-Confirm → Update FileSystem State
+Confirm → Update State → Save to FS
     ↓
 PreviewPanel (live iframe render)
 ```
@@ -341,13 +384,14 @@ Monitor all AI API interactions in real-time.
 | Framework | React 19 |
 | Language | TypeScript 5.8 |
 | Build Tool | Vite 6 |
-| AI | Multi-provider (Gemini, OpenAI, Claude, OpenRouter) |
+| AI | Multi-provider (Gemini, OpenAI, Claude, GLM, Ollama, OpenRouter) |
 | Styling | Tailwind CSS |
 | Icons | Lucide React |
 | Editor | Monaco Editor |
-| Backend | Express.js |
+| Backend | Express.js 5 |
 | Storage | File system + IndexedDB |
 | Version Control | simple-git |
+| Testing | Vitest 2 |
 | Export | JSZip, FileSaver, StackBlitz SDK |
 
 ---
@@ -379,11 +423,12 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-- [Google Gemini](https://ai.google.dev/), [OpenAI](https://openai.com/), [Anthropic](https://anthropic.com/) for AI capabilities
+- [Google Gemini](https://ai.google.dev/), [OpenAI](https://openai.com/), [Anthropic](https://anthropic.com/), [Z.AI](https://z.ai/) for AI capabilities
 - [Tailwind CSS](https://tailwindcss.com/) for styling
 - [Monaco Editor](https://microsoft.github.io/monaco-editor/) for code editing
 - [Lucide](https://lucide.dev/) for icons
 - [simple-git](https://github.com/steveukx/git-js) for Git integration
+- [Vitest](https://vitest.dev/) for testing
 
 ---
 
@@ -391,6 +436,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 **Built with AI, for Builders**
 
-[Report Bug](https://github.com/yourusername/fluidflow/issues) | [Request Feature](https://github.com/yourusername/fluidflow/issues)
+[Report Bug](https://github.com/ersinkoc/fluidflow/issues) | [Request Feature](https://github.com/ersinkoc/fluidflow/issues)
 
 </div>

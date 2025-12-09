@@ -3,7 +3,7 @@ import {
   Monitor, Smartphone, Tablet, RefreshCw, Eye, Code2, Copy, Check, Download, Database,
   ShieldCheck, Pencil, Send, FileText, Wrench, FlaskConical, Package, Loader2,
   SplitSquareVertical, X, Zap, ZapOff, MousePointer2, Bug, Settings, ChevronDown, Shield,
-  ChevronLeft, ChevronRight, Globe, GitBranch, Play
+  ChevronLeft, ChevronRight, Globe, GitBranch, Play, AlertTriangle
 } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import { getProviderManager } from '../../services/ai';
@@ -13,6 +13,7 @@ import { saveAs } from 'file-saver';
 import { FileSystem, LogEntry, NetworkRequest, AccessibilityReport, TabType, TerminalTab, PreviewDevice, PushResult } from '../../types';
 import { cleanGeneratedCode, isValidCode } from '../../utils/cleanCode';
 import { debugLog } from '../../hooks/useDebugStore';
+import { trySimpleFix, canTrySimpleFix } from '../../utils/simpleFixes';
 
 // Sub-components
 import { CodeEditor } from './CodeEditor';
@@ -131,6 +132,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
   const [autoFixEnabled, setAutoFixEnabled] = useState(true);
   const [isAutoFixing, setIsAutoFixing] = useState(false);
   const [autoFixToast, setAutoFixToast] = useState<string | null>(null);
+  const [pendingAutoFix, setPendingAutoFix] = useState<string | null>(null); // Error awaiting confirmation
   const autoFixTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastFixedErrorRef = useRef<string | null>(null);
@@ -168,20 +170,9 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     // Skip if we just fixed this error
     if (lastFixedErrorRef.current === errorMessage) return;
 
-    // Skip common non-fixable errors
-    const skipPatterns = [
-      /\[Router\]/i,
-      /\[Sandbox\]/i,
-      /ResizeObserver/i,
-      /Script error/i,
-      /Loading chunk/i,
-      /redefine.*property.*location/i,
-      /non-configurable property/i,
-    ];
-    if (skipPatterns.some(p => p.test(errorMessage))) return;
-
+    setPendingAutoFix(null); // Clear confirmation UI
     setIsAutoFixing(true);
-    setAutoFixToast('🔧 Auto-fixing error...');
+    setAutoFixToast('🔧 Fixing error...');
     lastFixedErrorRef.current = errorMessage;
 
     const requestId = debugLog.request('auto-fix', {
@@ -246,6 +237,17 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     }
   }, [appCode, files, setFiles, isAutoFixing, isGenerating, selectedModel]);
 
+  // Auto-fix confirmation handlers
+  const handleConfirmAutoFix = useCallback(() => {
+    if (pendingAutoFix) {
+      autoFixError(pendingAutoFix);
+    }
+  }, [pendingAutoFix, autoFixError]);
+
+  const handleDeclineAutoFix = useCallback(() => {
+    setPendingAutoFix(null);
+  }, []);
+
   // Console Message Listener
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -266,13 +268,42 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
           setIsConsoleOpen(true);
           setActiveTerminalTab('console');
 
-          // Trigger auto-fix if enabled
-          if (autoFixEnabled && !isAutoFixing) {
-            // Debounce auto-fix to prevent multiple triggers
-            if (autoFixTimeoutRef.current) clearTimeout(autoFixTimeoutRef.current);
-            autoFixTimeoutRef.current = setTimeout(() => {
-              autoFixError(event.data.message);
-            }, 1000); // Wait 1 second before auto-fixing
+          // Show auto-fix confirmation if enabled (don't auto-run)
+          if (autoFixEnabled && !isAutoFixing && !pendingAutoFix) {
+            const errorMsg = event.data.message;
+            // Skip transient errors (marked by sandbox) and common non-fixable errors
+            const skipPatterns = [
+              /^\[TRANSIENT\]/i,  // Transient errors marked by sandbox
+              /\[Router\]/i,
+              /\[Sandbox\]/i,
+              /ResizeObserver/i,
+              /Script error/i,
+              /Loading chunk/i,
+              /redefine.*property.*location/i,
+              /non-configurable property/i,
+            ];
+            if (!skipPatterns.some(p => p.test(errorMsg)) && lastFixedErrorRef.current !== errorMsg) {
+              // First try simple fix (no AI needed)
+              if (canTrySimpleFix(errorMsg) && appCode) {
+                const simpleResult = trySimpleFix(errorMsg, appCode);
+                if (simpleResult.fixed) {
+                  // Simple fix worked! Apply it directly
+                  lastFixedErrorRef.current = errorMsg;
+                  setFiles({ ...files, 'src/App.tsx': simpleResult.newCode });
+                  setAutoFixToast(`⚡ ${simpleResult.description}`);
+                  if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+                  toastTimeoutRef.current = setTimeout(() => setAutoFixToast(null), 3000);
+                  console.log('[SimpleFix] Applied:', simpleResult.description);
+                  return; // Don't show AI fix dialog
+                }
+              }
+
+              // Simple fix didn't work or not applicable - show AI fix confirmation after delay
+              if (autoFixTimeoutRef.current) clearTimeout(autoFixTimeoutRef.current);
+              autoFixTimeoutRef.current = setTimeout(() => {
+                setPendingAutoFix(errorMsg);
+              }, 500);
+            }
           }
         }
       } else if (event.data.type === 'NETWORK_REQUEST') {
@@ -309,7 +340,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [autoFixEnabled, autoFixError, isAutoFixing, isInspectEditing]);
+  }, [autoFixEnabled, isAutoFixing, isInspectEditing, pendingAutoFix, appCode, files, setFiles]);
 
   // Build iframe content
   useEffect(() => {
@@ -325,6 +356,8 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     setIsInspectMode(newMode);
     setInspectedElement(null);
     setHoveredElement(null);
+    // Force iframe refresh to apply new event listeners
+    setKey(prev => prev + 1);
     // Also disable edit mode when entering inspect mode
     if (newMode) setIsEditMode(false);
   };
@@ -1066,6 +1099,9 @@ Thumbs.db
             fixError={fixError}
             autoFixToast={autoFixToast}
             isAutoFixing={isAutoFixing}
+            pendingAutoFix={pendingAutoFix}
+            handleConfirmAutoFix={handleConfirmAutoFix}
+            handleDeclineAutoFix={handleDeclineAutoFix}
             isInspectMode={isInspectMode}
             hoveredElement={hoveredElement}
             inspectedElement={inspectedElement}
@@ -1353,6 +1389,9 @@ const PreviewContent: React.FC<{
   fixError: (id: string, msg: string) => void;
   autoFixToast: string | null;
   isAutoFixing: boolean;
+  pendingAutoFix: string | null;
+  handleConfirmAutoFix: () => void;
+  handleDeclineAutoFix: () => void;
   isInspectMode: boolean;
   hoveredElement: { top: number; left: number; width: number; height: number } | null;
   inspectedElement: InspectedElement | null;
@@ -1369,7 +1408,7 @@ const PreviewContent: React.FC<{
   onGoForward: () => void;
   onReload: () => void;
 }> = (props) => {
-  const { appCode, iframeSrc, previewDevice, isGenerating, isFixingResp, isEditMode, editPrompt, setEditPrompt, isQuickEditing, handleQuickEdit, setIsEditMode, iframeKey, logs, networkLogs, isConsoleOpen, setIsConsoleOpen, activeTerminalTab, setActiveTerminalTab, setLogs, setNetworkLogs, fixError, autoFixToast, isAutoFixing, isInspectMode, hoveredElement, inspectedElement, isInspectEditing, onCloseInspector, onInspectEdit, iframeRef, currentUrl, canGoBack, canGoForward, onNavigate, onGoBack, onGoForward, onReload } = props;
+  const { appCode, iframeSrc, previewDevice, isGenerating, isFixingResp, isEditMode, editPrompt, setEditPrompt, isQuickEditing, handleQuickEdit, setIsEditMode, iframeKey, logs, networkLogs, isConsoleOpen, setIsConsoleOpen, activeTerminalTab, setActiveTerminalTab, setLogs, setNetworkLogs, fixError, autoFixToast, isAutoFixing, pendingAutoFix, handleConfirmAutoFix, handleDeclineAutoFix, isInspectMode, hoveredElement, inspectedElement, isInspectEditing, onCloseInspector, onInspectEdit, iframeRef, currentUrl, canGoBack, canGoForward, onNavigate, onGoBack, onGoForward, onReload } = props;
 
   // Local state for URL input
   const [urlInput, setUrlInput] = useState(currentUrl);
@@ -1396,6 +1435,39 @@ const PreviewContent: React.FC<{
   return (
     <div className="flex-1 min-h-0 h-full overflow-hidden relative">
       <div className="absolute inset-0 opacity-[0.15] pointer-events-none z-0" style={{ backgroundImage: 'linear-gradient(rgba(148,163,184,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(148,163,184,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+
+      {/* Auto-fix Confirmation Dialog - AI assistance (simple fix already tried) */}
+      {pendingAutoFix && !isAutoFixing && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-3 rounded-xl shadow-lg backdrop-blur-xl border bg-orange-500/10 border-orange-500/30 animate-in slide-in-from-top-2 duration-300 max-w-md">
+          <div className="flex items-start gap-3">
+            <div className="p-1.5 bg-orange-500/20 rounded-lg flex-shrink-0">
+              <AlertTriangle className="w-4 h-4 text-orange-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-sm font-medium text-orange-300">Error Detected</p>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300">AI Fix</span>
+              </div>
+              <p className="text-xs text-slate-400 mb-3 line-clamp-2">{pendingAutoFix}</p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleConfirmAutoFix}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white text-xs font-medium rounded-lg transition-colors"
+                >
+                  <Zap className="w-3 h-3" />
+                  Fix with AI
+                </button>
+                <button
+                  onClick={handleDeclineAutoFix}
+                  className="px-3 py-1.5 text-slate-400 hover:text-slate-300 text-xs font-medium transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Auto-fix Toast Notification */}
       {autoFixToast && (
@@ -1599,12 +1671,56 @@ const buildIframeHtml = (files: FileSystem, isInspectMode: boolean = false): str
     window.process = { env: { NODE_ENV: 'development' } };
     window.__SANDBOX_READY__ = false;
 
-    // Console forwarding
+    // Console forwarding with error filtering
     const notify = (type, msg) => window.parent.postMessage({ type: 'CONSOLE_LOG', logType: type, message: typeof msg === 'object' ? JSON.stringify(msg) : String(msg), timestamp: Date.now() }, '*');
+
+    // Filter transient/harmless errors that shouldn't trigger auto-fix
+    const isIgnorableError = (msg) => {
+      if (!msg) return true;
+      const str = String(msg).toLowerCase();
+      const ignorePatterns = [
+        'resizeobserver',
+        'script error',
+        'loading chunk',
+        'dynamically imported module',
+        'failed to fetch',
+        'network error',
+        'hydrat',
+        'cannot read properties of null',
+        'cannot read properties of undefined',
+        'unmounted component',
+        'memory leak',
+        'perform a react state update',
+        'maximum update depth exceeded',
+        'each child in a list should have a unique',
+        'validatedomnesting',
+        'received true for a non-boolean',
+        'received false for a non-boolean',
+        'unknown prop',
+        'invalid prop',
+        'failed prop type',
+        'minified react error',
+        'suspended while rendering',
+        'nothing was returned from render',
+        '__esmodule',
+        'cannot redefine property',
+        'is not a function',
+        'is not defined'
+      ];
+      return ignorePatterns.some(p => str.includes(p));
+    };
+
     console.log = (...args) => { notify('log', args.join(' ')); };
     console.warn = (...args) => { notify('warn', args.join(' ')); };
-    console.error = (...args) => { notify('error', args.join(' ')); };
-    window.onerror = function(msg) { notify('error', msg); return false; };
+    console.error = (...args) => {
+      const msg = args.join(' ');
+      // Still log to console but mark as ignorable for auto-fix
+      notify('error', isIgnorableError(msg) ? '[TRANSIENT] ' + msg : msg);
+    };
+    window.onerror = function(msg) {
+      notify('error', isIgnorableError(msg) ? '[TRANSIENT] ' + msg : msg);
+      return false;
+    };
 
     // Patch URL constructor FIRST - before any library loads
     (function() {

@@ -27,9 +27,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   isEducationMode,
   onEducationModeChange,
   hasApiKey,
-  selectedModel,
-  onModelChange,
-  onProviderChange,
   onOpenAISettings,
   aiHistoryCount = 0,
   onOpenAIHistory,
@@ -43,11 +40,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { enabled: debugEnabled, setEnabled: setDebugEnabled, logs } = useDebugStore();
-  const [, forceUpdate] = useState({});
 
   const manager = getProviderManager();
   const activeProvider = manager.getActiveConfig();
-  const providers = manager.getConfigs();
 
   // Handle modal exclusivity - close when shouldClose is true
   useEffect(() => {
@@ -56,23 +51,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       onClosed?.();
     }
   }, [shouldClose, isOpen, onClosed]);
-
-  const handleProviderChange = (providerId: string) => {
-    manager.setActiveProvider(providerId);
-    const config = manager.getConfig(providerId);
-    if (config && onProviderChange) {
-      onProviderChange(providerId, config.defaultModel);
-    }
-    forceUpdate({});
-  };
-
-  const handleModelChange = (modelId: string) => {
-    if (activeProvider) {
-      manager.updateProvider(activeProvider.id, { defaultModel: modelId });
-      onModelChange(modelId);
-      forceUpdate({});
-    }
-  };
 
   return (
     <div className="border-t border-white/5 pt-2 flex-none">
@@ -99,215 +77,211 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div
             id="settings-panel"
-            className="w-full max-w-md bg-slate-950/98 backdrop-blur-xl rounded-2xl border border-white/10 animate-in zoom-in-95 duration-200 shadow-2xl overflow-hidden mx-4"
-            style={{ maxHeight: 'calc(100vh - 100px)' }}
+            className="w-full max-w-sm bg-slate-950/98 backdrop-blur-xl rounded-2xl border border-white/10 animate-in zoom-in-95 duration-200 shadow-2xl overflow-hidden mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Header with Close Button */}
-          <div className="flex items-center justify-between p-3 border-b border-white/5">
-            <div className="flex items-center gap-2">
-              <Settings className="w-4 h-4 text-blue-400" />
-              <span className="text-sm font-medium text-white">Settings</span>
-            </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
-              title="Close settings"
-            >
-              <X className="w-4 h-4 text-slate-400" />
-            </button>
-          </div>
-
-          <div className="p-4 space-y-4 pt-2">
-            {/* AI Provider Quick Select */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="text-xs text-slate-500 font-medium uppercase tracking-wider">
-                  AI Provider
-                </label>
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    onOpenAISettings?.();
-                  }}
-                  className="flex items-center gap-2 px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 text-sm text-blue-300 font-medium rounded-lg transition-colors"
-                >
-                  <Settings2 className="w-4 h-4" />
-                  <span>AI Provider Settings</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+            {/* Header */}
+            <div className="flex items-center justify-between p-3 border-b border-white/5">
+              <div className="flex items-center gap-2">
+                <Settings className="w-4 h-4 text-blue-400" />
+                <span className="text-sm font-medium text-white">Settings</span>
               </div>
-
-              {/* Provider Selector */}
-              <select
-                value={activeProvider?.id || ''}
-                onChange={(e) => handleProviderChange(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-blue-500/50"
-              >
-                {providers.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} {!p.apiKey && !p.isLocal ? '(No API Key)' : ''}
-                  </option>
-                ))}
-              </select>
-
-              {/* Model Selector */}
-              {activeProvider && activeProvider.models.length > 0 && (
-                <select
-                  value={activeProvider.defaultModel}
-                  onChange={(e) => handleModelChange(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-blue-500/50"
-                >
-                  {[...activeProvider.models].sort((a, b) => a.name.localeCompare(b.name)).map(m => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
-                  ))}
-                </select>
-              )}
-
-              {/* Status */}
-              <div className="flex items-center gap-2 text-xs">
-                {activeProvider?.apiKey || activeProvider?.isLocal ? (
-                  <>
-                    <CheckCircle className="w-3 h-3 text-green-500" />
-                    <span className="text-green-400">Ready</span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="w-3 h-3 text-amber-500" />
-                    <span className="text-amber-400">API key required</span>
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* Education Mode */}
-            <div className="space-y-2 pt-2 border-t border-white/5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs text-slate-300 font-medium flex items-center gap-2">
-                  <GraduationCap className="w-3.5 h-3.5 text-yellow-400" />
-                  Education Mode
-                </label>
-                <button
-                  onClick={() => onEducationModeChange(!isEducationMode)}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                    isEducationMode ? 'bg-yellow-600' : 'bg-slate-700'
-                  }`}
-                  role="switch"
-                  aria-checked={isEducationMode}
-                  aria-label="Toggle education mode"
-                >
-                  <span
-                    className={`${
-                      isEducationMode ? 'translate-x-4' : 'translate-x-1'
-                    } inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            {/* Technology Stack */}
-            <div className="space-y-2 pt-2 border-t border-white/5">
               <button
-                onClick={onOpenTechStack}
-                className="flex items-center gap-2 w-full p-2 text-xs text-slate-300 font-medium hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                onClick={() => setIsOpen(false)}
+                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                title="Close settings"
               >
-                <Package className="w-3.5 h-3.5 text-purple-400" />
-                <span>Technology Stack</span>
-                <ChevronRight className="w-3 h-3 ml-auto" />
+                <X className="w-4 h-4 text-slate-400" />
               </button>
             </div>
 
-            {/* Debug Mode */}
-            <div className="space-y-2 pt-2 border-t border-white/5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs text-slate-300 font-medium flex items-center gap-2">
-                  <Bug className="w-3.5 h-3.5 text-purple-400" />
-                  Debug Mode
-                  {debugEnabled && logs.length > 0 && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
-                      {logs.length}
-                    </span>
+            <div className="p-3 space-y-1">
+              {/* AI Provider Settings - Quick Link */}
+              <button
+                onClick={() => {
+                  setIsOpen(false);
+                  onOpenAISettings?.();
+                }}
+                className="w-full flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors group"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
+                    <Settings2 className="w-4 h-4 text-blue-400" />
+                  </div>
+                  <div className="text-left">
+                    <span className="text-sm text-slate-200 font-medium block">AI Provider Settings</span>
+                    <span className="text-[10px] text-slate-500">API keys, models, endpoints</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {activeProvider?.apiKey || activeProvider?.isLocal ? (
+                    <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                  ) : (
+                    <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
                   )}
-                </label>
-                <button
-                  onClick={() => setDebugEnabled(!debugEnabled)}
-                  className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-purple-500 ${
-                    debugEnabled ? 'bg-purple-600' : 'bg-slate-700'
-                  }`}
-                  role="switch"
-                  aria-checked={debugEnabled}
-                  aria-label="Toggle debug mode"
-                >
-                  <span
-                    className={`${
-                      debugEnabled ? 'translate-x-4' : 'translate-x-1'
-                    } inline-block h-3 w-3 transform rounded-full bg-white transition-transform`}
-                  />
-                </button>
-              </div>
-              {debugEnabled && (
-                <p className="text-[10px] text-slate-500 pl-5">
-                  API calls logged in Debug tab
-                </p>
-              )}
-            </div>
+                  <ChevronRight className="w-4 h-4 text-slate-500" />
+                </div>
+              </button>
 
-            {/* AI History */}
-            {onOpenAIHistory && (
-              <div className="pt-2 border-t border-white/5">
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    onOpenAIHistory();
-                  }}
-                  className="w-full flex items-center justify-between p-2 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <History className="w-3.5 h-3.5 text-cyan-400" />
-                    <span>AI Generation History</span>
+              {/* Divider */}
+              <div className="border-t border-white/5 my-2" />
+
+              {/* Toggle Options */}
+              <div className="space-y-1">
+                {/* Auto-Accept Changes */}
+                {onAutoAcceptChangesChange && (
+                  <div className="flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 bg-emerald-500/10 rounded-lg">
+                        <Zap className="w-4 h-4 text-emerald-400" />
+                      </div>
+                      <div>
+                        <span className="text-sm text-slate-200 font-medium block">Auto-Accept Changes</span>
+                        <span className="text-[10px] text-slate-500">Skip diff review</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => onAutoAcceptChangesChange(!autoAcceptChanges)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        autoAcceptChanges ? 'bg-emerald-600' : 'bg-slate-700'
+                      }`}
+                      role="switch"
+                      aria-checked={autoAcceptChanges}
+                    >
+                      <span className={`${autoAcceptChanges ? 'translate-x-4' : 'translate-x-1'} inline-block h-3 w-3 transform rounded-full bg-white transition-transform`} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Education Mode */}
+                <div className="flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 bg-yellow-500/10 rounded-lg">
+                      <GraduationCap className="w-4 h-4 text-yellow-400" />
+                    </div>
+                    <div>
+                      <span className="text-sm text-slate-200 font-medium block">Education Mode</span>
+                      <span className="text-[10px] text-slate-500">Learn as you build</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => onEducationModeChange(!isEducationMode)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      isEducationMode ? 'bg-yellow-600' : 'bg-slate-700'
+                    }`}
+                    role="switch"
+                    aria-checked={isEducationMode}
+                  >
+                    <span className={`${isEducationMode ? 'translate-x-4' : 'translate-x-1'} inline-block h-3 w-3 transform rounded-full bg-white transition-transform`} />
+                  </button>
+                </div>
+
+                {/* Debug Mode */}
+                <div className="flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 bg-purple-500/10 rounded-lg">
+                      <Bug className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <div>
+                      <span className="text-sm text-slate-200 font-medium block">Debug Mode</span>
+                      <span className="text-[10px] text-slate-500">Log API calls</span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {aiHistoryCount > 0 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                        {aiHistoryCount}
+                    {debugEnabled && logs.length > 0 && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
+                        {logs.length}
                       </span>
                     )}
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
+                    <button
+                      onClick={() => setDebugEnabled(!debugEnabled)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                        debugEnabled ? 'bg-purple-600' : 'bg-slate-700'
+                      }`}
+                      role="switch"
+                      aria-checked={debugEnabled}
+                    >
+                      <span className={`${debugEnabled ? 'translate-x-4' : 'translate-x-1'} inline-block h-3 w-3 transform rounded-full bg-white transition-transform`} />
+                    </button>
                   </div>
-                </button>
-                <p className="text-[10px] text-slate-500 pl-5 mt-1">
-                  View raw responses, debug truncated outputs
-                </p>
+                </div>
               </div>
-            )}
 
-            {/* CodeMap */}
-            {onOpenCodeMap && (
-              <div className="pt-2 border-t border-white/5">
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    onOpenCodeMap();
-                  }}
-                  className="w-full flex items-center justify-between p-2 text-xs text-slate-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <Map className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>CodeMap</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                      AST
-                    </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-500" />
-                  </div>
-                </button>
-                <p className="text-[10px] text-slate-500 pl-5 mt-1">
-                  Visualize code structure, dependencies, and metrics
-                </p>
+              {/* Divider */}
+              <div className="border-t border-white/5 my-2" />
+
+              {/* Quick Links */}
+              <div className="space-y-1">
+                {/* Technology Stack */}
+                {onOpenTechStack && (
+                  <button
+                    onClick={() => {
+                      setIsOpen(false);
+                      onOpenTechStack();
+                    }}
+                    className="w-full flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 bg-indigo-500/10 rounded-lg group-hover:bg-indigo-500/20 transition-colors">
+                        <Package className="w-4 h-4 text-indigo-400" />
+                      </div>
+                      <span className="text-sm text-slate-200">Technology Stack</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-500" />
+                  </button>
+                )}
+
+                {/* AI History */}
+                {onOpenAIHistory && (
+                  <button
+                    onClick={() => {
+                      setIsOpen(false);
+                      onOpenAIHistory();
+                    }}
+                    className="w-full flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 bg-cyan-500/10 rounded-lg group-hover:bg-cyan-500/20 transition-colors">
+                        <History className="w-4 h-4 text-cyan-400" />
+                      </div>
+                      <span className="text-sm text-slate-200">AI History</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {aiHistoryCount > 0 && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">
+                          {aiHistoryCount}
+                        </span>
+                      )}
+                      <ChevronRight className="w-4 h-4 text-slate-500" />
+                    </div>
+                  </button>
+                )}
+
+                {/* CodeMap */}
+                {onOpenCodeMap && (
+                  <button
+                    onClick={() => {
+                      setIsOpen(false);
+                      onOpenCodeMap();
+                    }}
+                    className="w-full flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors group"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-1.5 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
+                        <Map className="w-4 h-4 text-emerald-400" />
+                      </div>
+                      <span className="text-sm text-slate-200">CodeMap</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                        AST
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-slate-500" />
+                    </div>
+                  </button>
+                )}
               </div>
-            )}
-          </div>
+            </div>
           </div>
           {/* Click outside to close */}
           <div className="absolute inset-0 -z-10" onClick={() => setIsOpen(false)} />

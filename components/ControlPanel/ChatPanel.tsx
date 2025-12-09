@@ -12,7 +12,7 @@ interface ChatPanelProps {
   streamingChars?: number;
   streamingFiles?: string[];
   // AI History restore props
-  onSaveCheckpoint?: (entry: Omit<AIHistoryEntry, 'id'>) => string;
+  onSaveCheckpoint?: () => void; // Simple callback - parent handles the full checkpoint creation
   aiHistoryCount?: number;
   onRestoreFromHistory?: () => void;
   // Truncation retry props
@@ -255,7 +255,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-slate-500 p-4">
+      <div className="flex-1 flex flex-col items-center justify-center text-slate-500 p-4 min-h-0">
         <Bot className="w-10 h-10 mb-3 opacity-30" />
         <p className="text-sm text-center">Upload a sketch to start generating your app</p>
 
@@ -274,7 +274,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   }
 
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       {/* Chat Toolbar */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-white/5 flex-shrink-0">
         <div className="flex items-center gap-2">
@@ -283,27 +283,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         </div>
         {onSaveCheckpoint && (
           <button
-            onClick={() => {
-              // Create a manual checkpoint from current state
-              const checkpointEntry: Omit<AIHistoryEntry, 'id'> = {
-                timestamp: Date.now(),
-                prompt: 'Manual checkpoint',
-                model: 'checkpoint',
-                provider: 'manual',
-                hasSketch: false,
-                hasBrand: false,
-                isUpdate: false,
-                rawResponse: 'Checkpoint saved',
-                responseChars: 0,
-                responseChunks: 0,
-                durationMs: 0,
-                success: true,
-                truncated: false,
-                filesGenerated: [],
-                explanation: 'Manual checkpoint saved'
-              };
-              onSaveCheckpoint(checkpointEntry);
-            }}
+            onClick={onSaveCheckpoint}
             className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
             title="Save current state as checkpoint"
           >
