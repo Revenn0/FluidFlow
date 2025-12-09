@@ -3,7 +3,7 @@ import {
   Monitor, Smartphone, Tablet, RefreshCw, Eye, Code2, Copy, Check, Download, Database,
   ShieldCheck, Pencil, Send, FileText, Wrench, FlaskConical, Package, Loader2,
   SplitSquareVertical, X, Zap, ZapOff, MousePointer2, Bug, Settings, ChevronDown, Shield,
-  ChevronLeft, ChevronRight, Globe, GitBranch, Play, AlertTriangle
+  ChevronLeft, ChevronRight, Globe, GitBranch, Play, AlertTriangle, Box
 } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import { getProviderManager } from '../../services/ai';
@@ -30,6 +30,7 @@ import { DBStudio } from './DBStudio';
 import { EnvironmentPanel } from './EnvironmentPanel';
 import { GitPanel } from '../GitPanel';
 import { RunnerPanel } from './RunnerPanel';
+import { WebContainerPanel } from './WebContainerPanel';
 import { GitStatus } from '../../services/projectApi';
 
 interface PreviewPanelProps {
@@ -893,6 +894,7 @@ Thumbs.db
               { id: 'code', icon: Code2, label: 'Code' },
               { id: 'git', icon: GitBranch, label: 'Git' },
               { id: 'run', icon: Play, label: 'Run' },
+              { id: 'webcontainer', icon: Box, label: 'WebContainer' },
               { id: 'database', icon: Database, label: 'DB Studio' },
               { id: 'tests', icon: FlaskConical, label: 'Tests' },
               { id: 'docs', icon: FileText, label: 'Docs' },
@@ -1087,6 +1089,13 @@ Thumbs.db
               projectId={projectId || null}
               projectName={files['package.json'] ? (() => { try { return JSON.parse(files['package.json']).name; } catch { return undefined; }})() : undefined}
               hasCommittedFiles={Boolean(gitStatus?.initialized)}
+            />
+          </div>
+        ) : activeTab === 'webcontainer' ? (
+          <div className="flex-1 overflow-auto flex flex-col">
+            <WebContainerPanel
+              files={files}
+              projectId={projectId}
             />
           </div>
         ) : activeTab === 'preview' ? (

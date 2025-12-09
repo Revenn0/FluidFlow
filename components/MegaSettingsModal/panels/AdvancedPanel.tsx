@@ -1,19 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { Settings2, Check, Info } from 'lucide-react';
+import { Settings2, Check, Info, ExternalLink, Loader2 } from 'lucide-react';
 import { SettingsSection } from '../shared';
+import { SettingsToggle } from '../shared/SettingsToggle';
 import { getFluidFlowConfig } from '../../../services/fluidflowConfig';
+import { webContainerService } from '../../../services/webcontainer';
+import { DEFAULT_WEBCONTAINER_SETTINGS, type WebContainerSettings } from '../../../types';
 
 export const AdvancedPanel: React.FC = () => {
   const [editingRules, setEditingRules] = useState(false);
   const [rulesInput, setRulesInput] = useState('');
   const [savedRules, setSavedRules] = useState('');
 
+  // WebContainer settings
+  const [wcSettings, setWcSettings] = useState<WebContainerSettings>(DEFAULT_WEBCONTAINER_SETTINGS);
+  const [wcTesting, setWcTesting] = useState(false);
+  const [wcTestResult, setWcTestResult] = useState<'success' | 'error' | null>(null);
+
   useEffect(() => {
     const config = getFluidFlowConfig();
     const rules = config.getRules();
     setRulesInput(rules);
     setSavedRules(rules);
+
+    // Load WebContainer settings
+    const savedWcSettings = webContainerService.getSettings();
+    if (savedWcSettings) {
+      setWcSettings(savedWcSettings);
+    }
   }, []);
+
+  const handleWcSettingsChange = async (key: keyof WebContainerSettings, value: string | boolean) => {
+    const newSettings = { ...wcSettings, [key]: value };
+    setWcSettings(newSettings);
+    await webContainerService.saveSettings(newSettings);
+    setWcTestResult(null);
+  };
+
+  const testWebContainerConnection = async () => {
+    setWcTesting(true);
+    setWcTestResult(null);
+
+    try {
+      // Just try to boot - no auth needed for public packages
+      await webContainerService.boot();
+      setWcTestResult('success');
+    } catch {
+      setWcTestResult('error');
+    } finally {
+      setWcTesting(false);
+    }
+  };
 
   const saveRules = () => {
     const config = getFluidFlowConfig();
@@ -127,6 +163,58 @@ export const AdvancedPanel: React.FC = () => {
               <div className="text-xs text-slate-500 mt-0.5 line-clamp-1">{example.rule.split('\n')[0]}</div>
             </button>
           ))}
+        </div>
+      </SettingsSection>
+
+      {/* WebContainer Settings */}
+      <SettingsSection
+        title="WebContainer"
+        description="In-browser Node.js runtime powered by StackBlitz"
+      >
+        {/* Info Box */}
+        <div className="flex items-start gap-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg mb-4">
+          <Info className="w-4 h-4 text-purple-400 flex-shrink-0 mt-0.5" />
+          <div className="text-xs text-slate-400">
+            WebContainer enables running your project with a real Node.js runtime directly in the browser.
+            No authentication required for public npm packages. Requires Chrome/Edge browser.
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* Enable Toggle */}
+          <SettingsToggle
+            label="Enable WebContainer"
+            description="Show WebContainer tab in Preview Panel"
+            checked={wcSettings.enabled}
+            onChange={(checked) => handleWcSettingsChange('enabled', checked)}
+          />
+
+          {/* Test Connection */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={testWebContainerConnection}
+              disabled={wcTesting}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors"
+            >
+              {wcTesting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Booting...
+                </>
+              ) : (
+                <>
+                  <Check className="w-4 h-4" />
+                  Test WebContainer
+                </>
+              )}
+            </button>
+            {wcTestResult === 'success' && (
+              <span className="text-sm text-green-400">WebContainer ready!</span>
+            )}
+            {wcTestResult === 'error' && (
+              <span className="text-sm text-red-400">Failed to boot. Use Chrome/Edge browser.</span>
+            )}
+          </div>
         </div>
       </SettingsSection>
     </div>

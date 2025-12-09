@@ -39,6 +39,12 @@ interface CustomSnippet {
   createdAt: number;
 }
 
+interface WebContainerSettings {
+  enabled: boolean;
+  clientId: string;
+  scope: string;
+}
+
 interface GlobalSettings {
   // AI Provider settings
   aiProviders: ProviderConfig[];
@@ -47,14 +53,24 @@ interface GlobalSettings {
   // Custom code snippets
   customSnippets: CustomSnippet[];
 
+  // WebContainer settings
+  webContainer: WebContainerSettings;
+
   // Metadata
   updatedAt: number;
 }
+
+const DEFAULT_WEBCONTAINER_SETTINGS: WebContainerSettings = {
+  enabled: false,
+  clientId: '',
+  scope: '',
+};
 
 const DEFAULT_SETTINGS: GlobalSettings = {
   aiProviders: [],
   activeProviderId: 'default-gemini',
   customSnippets: [],
+  webContainer: DEFAULT_WEBCONTAINER_SETTINGS,
   updatedAt: 0
 };
 
@@ -267,6 +283,44 @@ router.delete('/snippets/:id', async (req, res) => {
   } catch (error) {
     console.error('Delete snippet error:', error);
     res.status(500).json({ error: 'Failed to delete snippet' });
+  }
+});
+
+// ============ WEBCONTAINER SETTINGS ============
+
+// Get WebContainer settings
+router.get('/webcontainer', async (req, res) => {
+  try {
+    const settings = await loadSettings();
+    res.json(settings.webContainer || DEFAULT_WEBCONTAINER_SETTINGS);
+  } catch (error) {
+    console.error('Get WebContainer settings error:', error);
+    res.status(500).json({ error: 'Failed to get WebContainer settings' });
+  }
+});
+
+// Save WebContainer settings
+router.put('/webcontainer', async (req, res) => {
+  try {
+    const { enabled, clientId, scope } = req.body;
+
+    const updatedAt = await withSettingsLock(async () => {
+      const settings = await loadSettings();
+
+      settings.webContainer = {
+        enabled: enabled ?? settings.webContainer?.enabled ?? false,
+        clientId: clientId ?? settings.webContainer?.clientId ?? '',
+        scope: scope ?? settings.webContainer?.scope ?? '',
+      };
+
+      await saveSettings(settings);
+      return settings.updatedAt;
+    });
+
+    res.json({ message: 'WebContainer settings saved', updatedAt });
+  } catch (error) {
+    console.error('Save WebContainer settings error:', error);
+    res.status(500).json({ error: 'Failed to save WebContainer settings' });
   }
 });
 

@@ -39,7 +39,8 @@ export interface SearchResponse {
 }
 
 class CodeMapAPI {
-  private baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3200/api') + '/codemap';
+  // Use relative URL - Vite proxies /api to backend (avoids mixed content with HTTPS frontend)
+  private baseUrl = (import.meta.env.VITE_API_URL || '/api') + '/codemap';
 
   async generateCodeMap(projectId: string): Promise<CodeMapResponse> {
     try {

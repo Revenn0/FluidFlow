@@ -875,7 +875,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     },
   ], [isCommandPaletteOpen, isHistoryPanelOpen, pendingReview, canUndo, canRedo, undo, redo, project]);
 
-  useKeyboardShortcuts(shortcuts);
+  // Disabled: Browser conflicts with keyboard shortcuts
+  // useKeyboardShortcuts(shortcuts);
 
   // Discard all uncommitted changes and restore from last commit
   const handleDiscardChanges = useCallback(async () => {

@@ -29,9 +29,10 @@ app.use(cors({
     if (!origin) return callback(null, true);
 
     // Allow localhost ports: 3100-3102 (FluidFlow), 5173 (Vite dev), 3300-3399 (running projects)
+    // Support both HTTP and HTTPS
     const allowedPatterns = [
-      /^http:\/\/localhost:(3100|3101|3102|5173)$/,
-      /^http:\/\/localhost:33\d{2}$/, // 3300-3399
+      /^https?:\/\/localhost:(3100|3101|3102|5173)$/,
+      /^https?:\/\/localhost:33\d{2}$/, // 3300-3399
     ];
 
     const isAllowed = allowedPatterns.some(pattern => pattern.test(origin));
@@ -60,6 +61,7 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
   res.status(500).json({ error: err.message || 'Internal server error' });
 });
 
+// Start server (HTTP - Vite proxies requests from HTTPS frontend)
 app.listen(PORT, () => {
   console.log(`\n🚀 FluidFlow Backend Server running on http://localhost:${PORT}`);
   console.log(`   Projects directory: ${PROJECTS_DIR}\n`);

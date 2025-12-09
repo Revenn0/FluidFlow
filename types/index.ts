@@ -103,7 +103,7 @@ export interface PushResult {
 
 // Device types for preview
 export type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
-export type TabType = 'preview' | 'code' | 'database' | 'tests' | 'docs' | 'env' | 'debug' | 'git' | 'run';
+export type TabType = 'preview' | 'code' | 'database' | 'tests' | 'docs' | 'env' | 'debug' | 'git' | 'run' | 'webcontainer';
 export type TerminalTab = 'console' | 'network';
 
 // AI Model types
@@ -198,66 +198,74 @@ export interface TechStackConfig {
   };
 }
 
-// Available technology options
-export const TECH_STACK_OPTIONS = {
+// Tech stack option type with version info
+export interface TechStackOption {
+  value: string;
+  label: string;
+  description: string;
+  version: string;
+}
+
+// Available technology options - December 2025 latest versions
+export const TECH_STACK_OPTIONS: Record<keyof TechStackConfig, TechStackOption[]> = {
   styling: [
-    { value: 'tailwind', label: 'Tailwind CSS', description: 'Utility-first CSS framework' },
-    { value: 'bootstrap', label: 'Bootstrap', description: 'Popular CSS framework' },
-    { value: 'material-ui', label: 'Material-UI (MUI)', description: 'React Material Design components' },
-    { value: 'ant-design', label: 'Ant Design', description: 'Enterprise UI design language' },
-    { value: 'chakra-ui', label: 'Chakra UI', description: 'Simple modular component library' },
-    { value: 'css-modules', label: 'CSS Modules', description: 'Locally scoped CSS' },
-    { value: 'styled-components', label: 'Styled Components', description: 'CSS-in-JS styling' },
-    { value: 'emotion', label: 'Emotion', description: 'Performance-focused CSS-in-JS' }
+    { value: 'tailwind', label: 'Tailwind CSS', description: 'Utility-first CSS framework', version: '^4.1' },
+    { value: 'bootstrap', label: 'Bootstrap', description: 'Popular CSS framework', version: '^5.3.8' },
+    { value: 'material-ui', label: 'Material-UI (MUI)', description: 'React Material Design components', version: '^7.3' },
+    { value: 'ant-design', label: 'Ant Design', description: 'Enterprise UI design language (React 18+)', version: '^6.1' },
+    { value: 'chakra-ui', label: 'Chakra UI', description: 'Simple modular component library', version: '^3.3' },
+    { value: 'css-modules', label: 'CSS Modules', description: 'Locally scoped CSS', version: 'built-in' },
+    { value: 'styled-components', label: 'Styled Components', description: 'CSS-in-JS styling', version: '^6.1' },
+    { value: 'emotion', label: 'Emotion', description: 'Performance-focused CSS-in-JS', version: '^11.14' }
   ],
   icons: [
-    { value: 'lucide-react', label: 'Lucide React', description: 'Beautiful & consistent icons' },
-    { value: 'react-icons', label: 'React Icons', description: 'Multiple icon packs in one' },
-    { value: 'heroicons', label: 'Heroicons', description: 'Handcrafted SVG icons' },
-    { value: 'material-icons', label: 'Material Icons', description: 'Google Material icons' },
-    { value: 'font-awesome', label: 'Font Awesome', description: 'The internet\'s icon library' }
+    { value: 'lucide-react', label: 'Lucide React', description: 'Beautiful & consistent icons', version: '^0.556' },
+    { value: 'react-icons', label: 'React Icons', description: 'Multiple icon packs in one', version: '^5.5' },
+    { value: 'heroicons', label: 'Heroicons', description: 'Handcrafted SVG icons (Tailwind)', version: '^2.2' },
+    { value: 'material-icons', label: 'Material Icons', description: 'Google Material icons', version: '^1.13' },
+    { value: 'font-awesome', label: 'Font Awesome', description: 'The internet\'s icon library', version: '^6.7' }
   ],
   stateManagement: [
-    { value: 'none', label: 'None (React State)', description: 'Built-in React useState/useReducer' },
-    { value: 'zustand', label: 'Zustand', description: 'Small, fast, scalable state management' },
-    { value: 'redux-toolkit', label: 'Redux Toolkit', description: 'Official Redux toolkit' },
-    { value: 'context-api', label: 'Context API', description: 'React built-in context' },
-    { value: 'recoil', label: 'Recoil', description: 'Facebook\'s state management library' },
-    { value: 'mobx', label: 'MobX', description: 'Simple, scalable state management' }
+    { value: 'none', label: 'None (React State)', description: 'Built-in React useState/useReducer', version: 'built-in' },
+    { value: 'zustand', label: 'Zustand', description: 'Small, fast, scalable state management', version: '^5.0' },
+    { value: 'redux-toolkit', label: 'Redux Toolkit', description: 'Official Redux toolkit', version: '^2.11' },
+    { value: 'context-api', label: 'Context API', description: 'React built-in context', version: 'built-in' },
+    { value: 'recoil', label: 'Recoil', description: 'Facebook\'s state management library', version: '^0.7' },
+    { value: 'mobx', label: 'MobX', description: 'Simple, scalable state management', version: '^6.13' }
   ],
   routing: [
-    { value: 'none', label: 'None (Single Page)', description: 'No routing needed' },
-    { value: 'react-router', label: 'React Router', description: 'Declarative routing for React' },
-    { value: 'next-router', label: 'Next.js Router', description: 'Next.js built-in router' },
-    { value: 'reach-router', label: 'Reach Router', description: 'Accessible routing' }
+    { value: 'none', label: 'None (Single Page)', description: 'No routing needed', version: 'built-in' },
+    { value: 'react-router', label: 'React Router', description: 'Declarative routing for React', version: '^7.10' },
+    { value: 'next-router', label: 'Next.js Router', description: 'Next.js built-in router (App Router)', version: 'built-in' },
+    { value: 'reach-router', label: 'TanStack Router', description: 'Type-safe routing for React', version: '^1.98' }
   ],
   dataFetching: [
-    { value: 'none', label: 'None (Fetch API)', description: 'Built-in fetch API' },
-    { value: 'axios', label: 'Axios', description: 'Promise based HTTP client' },
-    { value: 'fetch', label: 'Fetch API', description: 'Modern fetch with polyfills' },
-    { value: 'react-query', label: 'React Query (TanStack Query)', description: 'Server state management' },
-    { value: 'swr', label: 'SWR', description: 'React Hooks for data fetching' },
-    { value: 'apollo-client', label: 'Apollo Client', description: 'GraphQL client' }
+    { value: 'none', label: 'None (Fetch API)', description: 'Built-in fetch API', version: 'built-in' },
+    { value: 'axios', label: 'Axios', description: 'Promise based HTTP client', version: '^1.13' },
+    { value: 'fetch', label: 'Fetch API', description: 'Modern fetch with polyfills', version: 'built-in' },
+    { value: 'react-query', label: 'TanStack Query', description: 'Powerful async state management', version: '^5.90' },
+    { value: 'swr', label: 'SWR', description: 'React Hooks for data fetching', version: '^2.3' },
+    { value: 'apollo-client', label: 'Apollo Client', description: 'GraphQL client', version: '^3.12' }
   ],
   forms: [
-    { value: 'none', label: 'None (HTML Forms)', description: 'Standard HTML forms' },
-    { value: 'react-hook-form', label: 'React Hook Form', description: 'Performant forms with easy validation' },
-    { value: 'formik', label: 'Formik', description: 'Build forms in React' },
-    { value: 'final-form', label: 'Final Form', description: 'High performance subscription-based form state' }
+    { value: 'none', label: 'None (HTML Forms)', description: 'Standard HTML forms', version: 'built-in' },
+    { value: 'react-hook-form', label: 'React Hook Form', description: 'Performant forms with easy validation', version: '^7.66' },
+    { value: 'formik', label: 'Formik', description: 'Build forms in React', version: '^2.4' },
+    { value: 'final-form', label: 'Final Form', description: 'High performance subscription-based form state', version: '^4.20' }
   ],
   animations: [
-    { value: 'none', label: 'None (CSS Transitions)', description: 'CSS transitions/animations' },
-    { value: 'framer-motion', label: 'Framer Motion', description: 'Production-ready motion library' },
-    { value: 'react-spring', label: 'React Spring', description: 'Spring physics based animation' },
-    { value: 'react-transition-group', label: 'React Transition Group', description: 'Animation components for React' }
+    { value: 'none', label: 'None (CSS Transitions)', description: 'CSS transitions/animations', version: 'built-in' },
+    { value: 'framer-motion', label: 'Motion', description: 'Production-ready motion library (formerly Framer Motion)', version: '^12.23' },
+    { value: 'react-spring', label: 'React Spring', description: 'Spring physics based animation', version: '^10.0' },
+    { value: 'react-transition-group', label: 'React Transition Group', description: 'Animation components for React', version: '^4.4' }
   ],
   testing: [
-    { value: 'none', label: 'None', description: 'No testing library' },
-    { value: 'jest', label: 'Jest', description: 'JavaScript testing framework' },
-    { value: 'vitest', label: 'Vitest', description: 'Next generation testing framework' },
-    { value: 'react-testing-library', label: 'React Testing Library', description: 'Simple and complete testing utilities' }
+    { value: 'none', label: 'None', description: 'No testing library', version: 'built-in' },
+    { value: 'jest', label: 'Jest', description: 'JavaScript testing framework', version: '^29.7' },
+    { value: 'vitest', label: 'Vitest', description: 'Vite-native testing framework with Browser Mode', version: '^4.0' },
+    { value: 'react-testing-library', label: 'React Testing Library', description: 'Simple and complete testing utilities', version: '^16.3' }
   ]
-} as const;
+};
 
 // Default tech stack configuration
 export const DEFAULT_TECH_STACK: TechStackConfig = {
@@ -281,3 +289,16 @@ export interface DebugState {
     searchQuery: string;
   };
 }
+
+// WebContainer Settings
+export interface WebContainerSettings {
+  clientId: string;
+  scope: string;
+  enabled: boolean;
+}
+
+export const DEFAULT_WEBCONTAINER_SETTINGS: WebContainerSettings = {
+  clientId: '',
+  scope: '',
+  enabled: false,
+};

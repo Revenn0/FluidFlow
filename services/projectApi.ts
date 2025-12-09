@@ -3,7 +3,8 @@
  * Handles communication with the backend server for project management, git, and GitHub operations
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3200/api';
+// Use relative URL - Vite proxies /api to backend (avoids mixed content with HTTPS frontend)
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 // Types
 export interface ProjectMeta {

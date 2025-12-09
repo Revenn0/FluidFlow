@@ -118,7 +118,12 @@ export const TechStackPanel: React.FC = () => {
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-white">{option.label}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="text-sm font-medium text-white">{option.label}</div>
+                        <span className="text-[10px] px-1.5 py-0.5 bg-slate-700/50 rounded text-slate-400">
+                          {option.version}
+                        </span>
+                      </div>
                       <div className="text-xs text-slate-500 mt-1">{option.description}</div>
                     </div>
                     {isSelected && (

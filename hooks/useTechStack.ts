@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
-import { TechStackConfig, DEFAULT_TECH_STACK } from '../types';
+import { TechStackConfig, DEFAULT_TECH_STACK, TECH_STACK_OPTIONS } from '../types';
 import { getFluidFlowConfig } from '../services/fluidflowConfig';
 
 const TECH_STACK_KEY = 'fluidflow-tech-stack';
+
+// Helper to get option info from TECH_STACK_OPTIONS
+const getOptionInfo = (category: keyof TechStackConfig, value: string) => {
+  const options = TECH_STACK_OPTIONS[category];
+  return options?.find(opt => opt.value === value);
+};
 
 export const useTechStack = () => {
   const [techStack, setTechStack] = useState<TechStackConfig>(DEFAULT_TECH_STACK);
@@ -67,146 +73,105 @@ export const useTechStack = () => {
       instruction += `\n\n**PROJECT RULES (Follow these guidelines)**:\n${rules}`;
     }
 
-    // Styling instructions
-    const styling = techStack.styling;
-    switch (styling.library) {
-      case 'tailwind':
-        instruction += '\n- Use Tailwind CSS for styling with utility classes';
-        break;
-      case 'bootstrap':
-        instruction += '\n- Use Bootstrap 5 for styling with CSS classes';
-        break;
-      case 'material-ui':
-        instruction += '\n- Use Material-UI (MUI) components with Material Design';
-        break;
-      case 'ant-design':
-        instruction += '\n- Use Ant Design components and styling system';
-        break;
-      case 'chakra-ui':
-        instruction += '\n- Use Chakra UI components and styling props';
-        break;
-      case 'css-modules':
-        instruction += '\n- Use CSS Modules with .module.css files for styling';
-        break;
-      case 'styled-components':
-        instruction += '\n- Use styled-components for CSS-in-JS styling';
-        break;
-      case 'emotion':
-        instruction += '\n- Use Emotion for CSS-in-JS styling with the @emotion/react package';
-        break;
-      default:
-        instruction += '\n- Use modern CSS practices for styling';
+    // Technology stack section header
+    instruction += '\n\n**TECHNOLOGY STACK (Use these specific libraries and versions)**:';
+
+    // Styling
+    const stylingInfo = getOptionInfo('styling', techStack.styling.library);
+    if (stylingInfo && stylingInfo.value !== 'css-modules') {
+      instruction += `\n- **Styling**: ${stylingInfo.label} (${stylingInfo.version}) - ${stylingInfo.description}`;
+      // Add specific usage hints
+      if (stylingInfo.value === 'tailwind') {
+        instruction += '. Use utility classes directly on elements.';
+      } else if (stylingInfo.value === 'material-ui') {
+        instruction += '. Import from @mui/material.';
+      } else if (stylingInfo.value === 'chakra-ui') {
+        instruction += '. Use style props on Chakra components.';
+      }
+    } else {
+      instruction += '\n- **Styling**: CSS Modules with .module.css files';
     }
 
-    // Icon instructions
-    const icons = techStack.icons;
-    switch (icons.library) {
-      case 'lucide-react':
-        instruction += '\n- Use lucide-react for icons (e.g., `<IconName className="w-4 h-4" />`)';
-        break;
-      case 'react-icons':
-        instruction += '\n- Use react-icons library (e.g., `<FaIcon />`, `<AiIcon />`)';
-        break;
-      case 'heroicons':
-        instruction += '\n- Use @heroicons/react for icons (e.g., `<IconName className="w-4 h-4" />`)';
-        break;
-      case 'material-icons':
-        instruction += '\n- Use @mui/icons-material Material Icons';
-        break;
-      case 'font-awesome':
-        instruction += '\n- Use @fortawesome/react-fontawesome Font Awesome icons';
-        break;
-      default:
-        instruction += '\n- Use appropriate SVG icons for the interface';
+    // Icons
+    const iconsInfo = getOptionInfo('icons', techStack.icons.library);
+    if (iconsInfo) {
+      instruction += `\n- **Icons**: ${iconsInfo.label} (${iconsInfo.version})`;
+      if (iconsInfo.value === 'lucide-react') {
+        instruction += '. Usage: `import { IconName } from "lucide-react"` then `<IconName className="w-4 h-4" />`';
+      } else if (iconsInfo.value === 'react-icons') {
+        instruction += '. Usage: `import { FaIcon } from "react-icons/fa"`';
+      } else if (iconsInfo.value === 'heroicons') {
+        instruction += '. Usage: `import { IconName } from "@heroicons/react/24/outline"`';
+      }
     }
 
-    // State management instructions
-    const stateManagement = techStack.stateManagement;
-    switch (stateManagement.library) {
-      case 'zustand':
-        instruction += '\n- Use Zustand for state management (create stores with `create` function)';
-        break;
-      case 'redux-toolkit':
-        instruction += '\n- Use Redux Toolkit with configureStore and createSlice';
-        break;
-      case 'context-api':
-        instruction += '\n- Use React Context API with useContext and useReducer hooks';
-        break;
-      case 'recoil':
-        instruction += '\n- Use Recoil for state management (atoms, selectors, useRecoilState)';
-        break;
-      case 'mobx':
-        instruction += '\n- Use MobX with observable and observer patterns';
-        break;
-      default:
-        instruction += '\n- Use React built-in useState and useReducer hooks for state management';
+    // State Management
+    const stateInfo = getOptionInfo('stateManagement', techStack.stateManagement.library);
+    if (stateInfo && stateInfo.value !== 'none' && stateInfo.value !== 'context-api') {
+      instruction += `\n- **State Management**: ${stateInfo.label} (${stateInfo.version}) - ${stateInfo.description}`;
+      if (stateInfo.value === 'zustand') {
+        instruction += '. Create stores with `create()` from zustand.';
+      } else if (stateInfo.value === 'redux-toolkit') {
+        instruction += '. Use `configureStore` and `createSlice`.';
+      }
+    } else if (stateInfo?.value === 'context-api') {
+      instruction += '\n- **State Management**: React Context API with useContext and useReducer hooks';
+    } else {
+      instruction += '\n- **State Management**: React built-in useState/useReducer hooks';
     }
 
-    // Routing instructions
-    const routing = techStack.routing;
-    switch (routing.library) {
-      case 'react-router':
-        instruction += '\n- Use React Router v6 for routing (BrowserRouter, Routes, Route, useNavigate)';
-        break;
-      case 'next-router':
-        instruction += '\n- Use Next.js built-in router (useRouter, Link component)';
-        break;
-      case 'reach-router':
-        instruction += '\n- Use Reach Router for accessible routing';
-        break;
-      default:
-        instruction += '\n- Create a single-page application without routing';
+    // Routing
+    const routingInfo = getOptionInfo('routing', techStack.routing.library);
+    if (routingInfo && routingInfo.value !== 'none') {
+      instruction += `\n- **Routing**: ${routingInfo.label} (${routingInfo.version})`;
+      if (routingInfo.value === 'react-router') {
+        instruction += '. Use BrowserRouter, Routes, Route, useNavigate, Link from "react-router".';
+      } else if (routingInfo.value === 'reach-router') {
+        instruction += '. Type-safe routing with full TypeScript support.';
+      }
+    } else {
+      instruction += '\n- **Routing**: Single-page application (no routing library needed)';
     }
 
-    // Data fetching instructions
-    const dataFetching = techStack.dataFetching;
-    switch (dataFetching.library) {
-      case 'axios':
-        instruction += '\n- Use axios for HTTP requests with proper error handling';
-        break;
-      case 'react-query':
-        instruction += '\n- Use TanStack Query for server state management (useQuery, useMutation)';
-        break;
-      case 'swr':
-        instruction += '\n- Use SWR for data fetching (useSWR hook)';
-        break;
-      case 'apollo-client':
-        instruction += '\n- Use Apollo Client for GraphQL operations (useQuery, useMutation, gql)';
-        break;
-      default:
-        instruction += '\n- Use the built-in fetch API for data requests';
+    // Data Fetching
+    const dataInfo = getOptionInfo('dataFetching', techStack.dataFetching.library);
+    if (dataInfo && dataInfo.value !== 'none' && dataInfo.value !== 'fetch') {
+      instruction += `\n- **Data Fetching**: ${dataInfo.label} (${dataInfo.version})`;
+      if (dataInfo.value === 'react-query') {
+        instruction += '. Use useQuery, useMutation from "@tanstack/react-query".';
+      } else if (dataInfo.value === 'swr') {
+        instruction += '. Use useSWR hook from "swr".';
+      } else if (dataInfo.value === 'axios') {
+        instruction += '. Use axios for HTTP requests with proper error handling.';
+      }
+    } else {
+      instruction += '\n- **Data Fetching**: Built-in fetch API';
     }
 
-    // Form handling instructions
-    const forms = techStack.forms;
-    switch (forms.library) {
-      case 'react-hook-form':
-        instruction += '\n- Use React Hook Form for form handling (useForm, Controller)';
-        break;
-      case 'formik':
-        instruction += '\n- Use Formik for form handling with Yup validation';
-        break;
-      case 'final-form':
-        instruction += '\n- Use React Final Form for high-performance forms';
-        break;
-      default:
-        instruction += '\n- Use standard HTML forms with React state management';
+    // Forms
+    const formsInfo = getOptionInfo('forms', techStack.forms.library);
+    if (formsInfo && formsInfo.value !== 'none') {
+      instruction += `\n- **Forms**: ${formsInfo.label} (${formsInfo.version})`;
+      if (formsInfo.value === 'react-hook-form') {
+        instruction += '. Use useForm, Controller, handleSubmit.';
+      } else if (formsInfo.value === 'formik') {
+        instruction += '. Use Formik with Yup for validation.';
+      }
+    } else {
+      instruction += '\n- **Forms**: Standard HTML forms with React state';
     }
 
-    // Animation instructions
-    const animations = techStack.animations;
-    switch (animations.library) {
-      case 'framer-motion':
-        instruction += '\n- Use Framer Motion for animations (motion.div, useAnimation)';
-        break;
-      case 'react-spring':
-        instruction += '\n- Use React Spring for spring-physics animations (useSpring, animated)';
-        break;
-      case 'react-transition-group':
-        instruction += '\n- Use React Transition Group for transition components';
-        break;
-      default:
-        instruction += '\n- Use CSS transitions and animations for motion effects';
+    // Animations
+    const animInfo = getOptionInfo('animations', techStack.animations.library);
+    if (animInfo && animInfo.value !== 'none') {
+      instruction += `\n- **Animations**: ${animInfo.label} (${animInfo.version})`;
+      if (animInfo.value === 'framer-motion') {
+        instruction += '. Use motion components (motion.div) and useAnimation from "motion/react".';
+      } else if (animInfo.value === 'react-spring') {
+        instruction += '. Use useSpring, animated from "@react-spring/web".';
+      }
+    } else {
+      instruction += '\n- **Animations**: CSS transitions and keyframe animations';
     }
 
     return instruction;
