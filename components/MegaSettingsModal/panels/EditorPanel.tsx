@@ -21,6 +21,8 @@ export const EditorPanel: React.FC = () => {
     const updated = { ...settings, ...updates };
     setSettings(updated);
     localStorage.setItem(STORAGE_KEYS.EDITOR_SETTINGS, JSON.stringify(updated));
+    // Notify CodeEditor about settings change
+    window.dispatchEvent(new CustomEvent('editorSettingsChanged'));
   };
 
   return (

@@ -99,6 +99,7 @@ interface AIHistoryEntry {
   truncated?: boolean;
   filesGenerated?: string[];
   explanation?: string;
+  templateType?: 'auto-fix' | 'inspect-edit' | 'prompt-template' | 'chat' | 'checkpoint';
 }
 
 interface ProjectContext {

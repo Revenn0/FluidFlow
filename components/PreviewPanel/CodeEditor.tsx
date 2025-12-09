@@ -2,6 +2,7 @@ import React, { useCallback, useState, useEffect, useRef } from 'react';
 import Editor, { OnMount, BeforeMount } from '@monaco-editor/react';
 import { FileCode, Check, Circle } from 'lucide-react';
 import { FileSystem } from '../../types';
+import { useEditorSettings } from '../../hooks/useEditorSettings';
 
 interface CodeEditorProps {
   files: FileSystem;
@@ -34,6 +35,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ files, setFiles, activeF
   const [showSaveIndicator, setShowSaveIndicator] = useState(false);
   const editorRef = useRef<any>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const { settings: editorSettings } = useEditorSettings();
 
   // Track if file has been modified
   const isModified = originalFiles ? files[activeFile] !== originalFiles[activeFile] : false;
@@ -144,16 +146,16 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ files, setFiles, activeF
           onChange={handleEditorChange}
           beforeMount={handleEditorWillMount}
           onMount={handleEditorMount}
-          theme="vs-dark"
+          theme={editorSettings.theme}
           options={{
-            fontSize: 12,
+            fontSize: editorSettings.fontSize,
             fontFamily: 'Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-            minimap: { enabled: false },
+            minimap: { enabled: editorSettings.minimap },
             scrollBeyondLastLine: false,
-            lineNumbers: 'on',
+            lineNumbers: editorSettings.lineNumbers,
             renderLineHighlight: 'line',
-            tabSize: 2,
-            wordWrap: 'off',
+            tabSize: editorSettings.tabSize,
+            wordWrap: editorSettings.wordWrap,
             automaticLayout: true,
             padding: { top: 12, bottom: 12 },
             scrollbar: {
@@ -168,9 +170,12 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ files, setFiles, activeF
             lineNumbersMinChars: 4,
             glyphMargin: false,
             renderWhitespace: 'none',
-            cursorBlinking: 'smooth',
-            cursorSmoothCaretAnimation: 'on',
-            smoothScrolling: true
+            cursorBlinking: editorSettings.cursorBlinking,
+            cursorStyle: editorSettings.cursorStyle,
+            cursorSmoothCaretAnimation: editorSettings.smoothScrolling ? 'on' : 'off',
+            smoothScrolling: editorSettings.smoothScrolling,
+            bracketPairColorization: { enabled: editorSettings.bracketPairColorization },
+            formatOnPaste: editorSettings.formatOnPaste
           }}
           loading={
             <div className="w-full h-full flex items-center justify-center bg-[#0d1117]">

@@ -984,6 +984,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             gitStatus={project.gitStatus}
             hasUncommittedChanges={hasUncommittedChanges}
             onOpenGitTab={() => setActiveTab('git')}
+            // History Timeline checkpoint
+            onSaveCheckpoint={saveSnapshot}
             onCreateProject={async (name, description) => {
               return await project.createProject(name, description, files);
             }}

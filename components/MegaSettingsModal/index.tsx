@@ -16,10 +16,7 @@ import {
   SettingsCategory,
   STORAGE_KEYS,
   DEFAULT_EDITOR_SETTINGS,
-  DEFAULT_APPEARANCE_SETTINGS,
-  DEFAULT_PROJECT_SETTINGS,
-  DEFAULT_DEBUG_SETTINGS,
-  DEFAULT_SHORTCUTS_SETTINGS
+  DEFAULT_DEBUG_SETTINGS
 } from './types';
 
 export const MegaSettingsModal: React.FC<MegaSettingsModalProps> = ({
@@ -130,23 +127,20 @@ export const MegaSettingsModal: React.FC<MegaSettingsModalProps> = ({
 
   // Reset current section to defaults
   const handleResetSection = () => {
+    // Only editor and debug have resettable settings
+    if (activeCategory !== 'editor' && activeCategory !== 'debug') {
+      return;
+    }
+
     if (!confirm(`Reset ${activeCategory} settings to defaults?`)) return;
 
     switch (activeCategory) {
       case 'editor':
         localStorage.setItem(STORAGE_KEYS.EDITOR_SETTINGS, JSON.stringify(DEFAULT_EDITOR_SETTINGS));
-        break;
-      case 'appearance':
-        localStorage.setItem(STORAGE_KEYS.APPEARANCE, JSON.stringify(DEFAULT_APPEARANCE_SETTINGS));
-        break;
-      case 'projects':
-        localStorage.setItem(STORAGE_KEYS.PROJECT_DEFAULTS, JSON.stringify(DEFAULT_PROJECT_SETTINGS));
+        window.dispatchEvent(new CustomEvent('editorSettingsChanged'));
         break;
       case 'debug':
         localStorage.setItem(STORAGE_KEYS.DEBUG_SETTINGS, JSON.stringify(DEFAULT_DEBUG_SETTINGS));
-        break;
-      case 'shortcuts':
-        localStorage.setItem(STORAGE_KEYS.SHORTCUTS, JSON.stringify(DEFAULT_SHORTCUTS_SETTINGS));
         break;
       default:
         return;
@@ -158,6 +152,9 @@ export const MegaSettingsModal: React.FC<MegaSettingsModalProps> = ({
     setActiveCategory('ai-providers');
     setTimeout(() => setActiveCategory(activeCategory), 0);
   };
+
+  // Check if current panel has resettable settings
+  const canResetSection = activeCategory === 'editor' || activeCategory === 'debug';
 
   const renderPanel = () => {
     switch (activeCategory) {
@@ -251,13 +248,17 @@ export const MegaSettingsModal: React.FC<MegaSettingsModalProps> = ({
 
             {/* Footer */}
             <div className="p-3 border-t border-white/5 bg-slate-950/50 flex items-center justify-between">
-              <button
-                onClick={handleResetSection}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Reset Section
-              </button>
+              {canResetSection ? (
+                <button
+                  onClick={handleResetSection}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Reset Section
+                </button>
+              ) : (
+                <div />
+              )}
               <div className="text-xs text-slate-600">
                 Press <kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-slate-400">Esc</kbd> to close
               </div>

@@ -17,7 +17,8 @@ import {
   Loader2,
   Zap,
   Search,
-  Settings
+  Settings,
+  Bookmark
 } from 'lucide-react';
 import { AIHistoryEntry } from '../services/projectApi';
 
@@ -82,11 +83,14 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
                 {entry.templateType === 'auto-fix' && <Zap size={12} className="text-orange-400" />}
                 {entry.templateType === 'inspect-edit' && <Search size={12} className="text-purple-400" />}
                 {entry.templateType === 'prompt-template' && <Settings size={12} className="text-blue-400" />}
+                {entry.templateType === 'checkpoint' && <Bookmark size={12} className="text-emerald-400" />}
                 <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                   entry.templateType === 'auto-fix'
                     ? 'bg-orange-500/20 text-orange-400'
                     : entry.templateType === 'inspect-edit'
                     ? 'bg-purple-500/20 text-purple-400'
+                    : entry.templateType === 'checkpoint'
+                    ? 'bg-emerald-500/20 text-emerald-400'
                     : 'bg-blue-500/20 text-blue-400'
                 }`}>
                   {entry.templateType.toUpperCase().replace('-', ' ')}
@@ -351,11 +355,44 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
             <div className="space-y-6">
               {/* Categorize history by template type */}
               {(() => {
-                const templates = history.filter(e => e.templateType);
+                const checkpoints = history.filter(e => e.templateType === 'checkpoint');
+                const templates = history.filter(e => e.templateType && e.templateType !== 'checkpoint');
                 const chats = history.filter(e => !e.templateType);
 
                 return (
                   <>
+                    {/* Checkpoints Section */}
+                    {checkpoints.length > 0 && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 px-2">
+                          <Bookmark size={16} className="text-emerald-400" />
+                          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider">
+                            Checkpoints
+                          </h3>
+                          <span className="px-2 py-0.5 bg-emerald-500/20 rounded text-xs text-emerald-400">
+                            {checkpoints.length}
+                          </span>
+                        </div>
+                        {checkpoints.map((entry) => (
+                          <EntryCard
+                            key={entry.id}
+                            entry={entry}
+                            expandedId={expandedId}
+                            setExpandedId={setExpandedId}
+                            copiedId={copiedId}
+                            setCopiedId={setCopiedId}
+                            restoringId={restoringId}
+                            setRestoringId={setRestoringId}
+                            onRestore={handleRestore}
+                            onCopyRaw={handleCopyRaw}
+                            formatDuration={formatDuration}
+                            formatSize={formatSize}
+                            formatTime={formatTime}
+                          />
+                        ))}
+                      </div>
+                    )}
+
                     {/* Prompt Templates Section */}
                     {templates.length > 0 && (
                       <div className="space-y-3">

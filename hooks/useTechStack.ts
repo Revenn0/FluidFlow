@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TechStackConfig, DEFAULT_TECH_STACK } from '../types';
+import { getFluidFlowConfig } from '../services/fluidflowConfig';
 
 const TECH_STACK_KEY = 'fluidflow-tech-stack';
 
@@ -55,9 +56,16 @@ export const useTechStack = () => {
     setTechStack(DEFAULT_TECH_STACK);
   };
 
-  // Generate system instruction based on current tech stack
+  // Generate system instruction based on current tech stack and project rules
   const generateSystemInstruction = () => {
     let instruction = '';
+
+    // Add project rules from FluidFlow config
+    const config = getFluidFlowConfig();
+    const rules = config.getRules();
+    if (rules && rules.trim()) {
+      instruction += `\n\n**PROJECT RULES (Follow these guidelines)**:\n${rules}`;
+    }
 
     // Styling instructions
     const styling = techStack.styling;

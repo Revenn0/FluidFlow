@@ -108,6 +108,8 @@ interface ControlPanelProps {
   gitStatus?: GitStatus | null;
   hasUncommittedChanges?: boolean;
   onOpenGitTab?: () => void;
+  // History Timeline checkpoint
+  onSaveCheckpoint?: (name: string) => void;
 }
 
 // Calculate file changes between two file systems
@@ -170,7 +172,9 @@ export const ControlPanel = forwardRef<ControlPanelRef, ControlPanelProps>(({
   // Git status props
   gitStatus,
   hasUncommittedChanges,
-  onOpenGitTab
+  onOpenGitTab,
+  // History Timeline checkpoint
+  onSaveCheckpoint
 }, ref) => {
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -2155,26 +2159,40 @@ ${prompt}`;
         onContinueGeneration={() => handleContinueGeneration()}
         filePlan={filePlan}
         onSaveCheckpoint={() => {
-          // Create a checkpoint with current files
-          const filesJson = JSON.stringify({ files, explanation: 'Manual checkpoint' });
-          const checkpointEntry: Omit<typeof aiHistory.history[0], 'id'> = {
-            timestamp: Date.now(),
-            prompt: 'Manual checkpoint',
-            model: 'checkpoint',
-            provider: 'manual',
-            hasSketch: false,
-            hasBrand: false,
-            isUpdate: true,
-            rawResponse: filesJson,
-            responseChars: filesJson.length,
-            responseChunks: 1,
-            durationMs: 0,
-            success: true,
-            truncated: false,
-            filesGenerated: Object.keys(files),
-            explanation: `Checkpoint with ${Object.keys(files).length} files`
-          };
-          aiHistory.addEntry(checkpointEntry);
+          // Check if there are files to checkpoint
+          if (Object.keys(files).length === 0) {
+            const errorMessage: ChatMessage = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              explanation: '⚠️ **No files to checkpoint.** Generate some code first before saving a checkpoint.',
+              timestamp: Date.now()
+            };
+            setMessages(prev => [...prev, errorMessage]);
+            return;
+          }
+
+          // Save to History Timeline using the prop callback
+          if (onSaveCheckpoint) {
+            const checkpointName = `Checkpoint (${Object.keys(files).length} files)`;
+            onSaveCheckpoint(checkpointName);
+
+            // Show success feedback
+            const successMessage: ChatMessage = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              explanation: `✅ **Checkpoint saved!** Saved ${Object.keys(files).length} files. You can restore this checkpoint from the History Timeline (Ctrl+Shift+H).`,
+              timestamp: Date.now()
+            };
+            setMessages(prev => [...prev, successMessage]);
+          } else {
+            const errorMessage: ChatMessage = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              explanation: '⚠️ **Checkpoint not available.** History Timeline is not connected.',
+              timestamp: Date.now()
+            };
+            setMessages(prev => [...prev, errorMessage]);
+          }
         }}
         onRestoreFromHistory={() => {
           // Restore the most recent successful entry directly
