@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { generateCodeMap, analyzeProject } from '../../services/codemap';
-import { Project } from '../projects';
+import { isValidProjectId, isValidFilePath, sanitizeFilePath } from '../utils/validation';
 
 const router = Router();
 
@@ -11,6 +11,11 @@ router.post('/generate', async (req, res) => {
 
     if (!projectId) {
       return res.status(400).json({ error: 'Project ID is required' });
+    }
+
+    // Validate project ID to prevent path traversal
+    if (!isValidProjectId(projectId)) {
+      return res.status(400).json({ error: 'Invalid project ID format' });
     }
 
     // Get project path
@@ -60,10 +65,20 @@ router.post('/analyze-file', async (req, res) => {
       return res.status(400).json({ error: 'Project ID and file path are required' });
     }
 
-    const projectsDir = process.env.PROJECTS_DIR || './projects';
-    const fullPath = `${projectsDir}/${projectId}/files/${filePath}`;
+    // Validate project ID and file path to prevent path traversal
+    if (!isValidProjectId(projectId)) {
+      return res.status(400).json({ error: 'Invalid project ID format' });
+    }
 
-    const codeMap = analyzeProject(fullPath);
+    if (!isValidFilePath(filePath)) {
+      return res.status(400).json({ error: 'Invalid file path' });
+    }
+
+    const projectsDir = process.env.PROJECTS_DIR || './projects';
+    const sanitizedPath = sanitizeFilePath(filePath);
+    const fullPath = `${projectsDir}/${projectId}/files/${sanitizedPath}`;
+
+    const codeMap = await analyzeProject(fullPath);
     const fileInfo = codeMap.nodes.get(fullPath);
 
     if (!fileInfo) {
@@ -92,10 +107,15 @@ router.post('/search', async (req, res) => {
       return res.status(400).json({ error: 'Project ID and query are required' });
     }
 
+    // Validate project ID to prevent path traversal
+    if (!isValidProjectId(projectId)) {
+      return res.status(400).json({ error: 'Invalid project ID format' });
+    }
+
     const projectsDir = process.env.PROJECTS_DIR || './projects';
     const projectPath = `${projectsDir}/${projectId}/files`;
 
-    const codeMap = analyzeProject(projectPath);
+    const codeMap = await analyzeProject(projectPath);
     const results = await codeMap.searchFiles(query, {
       type: type as 'function' | 'class' | 'interface' | 'variable',
       caseSensitive: Boolean(caseSensitive),
@@ -136,10 +156,15 @@ router.post('/stats', async (req, res) => {
       return res.status(400).json({ error: 'Project ID is required' });
     }
 
+    // Validate project ID to prevent path traversal
+    if (!isValidProjectId(projectId)) {
+      return res.status(400).json({ error: 'Invalid project ID format' });
+    }
+
     const projectsDir = process.env.PROJECTS_DIR || './projects';
     const projectPath = `${projectsDir}/${projectId}/files`;
 
-    const codeMap = analyzeProject(projectPath);
+    const codeMap = await analyzeProject(projectPath);
     const stats = await codeMap.getFileStatistics();
     const dependencyGraph = await codeMap.getDependencyGraph();
 

@@ -49,12 +49,15 @@ export function cleanGeneratedCode(code: string): string {
  * Attempts to repair truncated JSON from AI responses
  * Returns the repaired JSON string or throws a descriptive error
  */
+// Maximum JSON size for repair operations (configurable via constant)
+const MAX_JSON_REPAIR_SIZE = 500000; // 500KB - increased from 50KB to handle larger AI responses
+
 export function repairTruncatedJson(jsonStr: string): string {
   let json = jsonStr.trim();
 
   // Prevent recursion by limiting input size
-  if (json.length > 50000) {
-    throw new Error('JSON too large to repair safely');
+  if (json.length > MAX_JSON_REPAIR_SIZE) {
+    throw new Error(`JSON too large to repair safely (${Math.round(json.length / 1000)}KB exceeds ${Math.round(MAX_JSON_REPAIR_SIZE / 1000)}KB limit)`);
   }
 
   // Count open/close braces and brackets

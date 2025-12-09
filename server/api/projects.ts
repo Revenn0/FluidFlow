@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { existsSync, mkdirSync } from 'fs';
 import { fileURLToPath } from 'url';
+import { isValidProjectId, isValidFilePath, sanitizeFilePath } from '../utils/validation';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,6 +43,34 @@ const getProjectPath = (id: string) => path.join(PROJECTS_DIR, id);
 const getMetaPath = (id: string) => path.join(getProjectPath(id), 'project.json');
 const getFilesDir = (id: string) => path.join(getProjectPath(id), 'files');
 const getContextPath = (id: string) => path.join(getProjectPath(id), 'context.json');
+
+// Per-project locks to prevent concurrent file updates
+const projectLocks = new Map<string, Promise<void>>();
+
+async function withProjectLock<T>(projectId: string, fn: () => Promise<T>): Promise<T> {
+  // Wait for any existing lock on this project
+  const existingLock = projectLocks.get(projectId);
+  if (existingLock) {
+    await existingLock;
+  }
+
+  // Create new lock
+  let resolveLock: () => void;
+  const lockPromise = new Promise<void>((resolve) => {
+    resolveLock = resolve;
+  });
+  projectLocks.set(projectId, lockPromise);
+
+  try {
+    return await fn();
+  } finally {
+    resolveLock!();
+    // Clean up lock if it's still ours
+    if (projectLocks.get(projectId) === lockPromise) {
+      projectLocks.delete(projectId);
+    }
+  }
+}
 
 // Project context structure (version history + UI state)
 interface HistoryEntry {
@@ -161,6 +190,16 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Helper to validate all file paths in a files object
+function validateFilePaths(files: Record<string, unknown>): { valid: boolean; invalidPath?: string } {
+  for (const filePath of Object.keys(files)) {
+    if (!isValidFilePath(filePath)) {
+      return { valid: false, invalidPath: filePath };
+    }
+  }
+  return { valid: true };
+}
+
 // Create new project
 router.post('/', async (req, res) => {
   try {
@@ -168,6 +207,17 @@ router.post('/', async (req, res) => {
     const id = uuidv4();
     const projectPath = getProjectPath(id);
     const filesDir = getFilesDir(id);
+
+    // Validate file paths to prevent path traversal attacks
+    if (files && typeof files === 'object') {
+      const validation = validateFilePaths(files);
+      if (!validation.valid) {
+        return res.status(400).json({
+          error: 'Invalid file path detected',
+          invalidPath: validation.invalidPath
+        });
+      }
+    }
 
     // Create directories
     await fs.mkdir(projectPath, { recursive: true });
@@ -185,10 +235,11 @@ router.post('/', async (req, res) => {
 
     await fs.writeFile(getMetaPath(id), JSON.stringify(meta, null, 2));
 
-    // Save files
+    // Save files (paths already validated above)
     if (files && typeof files === 'object') {
       for (const [filePath, content] of Object.entries(files)) {
-        const fullPath = path.join(filesDir, filePath);
+        const safePath = sanitizeFilePath(filePath);
+        const fullPath = path.join(filesDir, safePath);
         await fs.mkdir(path.dirname(fullPath), { recursive: true });
         await fs.writeFile(fullPath, content as string);
       }
@@ -206,14 +257,33 @@ router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description, files, force } = req.body;
+
+    // Validate project ID to prevent path traversal
+    if (!isValidProjectId(id)) {
+      return res.status(400).json({ error: 'Invalid project ID' });
+    }
+
+    // Validate file paths to prevent path traversal attacks
+    if (files && typeof files === 'object') {
+      const validation = validateFilePaths(files);
+      if (!validation.valid) {
+        return res.status(400).json({
+          error: 'Invalid file path detected',
+          invalidPath: validation.invalidPath
+        });
+      }
+    }
+
     const projectPath = getProjectPath(id);
 
     if (!existsSync(projectPath)) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    // Update meta
-    const meta: ProjectMeta = JSON.parse(await fs.readFile(getMetaPath(id), 'utf-8'));
+    // Use lock to prevent concurrent updates to the same project
+    const result = await withProjectLock(id, async () => {
+      // Update meta
+      const meta: ProjectMeta = JSON.parse(await fs.readFile(getMetaPath(id), 'utf-8'));
     if (name) meta.name = name;
     if (description !== undefined) meta.description = description;
     meta.updatedAt = Date.now();
@@ -259,26 +329,26 @@ router.put('/:id', async (req, res) => {
       if (fileCount === 0) {
         console.warn(`[Projects API] BLOCKED empty files update for project ${id} - would delete ${existingFileCount} files!`);
         // Don't update files at all if empty - return warning but success
-        return res.json({
-          ...meta,
+        return {
+          meta,
           message: 'Empty update blocked',
           warning: 'Cannot sync empty file set - this would delete all project files',
           blocked: true,
           existingFileCount,
           newFileCount: fileCount
-        });
+        };
       } else if (!force && existingFileCount > 5 && fileCount < existingFileCount * 0.3) {
         // If we have more than 5 files and new update has less than 30% of them, ask for confirmation
         // Unless force=true is passed (user confirmed)
         console.warn(`[Projects API] Suspicious update for project ${id} - would reduce files from ${existingFileCount} to ${fileCount}. Requesting confirmation.`);
-        return res.json({
-          ...meta,
+        return {
+          meta,
           confirmationRequired: true,
           message: `This update will reduce files from ${existingFileCount} to ${fileCount}. Are you sure?`,
           existingFileCount,
           newFileCount: fileCount,
           warning: 'Significant file reduction detected'
-        });
+        };
       } else {
         // Safe to update (or force=true was passed)
         if (force && existingFileCount > 5 && fileCount < existingFileCount * 0.3) {
@@ -355,18 +425,27 @@ router.put('/:id', async (req, res) => {
           await fs.mkdir(filesDir, { recursive: true });
         }
 
-        // Write new/updated files
+        // Write new/updated files (paths already validated above)
         for (const [filePath, content] of Object.entries(files)) {
-          const fullPath = path.join(filesDir, filePath);
+          const safePath = sanitizeFilePath(filePath);
+          const fullPath = path.join(filesDir, safePath);
           await fs.mkdir(path.dirname(fullPath), { recursive: true });
           await fs.writeFile(fullPath, content as string);
         }
 
         console.log(`[Projects API] Updated ${fileCount} files for project ${id} (was ${existingFileCount})`);
+        }
       }
+
+      return { meta, message: 'Project updated' };
+    });
+
+    // Handle special responses from inside the lock
+    if ('confirmationRequired' in result || 'blocked' in result || 'warning' in result) {
+      return res.json({ ...result.meta, ...result });
     }
 
-    res.json({ ...meta, message: 'Project updated' });
+    res.json({ ...result.meta, message: result.message });
   } catch (error) {
     console.error('Update project error:', error);
     res.status(500).json({ error: 'Failed to update project' });

@@ -197,9 +197,9 @@ function isFileComplete(content: string, filePath: string): boolean {
     }
   }
 
-  // Special handling for truncated content: if it's very long (>1000 chars) and has substantial code,
-  // consider it "complete enough" even if it has minor issues
-  if (trimmed.length > 1000) {
+  // Special handling for truncated content: if it's very long (>2000 chars) and has substantial code,
+  // consider it "complete enough" but require proper ending
+  if (trimmed.length > 2000) {
     // Check if it has substantial code structure
     const hasCodeStructure = /function\s+|const\s+\w+\s*=|=>\s*{|class\s+\w+|<\w+/.test(trimmed);
     if (hasCodeStructure) {
@@ -208,9 +208,12 @@ function isFileComplete(content: string, filePath: string): boolean {
       const closeBraces = (trimmed.match(/\}/g) || []).length;
       const braceDiff = Math.abs(openBraces - closeBraces);
 
-      // If braces are reasonably balanced (diff <= 2), consider it complete
-      if (braceDiff <= 2) {
-        console.log(`[extractFiles] Treating long/truncated file as complete: ${filePath} (${trimmed.length} chars, brace diff: ${braceDiff})`);
+      // Must have balanced braces AND end with a proper closing character
+      const hasProperEnd = /[}\]);'"`>]\s*$/.test(trimmed);
+
+      // If braces are balanced (diff <= 1) and has proper ending, consider it complete
+      if (braceDiff <= 1 && hasProperEnd) {
+        console.log(`[extractFiles] Treating long file as complete: ${filePath} (${trimmed.length} chars, brace diff: ${braceDiff})`);
         return true;
       }
     }
@@ -233,14 +236,15 @@ function isFileComplete(content: string, filePath: string): boolean {
   // For other files, check if it ends with a proper closing
   const hasProperEnding = [
     trimmed.endsWith('}'),
-    trimmed.endsWith('}'),
+    trimmed.endsWith(');'),
     trimmed.endsWith('];'),
     trimmed.endsWith('};'),
     trimmed.endsWith('"\n'),
     trimmed.endsWith('\'\n'),
     trimmed.endsWith('`\n'),
     trimmed.endsWith('/>'),
-    trimmed.endsWith('</'),
+    // Match closing tags like </div>, </Component>, etc.
+    /<\/[a-zA-Z][a-zA-Z0-9]*>\s*$/.test(trimmed),
   ].some(Boolean);
 
   return hasProperEnding;

@@ -34,6 +34,7 @@ interface QuestionOptions {
   question: string;
   options: Option[];
   customOption?: boolean;
+  allowCustom?: boolean;
   customPlaceholder?: string;
   required?: boolean;
   allowMultiple?: boolean;

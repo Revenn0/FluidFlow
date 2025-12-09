@@ -5,6 +5,7 @@ import {
   SplitSquareVertical, X, Zap, ZapOff, MousePointer2, Bug, Settings, ChevronDown, Shield,
   ChevronLeft, ChevronRight, Globe, GitBranch, Play
 } from 'lucide-react';
+import { GoogleGenAI } from '@google/genai';
 import { getProviderManager } from '../../services/ai';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
@@ -1019,8 +1020,6 @@ Thumbs.db
           <EnvironmentPanel files={files} setFiles={setFiles} />
         ) : activeTab === 'git' ? (
           <div className="flex-1 overflow-auto">
-            {/* Debug: log onInitGit */}
-            {console.log('[PreviewPanel] Git tab - onInitGit:', onInitGit ? 'provided' : 'fallback', ', projectId:', projectId)}
             <GitPanel
               projectId={projectId || null}
               gitStatus={gitStatus || null}

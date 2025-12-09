@@ -2,6 +2,69 @@
 
 export type ProviderType = 'gemini' | 'openai' | 'anthropic' | 'zai' | 'ollama' | 'lmstudio' | 'openrouter' | 'custom';
 
+/**
+ * Retry utility with exponential backoff for transient errors
+ */
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  options: {
+    maxRetries?: number;
+    baseDelayMs?: number;
+    maxDelayMs?: number;
+    retryableErrors?: (error: Error) => boolean;
+  } = {}
+): Promise<T> {
+  const {
+    maxRetries = 3,
+    baseDelayMs = 1000,
+    maxDelayMs = 10000,
+    retryableErrors = isRetryableError,
+  } = options;
+
+  let lastError: Error | undefined;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      // Don't retry if error is not retryable or we've exhausted retries
+      if (attempt >= maxRetries || !retryableErrors(lastError)) {
+        throw lastError;
+      }
+
+      // Exponential backoff with jitter
+      const delay = Math.min(
+        baseDelayMs * Math.pow(2, attempt) + Math.random() * 1000,
+        maxDelayMs
+      );
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError;
+}
+
+/**
+ * Determine if an error is retryable (network errors, rate limits, server errors)
+ */
+function isRetryableError(error: Error): boolean {
+  const message = error.message.toLowerCase();
+  return (
+    message.includes('network') ||
+    message.includes('timeout') ||
+    message.includes('econnreset') ||
+    message.includes('econnrefused') ||
+    message.includes('rate limit') ||
+    message.includes('429') ||
+    message.includes('500') ||
+    message.includes('502') ||
+    message.includes('503') ||
+    message.includes('504')
+  );
+}
+
 export interface ProviderConfig {
   id: string;
   type: ProviderType;

@@ -114,7 +114,9 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ files, setFiles, activeF
           <FileCode className="w-3.5 h-3.5 text-blue-400" />
           <span className="text-[11px] font-medium text-slate-300">{activeFile}</span>
           {!isSaved && (
-            <Circle className="w-2 h-2 fill-orange-400 text-orange-400" title="Unsaved changes" />
+            <span title="Unsaved changes">
+              <Circle className="w-2 h-2 fill-orange-400 text-orange-400" />
+            </span>
           )}
           {isModified && isSaved && (
             <span className="text-[9px] px-1 py-0.5 bg-amber-500/20 text-amber-400 rounded">modified</span>

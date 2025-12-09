@@ -112,6 +112,7 @@ export function useProject(onFilesChange?: (files: FileSystem) => void): UseProj
   const lastFilesRef = useRef<string>('');
   const hasRestoredRef = useRef<boolean>(false);
   const isInitializedRef = useRef<boolean>(false); // Prevents sync before load
+  const restoreAbortedRef = useRef<boolean>(false); // Track if restore was cancelled
 
   // Check server health on mount
   useEffect(() => {
@@ -139,12 +140,19 @@ export function useProject(onFilesChange?: (files: FileSystem) => void): UseProj
       if (!state.isServerOnline || hasRestoredRef.current) return;
 
       hasRestoredRef.current = true;
+      restoreAbortedRef.current = false; // Reset abort flag
       const savedProjectId = storage.getProjectId();
 
       if (savedProjectId) {
         console.log('[Project] Restoring project from localStorage:', savedProjectId);
         try {
           const project = await projectApi.get(savedProjectId);
+
+          // Check if restore was aborted (user opened different project)
+          if (restoreAbortedRef.current) {
+            console.log('[Project] Restore aborted - another project was opened');
+            return;
+          }
 
           setState(prev => ({
             ...prev,
@@ -158,7 +166,14 @@ export function useProject(onFilesChange?: (files: FileSystem) => void): UseProj
 
           // Refresh git status - this is the single source of truth
           try {
+            // Check abort again before git status
+            if (restoreAbortedRef.current) return;
+
             const gitStatus = await gitApi.status(savedProjectId);
+
+            // Final abort check before updating state
+            if (restoreAbortedRef.current) return;
+
             setState(prev => ({
               ...prev,
               gitStatus,
@@ -167,9 +182,12 @@ export function useProject(onFilesChange?: (files: FileSystem) => void): UseProj
             // Git might not be initialized - gitStatus stays null
           }
 
-          console.log('[Project] Restored successfully:', project.name);
-          isInitializedRef.current = true; // Now safe to sync
-          setState(prev => ({ ...prev, isInitialized: true }));
+          // Only mark as initialized if not aborted
+          if (!restoreAbortedRef.current) {
+            console.log('[Project] Restored successfully:', project.name);
+            isInitializedRef.current = true; // Now safe to sync
+            setState(prev => ({ ...prev, isInitialized: true }));
+          }
         } catch (err) {
           console.error('[Project] Failed to restore project:', err);
           // Clear invalid project ID
@@ -209,6 +227,9 @@ export function useProject(onFilesChange?: (files: FileSystem) => void): UseProj
     description?: string,
     initialFiles?: FileSystem
   ): Promise<ProjectMeta | null> => {
+    // Abort any in-flight restore operation
+    restoreAbortedRef.current = true;
+
     setState(prev => ({ ...prev, error: null }));
 
     try {
@@ -245,6 +266,9 @@ export function useProject(onFilesChange?: (files: FileSystem) => void): UseProj
 
   // Open existing project - returns files directly to avoid stale closure issues
   const openProject = useCallback(async (id: string): Promise<{ success: boolean; files: FileSystem; context: ProjectContext | null }> => {
+    // IMPORTANT: Abort any in-flight restore operation
+    restoreAbortedRef.current = true;
+
     // IMPORTANT: Clear any pending syncs from old project FIRST
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
@@ -398,11 +422,15 @@ export function useProject(onFilesChange?: (files: FileSystem) => void): UseProj
 
   // Force sync files immediately
   const syncFiles = useCallback(async (): Promise<boolean> => {
-    if (!state.currentProject) return false;
+    if (!state.currentProject) {
+      console.warn('[Project] Ignoring syncFiles - no current project');
+      return false;
+    }
 
     // CRITICAL: Don't sync until initialized
     if (!isInitializedRef.current) {
       console.warn('[Project] Ignoring syncFiles - not initialized yet');
+      setState(prev => ({ ...prev, error: 'Cannot sync: project still initializing' }));
       return false;
     }
 
@@ -410,6 +438,7 @@ export function useProject(onFilesChange?: (files: FileSystem) => void): UseProj
     const fileCount = Object.keys(state.files).length;
     if (fileCount === 0) {
       console.warn('[Project] Blocking empty files sync - would cause data loss!');
+      setState(prev => ({ ...prev, error: 'Cannot sync: no files to save (data loss protection)' }));
       return false;
     }
 
@@ -443,7 +472,7 @@ export function useProject(onFilesChange?: (files: FileSystem) => void): UseProj
       // Check if blocked
       if (response.blocked) {
         console.warn('[Project] Sync blocked:', response.warning);
-        setState(prev => ({ ...prev, isSyncing: false }));
+        setState(prev => ({ ...prev, isSyncing: false, error: response.warning || 'Sync blocked by server' }));
         return false;
       }
 
@@ -641,7 +670,7 @@ export function useProject(onFilesChange?: (files: FileSystem) => void): UseProj
 
       if (response.blocked) {
         console.warn('[Project] Force sync still blocked:', response.warning);
-        setState(prev => ({ ...prev, isSyncing: false }));
+        setState(prev => ({ ...prev, isSyncing: false, error: response.warning || 'Force sync blocked' }));
         return false;
       }
 

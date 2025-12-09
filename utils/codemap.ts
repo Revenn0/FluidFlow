@@ -1,5 +1,9 @@
 import { FileSystem } from '../types';
 
+// Maximum file size for detailed analysis (500KB)
+// Larger files will have basic info only to prevent performance issues
+const MAX_ANALYSIS_SIZE = 500 * 1024;
+
 export interface ComponentInfo {
   name: string;
   props: string[];
@@ -34,6 +38,23 @@ function analyzeFile(path: string, content: string): FileInfo {
     functions: [],
     constants: []
   };
+
+  // Skip detailed analysis for very large files to prevent performance issues
+  if (content.length > MAX_ANALYSIS_SIZE) {
+    // Just determine basic file type and return
+    if (path.includes('/components/') || path.endsWith('App.tsx')) {
+      info.type = 'component';
+    } else if (path.includes('/hooks/') || content.slice(0, 1000).includes('export function use')) {
+      info.type = 'hook';
+    } else if (path.includes('/data/') || path.endsWith('.json')) {
+      info.type = 'data';
+    } else if (path.endsWith('.css')) {
+      info.type = 'style';
+    } else if (path.includes('config') || path.includes('vite') || path.includes('tailwind')) {
+      info.type = 'config';
+    }
+    return info;
+  }
 
   // Determine file type
   if (path.includes('/components/') || path.endsWith('App.tsx')) {

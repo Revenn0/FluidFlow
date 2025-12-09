@@ -3,12 +3,12 @@
  * Prevents command injection by properly escaping arguments
  */
 
-import { spawn, ChildProcess, execSync } from 'child_process';
+import { spawn, ChildProcess, execFileSync, execSync } from 'child_process';
 
 /**
  * Securely executes a command with proper argument escaping
  */
-export function secureExecSync(command: string, args: string[], options?: any): Buffer {
+export function secureExecSync(command: string, args: string[], options?: any): Buffer | string {
   // Validate command is in allowlist
   const allowedCommands = ['npx', 'npm', 'node', 'lsof', 'taskkill', 'netstat'];
   if (!allowedCommands.includes(command)) {
@@ -25,7 +25,7 @@ export function secureExecSync(command: string, args: string[], options?: any): 
     return arg.replace(/[;&|`$(){}[\]]/g, '');
   });
 
-  return execSync(command, { ...options, args: escapedArgs });
+  return execFileSync(command, escapedArgs, options);
 }
 
 /**

@@ -3,7 +3,7 @@
  * Tests API endpoints for proper error handling and security
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { request } from 'http';
 import { promises as fs } from 'fs';
 import path from 'path';

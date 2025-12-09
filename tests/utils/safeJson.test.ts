@@ -78,7 +78,8 @@ describe('safeJson', () => {
 
     it('should handle null and undefined', () => {
       expect(safeJsonStringify(null)).toBe('null');
-      expect(safeJsonStringify(undefined)).toBe('undefined');
+      // undefined is not valid JSON, so it should return the fallback
+      expect(safeJsonStringify(undefined)).toBe('{}');
     });
 
     it('should handle primitive values', () => {
@@ -88,6 +89,14 @@ describe('safeJson', () => {
     });
 
     it('should handle functions', () => {
+      const fn = () => {};
+      // Functions cannot be stringified to JSON, so should return fallback
+      const result = safeJsonStringify(fn);
+
+      expect(result).toBe('{}');
+    });
+
+    it('should handle functions with custom fallback', () => {
       const fn = () => {};
       const fallback = '{"error":"function"}';
       const result = safeJsonStringify(fn, fallback);

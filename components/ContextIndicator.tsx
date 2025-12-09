@@ -53,6 +53,8 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
 
   useEffect(() => {
     const updateStats = () => {
+      // Ensure context exists before getting stats
+      contextManager.getContext(contextId);
       const s = contextManager.getStats(contextId);
       if (s) {
         setStats({ messages: s.messages, tokens: s.tokens });
@@ -60,12 +62,37 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
     };
 
     updateStats();
-    // Update every second while modal is open
-    const interval = setInterval(updateStats, 1000);
+    // Update every 2 seconds
+    const interval = setInterval(updateStats, 2000);
     return () => clearInterval(interval);
   }, [contextId]);
 
-  if (!stats) return null;
+  if (!stats) {
+    // Initialize with default stats while loading
+    return (
+      <div className={`flex items-center gap-3 px-3 py-2 rounded-lg ${className}`}>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="w-20 h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-full bg-slate-600 rounded-full w-0" />
+          </div>
+          <span className="text-xs font-mono text-slate-500 whitespace-nowrap">0%</span>
+        </div>
+        <div className="flex items-center gap-3 text-xs text-slate-500 font-mono whitespace-nowrap">
+          <span className="flex items-center gap-1.5">
+            <MessageSquare className="w-4 h-4" />
+            <span className="text-slate-400">Msg:</span>
+            0
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Zap className="w-4 h-4" />
+            <span className="text-slate-400">Tok:</span>
+            0k
+          </span>
+        </div>
+        <div className="w-4 h-4" /> {/* Spacer for clear button */}
+      </div>
+    );
+  }
 
   const usagePercent = Math.min(100, (stats.tokens / maxTokens) * 100);
   const isWarning = usagePercent > 60;
@@ -86,29 +113,57 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
   return (
     <>
       {/* Compact Indicator */}
-      <button
-        onClick={() => setShowModal(true)}
-        className={`flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-white/5 transition-colors ${className}`}
+      <div
+        className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors ${className}`}
         title="Context usage - Click for details"
       >
         {/* Mini progress bar */}
-        <div className="w-16 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-          <div
-            className={`h-full ${getBgColor()} rounded-full transition-all duration-300`}
-            style={{ width: `${usagePercent}%` }}
-          />
-        </div>
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center gap-2 flex-1 min-w-0"
+        >
+          <div className="w-20 h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div
+              className={`h-full ${getBgColor()} rounded-full transition-all duration-300`}
+              style={{ width: `${usagePercent}%` }}
+            />
+          </div>
 
-        {showLabel && (
-          <span className={`text-[10px] font-mono ${getColor()}`}>
+          <span className={`text-xs font-mono ${getColor()} whitespace-nowrap`}>
             {Math.round(usagePercent)}%
           </span>
-        )}
 
-        {isCritical && (
-          <AlertTriangle className="w-3 h-3 text-red-400 animate-pulse" />
-        )}
-      </button>
+          {isCritical && (
+            <AlertTriangle className="w-4 h-4 text-red-400 animate-pulse flex-shrink-0" />
+          )}
+        </button>
+
+        {/* Stats */}
+        <div className="flex items-center gap-3 text-xs text-slate-500 font-mono whitespace-nowrap">
+          <span className="flex items-center gap-1.5">
+            <MessageSquare className="w-4 h-4" />
+            <span className="text-slate-400">Msg:</span>
+            {stats.messages}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Zap className="w-4 h-4" />
+            <span className="text-slate-400">Tok:</span>
+            {Math.round(stats.tokens / 1000)}k
+          </span>
+        </div>
+
+        {/* Clear Messages Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            contextManager.clearContext(contextId);
+          }}
+          className="p-1.5 hover:bg-slate-700/50 rounded text-slate-500 hover:text-red-400 transition-colors"
+          title="Clear messages"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
 
       {/* Detail Modal */}
       {showModal && (

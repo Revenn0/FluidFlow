@@ -44,10 +44,10 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, pro
 
       // Convert the response back to a CodeMap object with Map instances
       const codeMap: CodeMap = {
-        nodes: new Map(Object.entries(response.codeMap.nodes)),
+        nodes: new Map(Object.entries(response.codeMap.nodes as Record<string, CodeMapNode>)),
         rootNode: response.codeMap.rootNode,
-        dependencies: new Map(Object.entries(response.codeMap.dependencies)),
-        dependents: new Map(Object.entries(response.codeMap.dependents)),
+        dependencies: new Map(Object.entries(response.codeMap.dependencies as Record<string, string[]>)),
+        dependents: new Map(Object.entries(response.codeMap.dependents as Record<string, string[]>)),
         entryPoints: response.codeMap.entryPoints,
         circularDependencies: response.codeMap.circularDependencies,
         metrics: response.codeMap.metrics,
@@ -123,10 +123,10 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, pro
     });
   };
 
-  const getFilteredFiles = () => {
+  const getFilteredFiles = (): CodeMapNode[] => {
     if (!codeMap) return [];
 
-    const files = Array.from(codeMap.nodes.values());
+    const files = Array.from(codeMap.nodes.values()) as CodeMapNode[];
 
     switch (filterType) {
       case 'components':
@@ -373,7 +373,8 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, pro
                               <div className="mt-1">
                                 {result.matches.map((match, matchIndex) => (
                                   <div key={matchIndex} className="text-xs text-yellow-300 bg-yellow-500/10 px-1 py-0.5 rounded mt-1">
-                                    {match}
+                                    <span className="text-slate-400">{match.type}:</span> {match.name}
+                                    {match.line > 0 && <span className="text-slate-500 ml-1">L{match.line}</span>}
                                   </div>
                                 ))}
                               </div>
@@ -1103,7 +1104,7 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, pro
                           <Icons.Package className="w-4 h-4 text-purple-400" />
                           <span className="text-sm text-slate-400">Components</span>
                         </div>
-                        <div className="text-2xl font-bold text-white">{codeMap.metrics.totalComponents}</div>
+                        <div className="text-2xl font-bold text-white">{codeMap.metrics.totalReactComponents}</div>
                       </div>
 
                       <div className="bg-slate-800/50 rounded-lg p-4">
@@ -1111,7 +1112,7 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, pro
                           <Icons.Activity className="w-4 h-4 text-orange-400" />
                           <span className="text-sm text-slate-400">API Endpoints</span>
                         </div>
-                        <div className="text-2xl font-bold text-white">{codeMap.metrics.totalApiEndpoints}</div>
+                        <div className="text-2xl font-bold text-white">{codeMap.metrics.totalAPIEndpoints}</div>
                       </div>
                     </div>
 
@@ -1148,19 +1149,19 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, pro
                       <div className="grid grid-cols-3 gap-4">
                         <div className="text-center">
                           <div className="text-2xl font-bold text-green-400">
-                            {Array.from(codeMap.nodes.values()).filter(f => f.metrics.complexity <= 5).length}
+                            {(Array.from(codeMap.nodes.values()) as CodeMapNode[]).filter(f => f.metrics.complexity <= 5).length}
                           </div>
                           <div className="text-xs text-slate-400">Simple (≤5)</div>
                         </div>
                         <div className="text-center">
                           <div className="text-2xl font-bold text-yellow-400">
-                            {Array.from(codeMap.nodes.values()).filter(f => f.metrics.complexity > 5 && f.metrics.complexity <= 15).length}
+                            {(Array.from(codeMap.nodes.values()) as CodeMapNode[]).filter(f => f.metrics.complexity > 5 && f.metrics.complexity <= 15).length}
                           </div>
                           <div className="text-xs text-slate-400">Moderate (6-15)</div>
                         </div>
                         <div className="text-center">
                           <div className="text-2xl font-bold text-red-400">
-                            {Array.from(codeMap.nodes.values()).filter(f => f.metrics.complexity > 15).length}
+                            {(Array.from(codeMap.nodes.values()) as CodeMapNode[]).filter(f => f.metrics.complexity > 15).length}
                           </div>
                           <div className="text-xs text-slate-400">Complex (&gt;15)</div>
                         </div>
@@ -1171,10 +1172,10 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, pro
                     <div className="bg-slate-800/50 rounded-lg p-4">
                       <h4 className="text-sm font-semibold text-white mb-4">Largest Files (by Lines)</h4>
                       <div className="space-y-2">
-                        {Array.from(codeMap.nodes.values())
+                        {(Array.from(codeMap.nodes.values()) as CodeMapNode[])
                           .sort((a, b) => b.metrics.linesOfCode - a.metrics.linesOfCode)
                           .slice(0, 5)
-                          .map((file, index) => (
+                          .map((file) => (
                             <div key={file.id} className="flex items-center justify-between text-sm">
                               <span className="text-slate-300 truncate flex-1 mr-2">{file.fileName}</span>
                               <span className="text-slate-400">{file.metrics.linesOfCode} lines</span>
@@ -1187,10 +1188,10 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, pro
                     <div className="bg-slate-800/50 rounded-lg p-4">
                       <h4 className="text-sm font-semibold text-white mb-4">Most Complex Files</h4>
                       <div className="space-y-2">
-                        {Array.from(codeMap.nodes.values())
+                        {(Array.from(codeMap.nodes.values()) as CodeMapNode[])
                           .sort((a, b) => b.metrics.complexity - a.metrics.complexity)
                           .slice(0, 5)
-                          .map((file, index) => (
+                          .map((file) => (
                             <div key={file.id} className="flex items-center justify-between text-sm">
                               <span className="text-slate-300 truncate flex-1 mr-2">{file.fileName}</span>
                               <span className={`px-2 py-1 rounded text-xs ${getComplexityColor(file.metrics.complexity)}`}>

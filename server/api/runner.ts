@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { spawn, ChildProcess, execSync } from 'child_process';
 import path from 'path';
 import { existsSync } from 'fs';
+import { isValidProjectId, isValidInteger } from '../utils/validation';
 
 const router = Router();
 
@@ -47,9 +48,17 @@ function cleanupOrphanProcesses() {
       }
 
       for (const pid of pidsToKill) {
+        // Validate PID is a safe integer before using in command
+        if (!isValidInteger(pid, 1, 999999)) {
+          console.warn(`[Runner] Invalid PID skipped: ${pid}`);
+          continue;
+        }
         try {
-          execSync(`taskkill /pid ${pid} /f /t`, { stdio: 'ignore' });
-          console.log(`[Runner] Killed orphan process PID ${pid}`);
+          // Use spawn with array args instead of string interpolation for safety
+          const result = require('child_process').spawnSync('taskkill', ['/pid', pid, '/f', '/t'], { stdio: 'ignore' });
+          if (result.status === 0) {
+            console.log(`[Runner] Killed orphan process PID ${pid}`);
+          }
         } catch {
           // Process might have already exited
         }
@@ -69,6 +78,8 @@ console.log('[Runner] Checking for orphan processes on ports 3300-3399...');
 cleanupOrphanProcesses();
 
 // Track running processes
+const MAX_LOG_ENTRIES = 1000; // Limit log entries to prevent memory leak
+
 interface RunningProject {
   projectId: string;
   port: number;
@@ -81,6 +92,15 @@ interface RunningProject {
 }
 
 const runningProjects: Map<string, RunningProject> = new Map();
+
+// Helper to push logs with size limit (prevents memory leak)
+function pushLog(logs: string[], entry: string): void {
+  logs.push(entry);
+  // Remove oldest entries if over limit
+  while (logs.length > MAX_LOG_ENTRIES) {
+    logs.shift();
+  }
+}
 
 // Find an available port
 function findAvailablePort(): number | null {
@@ -136,6 +156,12 @@ router.get('/:id', (req, res) => {
 // Start a project
 router.post('/:id/start', async (req, res) => {
   const { id } = req.params;
+
+  // Validate project ID to prevent path traversal
+  if (!isValidProjectId(id)) {
+    return res.status(400).json({ error: 'Invalid project ID' });
+  }
+
   const filesDir = getFilesDir(id);
 
   // Check if project exists
@@ -193,7 +219,7 @@ router.post('/:id/start', async (req, res) => {
   // Function to start the dev server
   const startDevServer = () => {
     runningProject.status = 'starting';
-    runningProject.logs.push(`[${new Date().toISOString()}] Starting dev server on port ${port}...`);
+    pushLog(runningProject.logs,`[${new Date().toISOString()}] Starting dev server on port ${port}...`);
 
     // Spawn vite dev server with specific port
     const devProcess = spawn('npx', ['vite', '--port', String(port), '--host'], {
@@ -206,7 +232,7 @@ router.post('/:id/start', async (req, res) => {
 
     devProcess.stdout?.on('data', (data) => {
       const output = data.toString();
-      runningProject.logs.push(output);
+      pushLog(runningProject.logs,output);
 
       // Detect when server is ready
       if (output.includes('Local:') || output.includes('ready in')) {
@@ -217,27 +243,27 @@ router.post('/:id/start', async (req, res) => {
 
     devProcess.stderr?.on('data', (data) => {
       const output = data.toString();
-      runningProject.errorLogs.push(output);
+      pushLog(runningProject.errorLogs,output);
       // Vite outputs to stderr sometimes even for non-errors
-      runningProject.logs.push(output);
+      pushLog(runningProject.logs,output);
     });
 
     devProcess.on('error', (err) => {
       runningProject.status = 'error';
-      runningProject.errorLogs.push(`Process error: ${err.message}`);
+      pushLog(runningProject.errorLogs,`Process error: ${err.message}`);
       console.error(`[Runner] Project ${id} error:`, err);
     });
 
     devProcess.on('exit', (code) => {
       runningProject.status = 'stopped';
-      runningProject.logs.push(`[${new Date().toISOString()}] Process exited with code ${code}`);
+      pushLog(runningProject.logs,`[${new Date().toISOString()}] Process exited with code ${code}`);
       console.log(`[Runner] Project ${id} stopped (exit code: ${code})`);
     });
   };
 
   // Install dependencies if needed
   if (needsInstall) {
-    runningProject.logs.push(`[${new Date().toISOString()}] Installing dependencies...`);
+    pushLog(runningProject.logs,`[${new Date().toISOString()}] Installing dependencies...`);
 
     const installProcess = spawn('npm', ['install'], {
       cwd: filesDir,
@@ -248,27 +274,27 @@ router.post('/:id/start', async (req, res) => {
     runningProject.process = installProcess;
 
     installProcess.stdout?.on('data', (data) => {
-      runningProject.logs.push(data.toString());
+      pushLog(runningProject.logs,data.toString());
     });
 
     installProcess.stderr?.on('data', (data) => {
       // npm install outputs a lot to stderr even on success
-      runningProject.logs.push(data.toString());
+      pushLog(runningProject.logs,data.toString());
     });
 
     installProcess.on('error', (err) => {
       runningProject.status = 'error';
-      runningProject.errorLogs.push(`Install error: ${err.message}`);
+      pushLog(runningProject.errorLogs,`Install error: ${err.message}`);
       console.error(`[Runner] Project ${id} install error:`, err);
     });
 
     installProcess.on('exit', (code) => {
       if (code === 0) {
-        runningProject.logs.push(`[${new Date().toISOString()}] Dependencies installed successfully`);
+        pushLog(runningProject.logs,`[${new Date().toISOString()}] Dependencies installed successfully`);
         startDevServer();
       } else {
         runningProject.status = 'error';
-        runningProject.errorLogs.push(`npm install failed with code ${code}`);
+        pushLog(runningProject.errorLogs,`npm install failed with code ${code}`);
         console.error(`[Runner] Project ${id} npm install failed with code ${code}`);
       }
     });
@@ -300,14 +326,16 @@ router.post('/:id/stop', (req, res) => {
   if (running.process && !running.process.killed) {
     // On Windows, we need to kill the whole process tree
     if (process.platform === 'win32') {
-      spawn('taskkill', ['/pid', String(running.process.pid), '/f', '/t'], { shell: true });
+      // Use spawnSync without shell for safety (pid is from Node's ChildProcess, so it's a safe number)
+      const { spawnSync } = require('child_process');
+      spawnSync('taskkill', ['/pid', String(running.process.pid), '/f', '/t'], { stdio: 'ignore' });
     } else {
       running.process.kill('SIGTERM');
     }
   }
 
   running.status = 'stopped';
-  running.logs.push(`[${new Date().toISOString()}] Stopped by user`);
+  pushLog(running.logs,`[${new Date().toISOString()}] Stopped by user`);
 
   // Clean up after a delay
   setTimeout(() => {
@@ -345,7 +373,9 @@ router.post('/stop-all', (req, res) => {
   for (const [id, running] of runningProjects.entries()) {
     if (running.process && !running.process.killed) {
       if (process.platform === 'win32') {
-        spawn('taskkill', ['/pid', String(running.process.pid), '/f', '/t'], { shell: true });
+        // Use spawnSync without shell for safety
+        const { spawnSync } = require('child_process');
+        spawnSync('taskkill', ['/pid', String(running.process.pid), '/f', '/t'], { stdio: 'ignore' });
       } else {
         running.process.kill('SIGTERM');
       }

@@ -12,24 +12,56 @@ export function validateFilePath(filePath: string, basePath: string = ''): strin
     throw new Error('Invalid file path');
   }
 
-  // Normalize the path
-  const normalized = path.normalize(filePath);
+  // Check for null bytes (security vulnerability)
+  if (filePath.includes('\0')) {
+    throw new Error('Path contains null byte');
+  }
 
-  // Check for directory traversal attempts
-  if (normalized.includes('..') || normalized.includes('~')) {
+  // Decode URL-encoded characters before validation
+  let decodedPath = filePath;
+  try {
+    // Attempt to decode URL-encoded characters
+    decodedPath = decodeURIComponent(filePath);
+  } catch {
+    // If decoding fails, use original path
+  }
+
+  // Check for traversal patterns BEFORE normalization (catches encoded traversal)
+  if (decodedPath.includes('..') || decodedPath.includes('~')) {
+    throw new Error('Path traversal detected');
+  }
+
+  // Check for absolute paths (Unix and Windows)
+  if (path.isAbsolute(filePath) || path.isAbsolute(decodedPath)) {
+    throw new Error('Absolute paths not allowed');
+  }
+
+  // Also check for Windows absolute path patterns that might slip through
+  if (/^[a-zA-Z]:[\\/]/.test(filePath) || /^[a-zA-Z]:[\\/]/.test(decodedPath)) {
+    throw new Error('Absolute paths not allowed');
+  }
+
+  // Normalize the path
+  const normalized = path.normalize(decodedPath);
+
+  // Double-check for traversal after normalization
+  if (normalized.includes('..') || normalized.startsWith('..')) {
     throw new Error('Path traversal detected');
   }
 
   // Resolve relative to base path if provided
   if (basePath) {
+    const resolvedBase = path.resolve(basePath);
     const resolved = path.resolve(basePath, normalized);
-    if (!resolved.startsWith(path.resolve(basePath))) {
+    if (!resolved.startsWith(resolvedBase)) {
       throw new Error('Path is outside allowed directory');
     }
-    return path.relative(basePath, resolved);
+    // Return with forward slashes for cross-platform consistency
+    return path.relative(basePath, resolved).replace(/\\/g, '/');
   }
 
-  return normalized;
+  // Return with forward slashes for cross-platform consistency
+  return normalized.replace(/\\/g, '/');
 }
 
 /**
@@ -53,13 +85,29 @@ export function sanitizeInput(input: string): string {
     return '';
   }
 
-  // Basic XSS prevention
-  return input
+  // First, escape & to prevent breaking other entity encoding
+  let sanitized = input.replace(/&/g, '&amp;');
+
+  // HTML entity encoding
+  sanitized = sanitized
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;')
     .replace(/\//g, '&#x2F;');
+
+  // Remove dangerous protocols (case-insensitive)
+  sanitized = sanitized.replace(/javascript\s*:/gi, '');
+  sanitized = sanitized.replace(/vbscript\s*:/gi, '');
+  sanitized = sanitized.replace(/data\s*:/gi, '');
+
+  // Remove event handlers (case-insensitive)
+  sanitized = sanitized.replace(/\bon\w+\s*=/gi, '');
+
+  // Remove CSS expressions
+  sanitized = sanitized.replace(/expression\s*\(/gi, '');
+
+  return sanitized;
 }
 
 /**

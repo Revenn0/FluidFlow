@@ -86,21 +86,81 @@ export const AutoFixModal: React.FC<AutoFixModalProps> = ({
               </div>
             </div>
 
-            {/* Logs */}
+            {/* Error Fix Chat Log */}
             <div className="flex-1 overflow-auto p-4">
-              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
-                AI Analysis Log
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  🔧 Error Fix Chat
+                </div>
+                {stage === 'completed' && (
+                  <button className="text-xs text-green-400 hover:text-green-300 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" />
+                    <span>Resolved</span>
+                  </button>
+                )}
               </div>
-              <div className="space-y-2 font-mono text-sm">
+
+              <div className="space-y-3 font-mono text-sm max-h-[500px] overflow-y-auto pr-2">
                 {logs.length === 0 ? (
-                  <p className="text-slate-600 italic">Waiting for analysis...</p>
+                  <div className="p-3 bg-slate-800/20 rounded-lg border border-slate-700/50">
+                    <p className="text-slate-500 italic text-xs">Waiting for error analysis...</p>
+                  </div>
                 ) : (
-                  logs.map((log, index) => (
-                    <div key={index} className="p-2 bg-slate-800/30 rounded border-l-2 border-blue-500/30">
-                      <span className="text-blue-400 text-xs">[{new Date().toLocaleTimeString()}]</span>
-                      <p className="text-slate-300 mt-1">{log}</p>
-                    </div>
-                  ))
+                  logs.map((log, index) => {
+                    // Determine log type
+                    const isSystem = log.startsWith('[SYSTEM]');
+                    const isUser = log.startsWith('[USER]');
+                    const isError = log.startsWith('[ERROR]');
+                    const isSuccess = log.startsWith('[SUCCESS]');
+
+                    let bgColor = 'bg-slate-800/30';
+                    let borderColor = 'border-blue-500/30';
+                    let textColor = 'text-slate-300';
+                    let icon = '🤖';
+
+                    if (isSystem) {
+                      bgColor = 'bg-purple-500/10';
+                      borderColor = 'border-purple-500/30';
+                      textColor = 'text-purple-300';
+                      icon = '⚙️';
+                    } else if (isUser) {
+                      bgColor = 'bg-blue-500/10';
+                      borderColor = 'border-blue-500/30';
+                      textColor = 'text-blue-300';
+                      icon = '👤';
+                    } else if (isError) {
+                      bgColor = 'bg-red-500/10';
+                      borderColor = 'border-red-500/30';
+                      textColor = 'text-red-300';
+                      icon = '❌';
+                    } else if (isSuccess) {
+                      bgColor = 'bg-green-500/10';
+                      borderColor = 'border-green-500/30';
+                      textColor = 'text-green-300';
+                      icon = '✅';
+                    }
+
+                    return (
+                      <div key={index} className={`p-3 ${bgColor} rounded-lg border ${borderColor}`}>
+                        <div className="flex items-start gap-2">
+                          <span className="text-lg flex-shrink-0">{icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-xs font-semibold ${textColor}`}>
+                                {isSystem ? 'SYSTEM' : isUser ? 'USER' : isError ? 'ERROR' : isSuccess ? 'SUCCESS' : 'ASSISTANT'}
+                              </span>
+                              <span className="text-[10px] text-slate-600">
+                                {new Date().toLocaleTimeString()}
+                              </span>
+                            </div>
+                            <p className={`${textColor} text-sm leading-relaxed whitespace-pre-wrap break-words`}>
+                              {log.replace(/^\[(SYSTEM|USER|ERROR|SUCCESS)\]\s*/, '')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>

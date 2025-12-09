@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { FileSystem } from '../types';
 
 // History entry with metadata
@@ -71,9 +71,30 @@ export function useVersionHistory(initialFiles: FileSystem): UseVersionHistoryRe
   // Debounce timer for batching rapid changes
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const pendingFilesRef = useRef<{ files: FileSystem; label?: string } | null>(null);
+  // Track if component is mounted to prevent state updates after unmount
+  const isMountedRef = useRef<boolean>(true);
+
+  // Cleanup on unmount - commit any pending changes
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      // Clear the debounce timer to prevent memory leaks
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        debounceTimerRef.current = null;
+      }
+      // Note: We intentionally don't commit pending changes on unmount
+      // because setState won't work after unmount. Callers should use
+      // exportHistory() before unmounting if they need to persist changes.
+    };
+  }, []);
 
   // Commit pending changes to history
   const commitPendingChanges = useCallback(() => {
+    // Don't commit if unmounted - prevents React state update warnings
+    if (!isMountedRef.current) return;
+
     if (pendingFilesRef.current) {
       const { files: pendingFiles, label } = pendingFilesRef.current;
       pendingFilesRef.current = null;

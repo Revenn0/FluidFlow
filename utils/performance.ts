@@ -20,7 +20,13 @@ export function memoize<T extends (...args: any[]) => any>(
   const cache = new Map<string, ReturnType<T>>();
 
   return ((...args: Parameters<T>): ReturnType<T> => {
-    const key = keyGenerator ? keyGenerator(...args) : JSON.stringify(args);
+    let key: string;
+    try {
+      key = keyGenerator ? keyGenerator(...args) : JSON.stringify(args);
+    } catch {
+      // If key generation fails (e.g., circular objects), skip caching
+      return fn(...args);
+    }
 
     if (cache.has(key)) {
       return cache.get(key)!;

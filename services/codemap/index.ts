@@ -12,5 +12,6 @@ export async function generateCodeMap(options = {}) {
 
 export async function analyzeProject(projectPath?: string) {
   const collector = new CodeCollector();
-  return await collector.collectCode(projectPath);
+  await collector.collectCode(projectPath);
+  return collector;
 }

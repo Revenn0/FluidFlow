@@ -10,7 +10,8 @@ interface UseSpeechRecognitionResult {
 }
 
 export function useSpeechRecognition(
-  onTranscript: (text: string) => void
+  onTranscript: (text: string) => void,
+  language?: string // Optional language parameter, defaults to browser's language
 ): UseSpeechRecognitionResult {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -30,7 +31,8 @@ export function useSpeechRecognition(
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = 'en-US';
+    // Use provided language, browser's language, or fallback to 'en-US'
+    recognition.lang = language || navigator.language || 'en-US';
 
     recognition.onstart = () => {
       setIsListening(true);
@@ -64,7 +66,7 @@ export function useSpeechRecognition(
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [onTranscript]);
+  }, [onTranscript, language]);
 
   const stopListening = useCallback(() => {
     if (recognitionRef.current) {

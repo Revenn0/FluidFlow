@@ -1,4 +1,5 @@
-import { Node } from '@typescript-eslint/typescript-estree';
+import { TSESTree } from '@typescript-eslint/typescript-estree';
+type Node = TSESTree.Node;
 
 export interface CodeMapNode {
   id: string;
@@ -62,6 +63,15 @@ export interface PropertyInfo {
   isReadonly: boolean;
   visibility?: 'public' | 'private' | 'protected';
   defaultValue?: string;
+  startLine: number;
+}
+
+export interface VariableInfo {
+  name: string;
+  type?: string;
+  kind: 'const' | 'let' | 'var';
+  isExported: boolean;
+  initialValue?: string;
   startLine: number;
 }
 

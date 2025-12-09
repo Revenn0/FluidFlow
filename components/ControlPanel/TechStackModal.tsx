@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Package, Palette, Database, Globe, Check, RotateCcw, Sparkles, Layers, Zap, FileText } from 'lucide-react';
 import { useTechStack } from '../../hooks/useTechStack';
+import { TechStackConfig } from '../../types';
 
 interface TechStackOption {
   value: string;
@@ -132,7 +133,7 @@ const techCategories: TechCategory[] = [
 
 export const TechStackModal: React.FC<TechStackModalProps> = ({ isOpen, onClose }) => {
   const { techStack, updateTechStack, resetTechStack } = useTechStack();
-  const [selectedCategory, setSelectedCategory] = useState<string>('styling');
+  const [selectedCategory, setSelectedCategory] = useState<keyof TechStackConfig>('styling');
 
   if (!isOpen) return null;
 
@@ -185,7 +186,7 @@ export const TechStackModal: React.FC<TechStackModalProps> = ({ isOpen, onClose 
                 return (
                   <button
                     key={category.key}
-                    onClick={() => setSelectedCategory(category.key)}
+                    onClick={() => setSelectedCategory(category.key as keyof TechStackConfig)}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
                       isSelected
                         ? 'bg-white/10 text-white border border-white/20'
@@ -230,7 +231,7 @@ export const TechStackModal: React.FC<TechStackModalProps> = ({ isOpen, onClose 
                   return (
                     <button
                       key={option.value}
-                      onClick={() => updateTechStack(selectedCategory as keyof typeof techStack, option.value, option.version)}
+                      onClick={() => updateTechStack(selectedCategory, option.value, option.version)}
                       className={`p-4 rounded-lg border text-left transition-all ${
                         isSelected
                           ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/30 text-white'

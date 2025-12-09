@@ -1,4 +1,7 @@
-import { CodeMap, CodeMapNode, CodeMapMetrics } from './codemap/types';
+import { CodeMap, CodeMapNode, CodeMapMetrics, SearchResult } from './codemap/types';
+
+// Re-export types for consumers
+export type { SearchResult } from './codemap/types';
 
 export interface CodeMapResponse {
   success: boolean;
@@ -29,11 +32,6 @@ export interface CodeMapStats {
   };
 }
 
-export interface SearchResult {
-  node: CodeMapNode;
-  matches: string[];
-}
-
 export interface SearchResponse {
   success: boolean;
   results: SearchResult[];
@@ -41,7 +39,7 @@ export interface SearchResponse {
 }
 
 class CodeMapAPI {
-  private baseUrl = 'http://localhost:3200/api/codemap';
+  private baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3200/api') + '/codemap';
 
   async generateCodeMap(projectId: string): Promise<CodeMapResponse> {
     try {

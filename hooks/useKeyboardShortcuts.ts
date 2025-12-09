@@ -35,16 +35,22 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
     const target = event.target as HTMLElement;
     const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
 
+    // Platform detection for cross-platform shortcuts
+    const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+
     for (const shortcut of shortcuts) {
       const keyMatch = event.key.toLowerCase() === shortcut.key.toLowerCase();
-      const ctrlMatch = !shortcut.ctrl || (event.ctrlKey || event.metaKey);
+      // ctrl: true means Ctrl on Windows/Linux, Cmd on Mac (cross-platform standard)
+      const ctrlMatch = !shortcut.ctrl || (isMac ? event.metaKey : event.ctrlKey);
+      // meta: true explicitly requires Meta/Cmd key regardless of platform
+      const metaMatch = !shortcut.meta || event.metaKey;
       const shiftMatch = !shortcut.shift || event.shiftKey;
       const altMatch = !shortcut.alt || event.altKey;
 
       // For shortcuts with modifiers, allow them even in inputs
       const hasModifier = shortcut.ctrl || shortcut.shift || shortcut.alt || shortcut.meta;
 
-      if (keyMatch && ctrlMatch && shiftMatch && altMatch) {
+      if (keyMatch && ctrlMatch && metaMatch && shiftMatch && altMatch) {
         if (!isInput || hasModifier) {
           event.preventDefault();
           event.stopPropagation();

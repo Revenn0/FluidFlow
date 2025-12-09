@@ -1,6 +1,7 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { User, Bot, Image, Palette, RotateCcw, FileCode, Plus, Minus, Loader2, AlertCircle, RefreshCw, Zap, Clock, Layers } from 'lucide-react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { User, Bot, Image, Palette, RotateCcw, FileCode, Plus, Minus, Loader2, AlertCircle, RefreshCw, Zap, Clock, Layers, Bookmark } from 'lucide-react';
 import { ChatMessage, FileChange } from '../../types';
+import type { AIHistoryEntry } from '../../services/projectApi';
 
 interface ChatPanelProps {
   messages: ChatMessage[];
@@ -11,6 +12,7 @@ interface ChatPanelProps {
   streamingChars?: number;
   streamingFiles?: string[];
   // AI History restore props
+  onSaveCheckpoint?: (entry: Omit<AIHistoryEntry, 'id'>) => string;
   aiHistoryCount?: number;
   onRestoreFromHistory?: () => void;
   // Truncation retry props
@@ -18,7 +20,12 @@ interface ChatPanelProps {
     rawResponse: string;
     prompt: string;
     systemInstruction: string;
-    partialFiles?: Record<string, string>;
+    partialFiles?: {
+      [filePath: string]: {
+        content: string;
+        isComplete: boolean;
+      };
+    };
     attempt: number;
   } | null;
   onTruncationRetry?: () => void;
@@ -182,17 +189,36 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   onSetExternalPrompt,
   continuationState,
   onContinueGeneration,
-  filePlan
+  filePlan,
+  onSaveCheckpoint
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [autoContinueCountdown, setAutoContinueCountdown] = useState<number>(0);
+  const wasAtBottomRef = useRef(true);
+  const lastMessageCountRef = useRef(0);
 
-  // Auto-scroll to bottom on new messages or streaming updates
+  // Track if user is near bottom of chat (within 100px)
+  const handleScroll = useCallback(() => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      wasAtBottomRef.current = scrollHeight - scrollTop - clientHeight < 100;
+    }
+  }, []);
+
+  // Auto-scroll to bottom only when:
+  // 1. New messages are added, OR
+  // 2. User was already at bottom (during streaming)
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const hasNewMessages = messages.length > lastMessageCountRef.current;
+      lastMessageCountRef.current = messages.length;
+
+      // Always scroll on new messages, or during streaming if user was at bottom
+      if (hasNewMessages || (wasAtBottomRef.current && isGenerating)) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
     }
-  }, [messages, streamingStatus, streamingChars, streamingFiles]);
+  }, [messages, streamingChars, isGenerating]);
 
   // Auto-continue to next batch after 10 seconds
   useEffect(() => {
@@ -248,7 +274,45 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   }
 
   return (
-    <div ref={scrollRef} className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-4">
+    <div className="flex-1 flex flex-col">
+      {/* Chat Toolbar */}
+      <div className="flex items-center justify-between px-3 py-2 border-b border-white/5 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-medium text-slate-300">Chat History</h3>
+          <span className="text-xs text-slate-500">({messages.length} messages)</span>
+        </div>
+        {onSaveCheckpoint && (
+          <button
+            onClick={() => {
+              // Create a manual checkpoint from current state
+              const checkpointEntry: Omit<AIHistoryEntry, 'id'> = {
+                timestamp: Date.now(),
+                prompt: 'Manual checkpoint',
+                model: 'checkpoint',
+                provider: 'manual',
+                hasSketch: false,
+                hasBrand: false,
+                isUpdate: false,
+                rawResponse: 'Checkpoint saved',
+                responseChars: 0,
+                responseChunks: 0,
+                durationMs: 0,
+                success: true,
+                truncated: false,
+                filesGenerated: [],
+                explanation: 'Manual checkpoint saved'
+              };
+              onSaveCheckpoint(checkpointEntry);
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+            title="Save current state as checkpoint"
+          >
+            <Bookmark className="w-3.5 h-3.5" />
+            Save Checkpoint
+          </button>
+        )}
+      </div>
+      <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-4">
       {messages.map((message, index) => (
         <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
           {/* Avatar */}
@@ -659,6 +723,10 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };
+
+
+export default ChatPanel;

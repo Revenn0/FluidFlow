@@ -7,6 +7,14 @@ import { CodeMapNode, CodeMapOptions, CodeMap, CodeMapMetrics } from './types';
 export class CodeCollector {
   private parser: ASTParser;
   private options: CodeMapOptions;
+  public nodes: Map<string, CodeMapNode> = new Map();
+  public dependencies: Map<string, string[]> = new Map();
+  public dependents: Map<string, string[]> = new Map();
+  public entryPoints: string[] = [];
+  public circularDependencies: string[][] = [];
+  public metrics: CodeMapMetrics = {} as CodeMapMetrics;
+  public rootNode: string = '';
+  public lastGenerated: number = 0;
 
   constructor(options: CodeMapOptions = {}) {
     this.options = {
@@ -53,9 +61,10 @@ export class CodeCollector {
     const filePaths = await this.discoverFiles(rootPath);
     console.log(`📁 Found ${filePaths.length} files to analyze`);
 
-    const nodes = new Map<string, CodeMapNode>();
-    const dependencies = new Map<string, string[]>();
-    const dependents = new Map<string, string[]>();
+    // Reset the instance properties
+    this.nodes = new Map<string, CodeMapNode>();
+    this.dependencies = new Map<string, string[]>();
+    this.dependents = new Map<string, string[]>();
 
     // Parse all files in parallel batches
     const batchSize = 10;
@@ -68,11 +77,11 @@ export class CodeCollector {
       results.forEach((result, index) => {
         if (result.status === 'fulfilled') {
           const node = result.value;
-          nodes.set(node.id, node);
+          this.nodes.set(node.id, node);
 
           // Extract dependencies
-          dependencies.set(node.id, node.dependencies);
-          dependents.set(node.id, []);
+          this.dependencies.set(node.id, node.dependencies);
+          this.dependents.set(node.id, []);
         } else {
           console.error(`Failed to parse ${batch[index]}:`, result.reason);
         }
@@ -84,42 +93,45 @@ export class CodeCollector {
     }
 
     // Build dependents map (reverse dependencies)
-    nodes.forEach((node, nodeId) => {
+    this.nodes.forEach((node, nodeId) => {
       node.dependencies.forEach(dep => {
-        const depNode = Array.from(nodes.values()).find(n =>
+        const depNode = Array.from(this.nodes.values()).find(n =>
           n.fileName === dep || n.filePath.includes(dep)
         );
 
         if (depNode) {
-          const currentDependents = dependents.get(depNode.id) || [];
+          const currentDependents = this.dependents.get(depNode.id) || [];
           currentDependents.push(nodeId);
-          dependents.set(depNode.id, [...new Set(currentDependents)]);
+          this.dependents.set(depNode.id, [...new Set(currentDependents)]);
         }
       });
     });
 
     // Find circular dependencies
-    const circularDeps = this.detectCircularDependencies(dependencies, dependents);
+    this.circularDependencies = this.detectCircularDependencies(this.dependencies, this.dependents);
 
     // Identify entry points
-    const entryPoints = this.identifyEntryPoints(nodes, dependents);
+    this.entryPoints = this.identifyEntryPoints(this.nodes, this.dependents);
 
     // Calculate metrics
-    const metrics = this.calculateMetrics(nodes);
+    this.metrics = this.calculateMetrics(this.nodes);
+
+    this.rootNode = this.findRootNode(this.nodes);
+    this.lastGenerated = Date.now();
 
     const codeMap: CodeMap = {
-      nodes,
-      rootNode: this.findRootNode(nodes),
-      dependencies,
-      dependents,
-      entryPoints,
-      circularDependencies: circularDeps,
-      metrics,
-      lastGenerated: Date.now()
+      nodes: this.nodes,
+      rootNode: this.rootNode,
+      dependencies: this.dependencies,
+      dependents: this.dependents,
+      entryPoints: this.entryPoints,
+      circularDependencies: this.circularDependencies,
+      metrics: this.metrics,
+      lastGenerated: this.lastGenerated
     };
 
     console.log('✅ Code collection completed!');
-    console.log(`📊 Stats: ${metrics.totalFiles} files, ${metrics.totalFunctions} functions, ${metrics.totalReactComponents} components`);
+    console.log(`📊 Stats: ${this.metrics.totalFiles} files, ${this.metrics.totalFunctions} functions, ${this.metrics.totalReactComponents} components`);
 
     return codeMap;
   }

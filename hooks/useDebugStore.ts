@@ -29,6 +29,22 @@ const initialState: DebugState = {
 let globalDebugState: DebugState = initialState;
 let globalListeners: Set<() => void> = new Set();
 
+// Reset global debug state - useful for app resets or testing
+export function resetDebugState(): void {
+  // Clear any pending debounce timer
+  if (updateDebounceTimer) {
+    clearTimeout(updateDebounceTimer);
+    updateDebounceTimer = null;
+  }
+  // Reset to initial state (preserves enabled setting from localStorage)
+  globalDebugState = {
+    ...initialState,
+    enabled: getInitialEnabled(), // Reload from localStorage
+  };
+  // Notify all listeners
+  globalListeners.forEach(listener => listener());
+}
+
 // Global functions for logging from anywhere
 export const debugLog = {
   isEnabled: () => globalDebugState.enabled,

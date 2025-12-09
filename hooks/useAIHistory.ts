@@ -28,11 +28,49 @@ export function useAIHistory(projectId: string | null): UseAIHistoryReturn {
   const loadedProjectRef = useRef<string | null>(null);
   const pendingHistoryRef = useRef<AIHistoryEntry[] | null>(null);
   const projectIdRef = useRef<string | null>(null);
+  const isSavingRef = useRef<boolean>(false); // Lock to prevent concurrent saves
+  const pendingSaveRef = useRef<AIHistoryEntry[] | null>(null); // Queue for next save
 
   // Keep projectId ref updated for beforeunload
   useEffect(() => {
     projectIdRef.current = projectId;
   }, [projectId]);
+
+  // Thread-safe save with queueing to prevent race conditions
+  const saveWithLock = useCallback(async (entries: AIHistoryEntry[]): Promise<void> => {
+    const pid = projectIdRef.current;
+    if (!pid) return;
+
+    // If already saving, queue this save for later
+    if (isSavingRef.current) {
+      pendingSaveRef.current = entries;
+      console.log('[AIHistory] Save queued (another save in progress)');
+      return;
+    }
+
+    isSavingRef.current = true;
+    pendingHistoryRef.current = entries;
+
+    try {
+      await projectApi.saveContext(pid, { aiHistory: entries });
+      setLastSaved(Date.now());
+      pendingHistoryRef.current = null;
+      console.log(`[AIHistory] Saved ${entries.length} entries`);
+    } catch (err) {
+      console.error('[AIHistory] Save failed:', err);
+      // Keep pendingHistoryRef for beforeunload fallback
+    } finally {
+      isSavingRef.current = false;
+
+      // Process any queued save
+      const queuedData = pendingSaveRef.current;
+      if (queuedData) {
+        pendingSaveRef.current = null;
+        // Use setTimeout to avoid stack overflow on rapid saves
+        setTimeout(() => saveWithLock(queuedData), 0);
+      }
+    }
+  }, []);
 
   // Load history from backend when project changes
   useEffect(() => {
@@ -111,24 +149,8 @@ export function useAIHistory(projectId: string | null): UseAIHistoryReturn {
     setHistory(prev => {
       const updated = [newEntry, ...prev].slice(0, MAX_HISTORY_SIZE);
 
-      // Track in pendingHistoryRef for beforeunload
-      pendingHistoryRef.current = updated;
-
-      // IMPORTANT: Do immediate save (no debounce) for AI history
-      // This ensures data is saved even if user closes tab immediately
-      if (projectIdRef.current) {
-        projectApi.saveContext(projectIdRef.current, { aiHistory: updated })
-          .then(() => {
-            setLastSaved(Date.now());
-            pendingHistoryRef.current = null;
-            console.log(`[AIHistory] Immediately saved ${updated.length} entries`);
-          })
-          .catch(err => {
-            console.error('[AIHistory] Immediate save failed, will retry via debounce:', err);
-            // Fall back to debounced save
-            saveToBackend(updated);
-          });
-      }
+      // Use thread-safe save with queueing
+      saveWithLock(updated);
 
       return updated;
     });
@@ -143,7 +165,7 @@ export function useAIHistory(projectId: string | null): UseAIHistoryReturn {
 
     console.log(`[AIHistory] Added entry ${id} (${entry.success ? 'success' : 'failed'})`);
     return id;
-  }, [history.length, saveToBackend]);
+  }, [history.length, saveWithLock]);
 
   // Get entry by ID
   const getEntry = useCallback((id: string): AIHistoryEntry | undefined => {
@@ -153,31 +175,23 @@ export function useAIHistory(projectId: string | null): UseAIHistoryReturn {
   // Clear all history
   const clearHistory = useCallback(() => {
     setHistory([]);
-    if (projectId) {
-      projectApi.saveContext(projectId, { aiHistory: [] }).catch(console.error);
-    }
+    // Use thread-safe save with queueing
+    saveWithLock([]);
     console.log('[AIHistory] Cleared all history');
-  }, [projectId]);
+  }, [saveWithLock]);
 
   // Delete single entry
   const deleteEntry = useCallback((id: string) => {
     setHistory(prev => {
       const updated = prev.filter(e => e.id !== id);
 
-      // Immediate save
-      if (projectIdRef.current) {
-        pendingHistoryRef.current = updated;
-        projectApi.saveContext(projectIdRef.current, { aiHistory: updated })
-          .then(() => {
-            pendingHistoryRef.current = null;
-            console.log(`[AIHistory] Deleted entry ${id}, saved ${updated.length} entries`);
-          })
-          .catch(console.error);
-      }
+      // Use thread-safe save with queueing
+      saveWithLock(updated);
+      console.log(`[AIHistory] Deleted entry ${id}`);
 
       return updated;
     });
-  }, []);
+  }, [saveWithLock]);
 
   // Get recent entries
   const getRecent = useCallback((count: number = 10): AIHistoryEntry[] => {

@@ -103,18 +103,27 @@ export class OllamaProvider implements AIProvider {
     const reader = response.body?.getReader();
     const decoder = new TextDecoder();
     let fullText = '';
+    let buffer = ''; // Buffer for incomplete lines
 
     if (reader) {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n').filter(line => line.trim());
+        // Append new data to buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete lines (ending with \n)
+        const lines = buffer.split('\n');
+        // Keep the last potentially incomplete line in the buffer
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
+          const trimmedLine = line.trim();
+          if (!trimmedLine) continue;
+
           try {
-            const parsed = JSON.parse(line);
+            const parsed = JSON.parse(trimmedLine);
             if (parsed.response) {
               fullText += parsed.response;
               onChunk({ text: parsed.response, done: false });
@@ -123,8 +132,24 @@ export class OllamaProvider implements AIProvider {
               onChunk({ text: '', done: true });
             }
           } catch {
-            // Skip invalid JSON
+            // Skip invalid JSON - may be partial data
           }
+        }
+      }
+
+      // Process any remaining data in buffer
+      if (buffer.trim()) {
+        try {
+          const parsed = JSON.parse(buffer.trim());
+          if (parsed.response) {
+            fullText += parsed.response;
+            onChunk({ text: parsed.response, done: false });
+          }
+          if (parsed.done) {
+            onChunk({ text: '', done: true });
+          }
+        } catch {
+          // Skip invalid JSON
         }
       }
     }

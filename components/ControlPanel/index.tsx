@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useImperativeHandle, forwardRef, useRef, useEffect } from 'react';
-import { Layers, Trash2, AlertTriangle, X, MessageSquare, FileCode, History } from 'lucide-react';
+import { Layers, RotateCcw, AlertTriangle, X, MessageSquare, FileCode, History } from 'lucide-react';
 import { FileSystem, ChatMessage, ChatAttachment, FileChange } from '../../types';
 import { cleanGeneratedCode, parseMultiFileResponse, GenerationMeta } from '../../utils/cleanCode';
 import { extractFilesFromTruncatedResponse } from '../../utils/extractPartialFiles';
@@ -1938,60 +1938,14 @@ Generate ONLY these files. Each file must be COMPLETE and FUNCTIONAL.`;
   };
 
   // Handle inspect edit from PreviewPanel - with chat history and streaming
+  // Handle inspect edit from PreviewPanel - using normal chat flow
   const handleInspectEdit = useCallback(async (prompt: string, element: InspectedElement) => {
     const appCode = files['src/App.tsx'];
     if (!appCode) return;
 
-    // Add user message showing the inspect edit request
-    const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      timestamp: Date.now(),
-      prompt: `🎯 **Inspect Edit**: ${element.componentName || element.tagName}\n\n${prompt}`,
-    };
-    setMessages(prev => [...prev, userMessage]);
-    setIsGenerating(true);
-
-    // Save to AI history as a template
-    const inspectEditPrompt = `🎯 **Inspect Edit**: ${element.componentName || element.tagName}
-
-Element Context:
-${elementContext}
-
-User Request: ${prompt}
-
-Current files:
-${JSON.stringify(files, null, 2)}`;
-    aiHistory.addEntry({
-      timestamp: Date.now(),
-      prompt: inspectEditPrompt,
-      model: currentModel,
-      provider: providerName,
-      hasSketch: false,
-      hasBrand: false,
-      isUpdate: true,
-      rawResponse: '',
-      responseChars: 0,
-      responseChunks: 0,
-      durationMs: 0,
-      success: true,
-      error: '',
-      truncated: false,
-      templateType: 'inspect-edit'
-    });
-
-    // Setup streaming state
-    const manager = getProviderManager();
-    const activeProvider = manager.getActiveConfig();
-    const currentModel = activeProvider?.defaultModel || selectedModel;
-    const providerName = activeProvider?.name || 'AI';
-
-    setStreamingStatus(`🔍 Analyzing ${element.componentName || element.tagName}...`);
-    setStreamingChars(0);
-    setStreamingFiles([]);
-
+    // Build element context
     const elementContext = `
-Target Element:
+🎯 **Selected Element:**
 - Tag: <${element.tagName.toLowerCase()}>
 - Component: ${element.componentName || 'Unknown'}
 - Classes: ${element.className || 'none'}
@@ -2000,116 +1954,16 @@ Target Element:
 ${element.parentComponents ? `- Parent components: ${element.parentComponents.join(' > ')}` : ''}
 `;
 
-    const systemInstruction = `You are an expert React developer. The user has selected a specific element/component in their app and wants to modify it.
+    // Combine element context with user prompt
+    const combinedPrompt = `${elementContext}
 
-Based on the element information provided, identify which file and component needs to be modified, then make the requested changes.
+**User Request:**
+${prompt}`;
 
-**RESPONSE FORMAT**: Return a JSON object with:
-1. "explanation": Brief markdown explaining what you changed
-2. "files": Object with file paths as keys and updated code as values
+    // Use the normal handleSend function to integrate with chat history
+    await handleSend(combinedPrompt, []);
+  }, [files, handleSend]);
 
-Only return files that need changes. Maintain all existing functionality.`;
-
-    const request: GenerationRequest = {
-      prompt: `${elementContext}\n\nUser Request: ${prompt}\n\nCurrent files:\n${JSON.stringify(files, null, 2)}`,
-      systemInstruction,
-      responseFormat: 'json'
-    };
-
-    try {
-      let fullText = '';
-      let detectedFiles: string[] = [];
-
-      await manager.generateStream(
-        request,
-        (chunk) => {
-          const chunkText = chunk.text || '';
-          fullText += chunkText;
-          setStreamingChars(fullText.length);
-
-          // Detect file paths
-          const fileMatches = fullText.match(/"([^"]+\.(tsx?|jsx?|css|json|md))"\s*:/g);
-          if (fileMatches) {
-            const newMatchedFiles = fileMatches
-              .map(m => m.replace(/[":\s]/g, ''))
-              .filter(f => !detectedFiles.includes(f) && !f.includes('\\'));
-            if (newMatchedFiles.length > 0) {
-              detectedFiles = [...detectedFiles, ...newMatchedFiles];
-              setStreamingFiles([...detectedFiles]);
-              setStreamingStatus(`📁 Modifying ${detectedFiles.length} file(s)`);
-            }
-          }
-
-          if (detectedFiles.length === 0) {
-            setStreamingStatus(`⚡ Generating changes... (${Math.round(fullText.length / 1024)}KB)`);
-          }
-        },
-        currentModel
-      );
-
-      setStreamingStatus('✨ Applying changes...');
-
-      // Save raw response for debugging
-      (window as any).__lastAIResponse = { raw: fullText, timestamp: Date.now(), type: 'inspect-edit' };
-
-      // Use robust parser with truncation repair
-      const parseResult = parseMultiFileResponse(fullText);
-      const explanation = parseResult?.explanation || 'Component updated successfully.';
-      const newFilesFromResult = parseResult?.files || {};
-
-      if (parseResult?.truncated) {
-        console.warn('[InspectEdit] Response was truncated but partially recovered');
-      }
-
-      if (Object.keys(newFilesFromResult).length > 0) {
-        const mergedFiles = { ...files, ...newFilesFromResult };
-        const fileChanges = calculateFileChanges(files, mergedFiles);
-
-        setStreamingStatus(`✅ Modified ${Object.keys(newFilesFromResult).length} file(s)${parseResult?.truncated ? ' (truncated)' : ''}`);
-
-        // Add assistant message
-        const assistantMessage: ChatMessage = {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          timestamp: Date.now(),
-          explanation,
-          files: newFilesFromResult,
-          fileChanges,
-          snapshotFiles: { ...files }
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-
-        // Show diff modal
-        reviewChange(`Inspect Edit: ${element.componentName || element.tagName}`, mergedFiles);
-      } else {
-        // No changes made
-        const assistantMessage: ChatMessage = {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          timestamp: Date.now(),
-          explanation: explanation || 'No changes were needed for this component.'
-        };
-        setMessages(prev => [...prev, assistantMessage]);
-      }
-    } catch (error) {
-      console.error('Inspect edit failed:', error);
-      setStreamingStatus('❌ Edit failed');
-
-      const errorMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        timestamp: Date.now(),
-        error: error instanceof Error ? error.message : 'Failed to process inspect edit'
-      };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsGenerating(false);
-      setTimeout(() => {
-        setStreamingStatus('');
-        setStreamingFiles([]);
-      }, 2000);
-    }
-  }, [files, selectedModel, reviewChange, setIsGenerating]);
 
   // Expose methods to parent via ref
   useImperativeHandle(ref, () => ({
@@ -2148,7 +2002,7 @@ Only return files that need changes. Maintain all existing functionality.`;
           className="p-2 hover:bg-red-500/10 rounded-lg text-slate-500 hover:text-red-400 transition-colors"
           title="Start Fresh"
         >
-          <Trash2 className="w-4 h-4" />
+          <RotateCcw className="w-4 h-4" />
         </button>
       </div>
 
@@ -2186,6 +2040,7 @@ Only return files that need changes. Maintain all existing functionality.`;
         continuationState={continuationState}
         onContinueGeneration={() => handleContinueGeneration()}
         filePlan={filePlan}
+        onSaveCheckpoint={aiHistory.addEntry}
         onRestoreFromHistory={() => {
           // Restore the most recent successful entry directly
           const lastEntry = aiHistory.history.find(h => h.success);
@@ -2250,7 +2105,7 @@ Only return files that need changes. Maintain all existing functionality.`;
                 id: crypto.randomUUID(),
                 role: 'assistant',
                 timestamp: historyEntry.timestamp,
-                files: historyEntry.filesGenerated || Object.keys(cleanedFiles),
+                files: cleanedFiles,
                 explanation: parsed.explanation || historyEntry.explanation || '',
                 fileChanges,
                 snapshotFiles: cleanedFiles
@@ -2440,7 +2295,7 @@ Only return files that need changes. Maintain all existing functionality.`;
                 onClick={handleConfirmReset}
                 className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-500 rounded-lg transition-colors flex items-center justify-center gap-2"
               >
-                <Trash2 className="w-4 h-4" />
+                <RotateCcw className="w-4 h-4" />
                 Yes, Start Fresh
               </button>
             </div>
@@ -2516,7 +2371,7 @@ Only return files that need changes. Maintain all existing functionality.`;
                 id: crypto.randomUUID(),
                 role: 'assistant',
                 timestamp: historyEntry.timestamp,
-                files: historyEntry.filesGenerated || Object.keys(cleanedFiles),
+                files: cleanedFiles,
                 explanation: parsed.explanation || historyEntry.explanation || '',
                 fileChanges,
                 snapshotFiles: cleanedFiles
@@ -2564,8 +2419,7 @@ Only return files that need changes. Maintain all existing functionality.`;
           prompt={batchGenModal.prompt}
           systemInstruction={batchGenModal.systemInstruction}
           targetFiles={batchGenModal.targetFiles}
-          existingFiles={files}
-          onComplete={(generatedFiles) => {
+          onComplete={(generatedFiles: FileSystem) => {
             // Apply the generated files to the current project
             const fileChanges: FileChange[] = Object.entries(generatedFiles).map(([path, content]) => ({
               path,

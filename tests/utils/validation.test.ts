@@ -32,9 +32,10 @@ describe('validation', () => {
     });
 
     it('should reject paths outside base directory', () => {
+      // Path traversal is caught early before directory check
       expect(() =>
         validateFilePath('../../../etc/passwd', '/projects/myproject')
-      ).toThrow('Path is outside allowed directory');
+      ).toThrow('Path traversal detected');
     });
   });
 
@@ -59,7 +60,7 @@ describe('validation', () => {
   describe('sanitizeInput', () => {
     it('should escape HTML characters', () => {
       expect(sanitizeInput('<script>alert("xss")</script>'))
-        .toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;');
+        .toBe('&lt;script&gt;alert(&quot;xss&quot;)&lt;&#x2F;script&gt;');
       expect(sanitizeInput('Hello <world> & "everyone"'))
         .toBe('Hello &lt;world&gt; &amp; &quot;everyone&quot;');
     });

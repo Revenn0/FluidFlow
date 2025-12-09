@@ -2,6 +2,7 @@
 import { AIProvider, ProviderConfig, ProviderType, DEFAULT_PROVIDERS, GenerationRequest, GenerationResponse, StreamChunk } from './types';
 import { GeminiProvider, OpenAIProvider, AnthropicProvider, OllamaProvider, LMStudioProvider, ZAIProvider } from './providers';
 import { settingsApi } from '../projectApi';
+import { encryptProviderConfigs, decryptProviderConfigs } from '../../utils/clientEncryption';
 
 export * from './types';
 export * from './providers';
@@ -34,8 +35,31 @@ export function createProvider(config: ProviderConfig): AIProvider {
 const STORAGE_KEY = 'fluidflow_ai_providers';
 const ACTIVE_PROVIDER_KEY = 'fluidflow_active_provider';
 
-// Load saved providers from localStorage (fallback)
-export function loadProvidersFromLocalStorage(): ProviderConfig[] {
+// Load saved providers from localStorage (fallback) - decrypts API keys
+export async function loadProvidersFromLocalStorage(): Promise<ProviderConfig[]> {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const providers = JSON.parse(saved) as ProviderConfig[];
+      // Decrypt API keys
+      return await decryptProviderConfigs(providers);
+    }
+  } catch (e) {
+    console.error('Failed to load providers from localStorage:', e);
+  }
+
+  // Return default Gemini config if nothing saved
+  const defaultConfig: ProviderConfig = {
+    id: 'default-gemini',
+    ...DEFAULT_PROVIDERS.gemini,
+    apiKey: process.env.API_KEY || '',
+  };
+
+  return [defaultConfig];
+}
+
+// Synchronous load for initial fast startup (may return encrypted keys that need async decryption)
+export function loadProvidersFromLocalStorageSync(): ProviderConfig[] {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -55,10 +79,12 @@ export function loadProvidersFromLocalStorage(): ProviderConfig[] {
   return [defaultConfig];
 }
 
-// Save providers to localStorage (fallback)
-export function saveProvidersToLocalStorage(providers: ProviderConfig[]): void {
+// Save providers to localStorage (fallback) - encrypts API keys
+export async function saveProvidersToLocalStorage(providers: ProviderConfig[]): Promise<void> {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(providers));
+    // Encrypt API keys before saving
+    const encryptedProviders = await encryptProviderConfigs(providers);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(encryptedProviders));
   } catch (e) {
     console.error('Failed to save providers to localStorage:', e);
   }
@@ -74,11 +100,13 @@ export function setActiveProviderIdInLocalStorage(id: string): void {
   localStorage.setItem(ACTIVE_PROVIDER_KEY, id);
 }
 
-// Legacy exports for backwards compatibility
+// Legacy exports for backwards compatibility (now async)
 export const loadProviders = loadProvidersFromLocalStorage;
 export const saveProviders = saveProvidersToLocalStorage;
 export const getActiveProviderId = getActiveProviderIdFromLocalStorage;
 export const setActiveProviderId = setActiveProviderIdInLocalStorage;
+// Sync version for fast startup
+export const loadProvidersSync = loadProvidersFromLocalStorageSync;
 
 // Provider Manager class for easier state management
 export class ProviderManager {
@@ -87,16 +115,20 @@ export class ProviderManager {
   private activeProviderId: string = '';
   private isInitialized: boolean = false;
   private initPromise: Promise<void> | null = null;
+  // Thread-safe save state
+  private isSaving: boolean = false;
+  private pendingSave: boolean = false;
 
   constructor() {
-    // Load from localStorage immediately for fast startup
-    this.loadFromLocalStorage();
-    // Then async load from backend to get latest
-    this.initPromise = this.loadFromBackend();
+    // Load from localStorage immediately for fast startup (sync, may have encrypted keys)
+    this.loadFromLocalStorageSync();
+    // Then async load from backend to get latest (includes decryption)
+    this.initPromise = this.initializeAsync();
   }
 
-  private loadFromLocalStorage(): void {
-    const configs = loadProvidersFromLocalStorage();
+  private loadFromLocalStorageSync(): void {
+    // Use sync version for immediate startup - keys may still be encrypted
+    const configs = loadProvidersFromLocalStorageSync();
     configs.forEach(c => this.providers.set(c.id, c));
     this.activeProviderId = getActiveProviderIdFromLocalStorage();
 
@@ -106,14 +138,48 @@ export class ProviderManager {
     }
   }
 
+  private async initializeAsync(): Promise<void> {
+    // First decrypt localStorage keys
+    await this.decryptLocalStorageKeys();
+    // Then load from backend (which may override with fresh data)
+    await this.loadFromBackend();
+  }
+
+  private async decryptLocalStorageKeys(): Promise<void> {
+    try {
+      // Reload with async decryption
+      const decryptedConfigs = await loadProvidersFromLocalStorage();
+      decryptedConfigs.forEach(c => this.providers.set(c.id, c));
+    } catch (e) {
+      console.warn('[AI] Failed to decrypt localStorage keys:', e);
+    }
+  }
+
   private async loadFromBackend(): Promise<void> {
     try {
       const { providers, activeId } = await settingsApi.getAIProviders();
       if (providers && providers.length > 0) {
-        this.providers.clear();
-        this.instances.clear();
-        // Cast from storage type to full ProviderConfig - JSON preserves full structure
-        (providers as unknown as ProviderConfig[]).forEach((c) => this.providers.set(c.id, c));
+        // Build new providers map without clearing existing first
+        const newProviders = new Map<string, ProviderConfig>();
+        (providers as unknown as ProviderConfig[]).forEach((c) => newProviders.set(c.id, c));
+
+        // Only clear instances for providers whose config changed
+        for (const [id, oldConfig] of this.providers) {
+          const newConfig = newProviders.get(id);
+          if (!newConfig || JSON.stringify(oldConfig) !== JSON.stringify(newConfig)) {
+            this.instances.delete(id);
+          }
+        }
+
+        // Remove instances for deleted providers
+        for (const id of this.instances.keys()) {
+          if (!newProviders.has(id)) {
+            this.instances.delete(id);
+          }
+        }
+
+        // Atomically swap the providers map
+        this.providers = newProviders;
         this.activeProviderId = activeId || this.activeProviderId;
 
         // Sync to localStorage (also needs cast)
@@ -136,8 +202,9 @@ export class ProviderManager {
   }
 
   private save(): void {
-    // Save to localStorage immediately
-    saveProvidersToLocalStorage(Array.from(this.providers.values()));
+    // Save to localStorage (async encryption, but don't await)
+    saveProvidersToLocalStorage(Array.from(this.providers.values()))
+      .catch(e => console.warn('[AI] Failed to save to localStorage:', e));
     setActiveProviderIdInLocalStorage(this.activeProviderId);
 
     // Async save to backend
@@ -145,6 +212,15 @@ export class ProviderManager {
   }
 
   private async saveToBackend(): Promise<void> {
+    // If already saving, mark pending and return
+    if (this.isSaving) {
+      this.pendingSave = true;
+      console.log('[AI] Save queued (another save in progress)');
+      return;
+    }
+
+    this.isSaving = true;
+
     try {
       // Cast to storage type for API call
       const providers = Array.from(this.providers.values()) as unknown as import('../projectApi').StoredProviderConfig[];
@@ -152,6 +228,14 @@ export class ProviderManager {
       console.log('[AI] Saved providers to backend');
     } catch (e) {
       console.warn('[AI] Failed to save providers to backend:', e);
+    } finally {
+      this.isSaving = false;
+      // Process any queued save
+      if (this.pendingSave) {
+        this.pendingSave = false;
+        // Use setTimeout to avoid stack overflow on rapid saves
+        setTimeout(() => this.saveToBackend(), 0);
+      }
     }
   }
 

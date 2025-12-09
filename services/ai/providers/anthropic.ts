@@ -150,18 +150,27 @@ export class AnthropicProvider implements AIProvider {
     const reader = response.body?.getReader();
     const decoder = new TextDecoder();
     let fullText = '';
+    let buffer = ''; // Buffer for incomplete lines
 
     if (reader) {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value);
-        const lines = chunk.split('\n').filter(line => line.trim().startsWith('data:'));
+        // Append new data to buffer
+        buffer += decoder.decode(value, { stream: true });
+
+        // Process complete lines (ending with \n)
+        const lines = buffer.split('\n');
+        // Keep the last potentially incomplete line in the buffer
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
-          const data = line.replace('data: ', '').trim();
-          if (!data) continue;
+          const trimmedLine = line.trim();
+          if (!trimmedLine.startsWith('data:')) continue;
+
+          const data = trimmedLine.slice(5).trim(); // Remove 'data:' prefix
+          if (!data || data === '[DONE]') continue;
 
           try {
             const parsed = JSON.parse(data);
@@ -171,7 +180,27 @@ export class AnthropicProvider implements AIProvider {
               onChunk({ text, done: false });
             }
           } catch {
-            // Skip invalid JSON
+            // Skip invalid JSON - may be partial data
+          }
+        }
+      }
+
+      // Process any remaining data in buffer
+      if (buffer.trim()) {
+        const trimmedLine = buffer.trim();
+        if (trimmedLine.startsWith('data:')) {
+          const data = trimmedLine.slice(5).trim();
+          if (data && data !== '[DONE]') {
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.type === 'content_block_delta' && parsed.delta?.text) {
+                const text = parsed.delta.text;
+                fullText += text;
+                onChunk({ text, done: false });
+              }
+            } catch {
+              // Skip invalid JSON
+            }
           }
         }
       }

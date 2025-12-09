@@ -3,7 +3,7 @@
  * Configures Vitest testing environment
  */
 
-import { vi } from 'vitest';
+import { vi, expect } from 'vitest';
 
 // Mock console methods to reduce noise in tests
 global.console = {

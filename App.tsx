@@ -14,6 +14,7 @@ import { ProjectManager } from './components/ProjectManager';
 import { SyncConfirmationDialog } from './components/SyncConfirmationDialog';
 import { CreditsModal } from './components/CreditsModal';
 import { CodeMapModal } from './components/ControlPanel/CodeMapModal';
+import { CodeMap } from './services/codemap/types';
 import { useKeyboardShortcuts, KeyboardShortcut } from './hooks/useKeyboardShortcuts';
 import { useVersionHistory } from './hooks/useVersionHistory';
 import { useProject } from './hooks/useProject';
@@ -237,6 +238,7 @@ const DiffModal: React.FC<DiffModalProps> = ({ originalFiles, newFiles, label, o
                                        key={index}
                                        className={`
                                           ${line.type === 'removed' ? 'bg-red-500/10' : ''}
+                                          ${line.type === 'added' ? 'bg-green-500/10' : ''}
                                           hover:bg-white/[0.02]
                                        `}
                                     >
@@ -251,13 +253,16 @@ const DiffModal: React.FC<DiffModalProps> = ({ originalFiles, newFiles, label, o
                                        {/* Change Indicator */}
                                        <td className={`w-6 px-1 py-0.5 text-center select-none font-bold
                                           ${line.type === 'removed' ? 'text-red-400 bg-red-500/20' : ''}
+                                          ${line.type === 'added' ? 'text-green-400 bg-green-500/20' : ''}
                                           ${line.type === 'unchanged' ? 'text-slate-600' : ''}
                                        `}>
                                           {line.type === 'removed' ? '-' : ''}
+                                          {line.type === 'added' ? '+' : ''}
                                        </td>
                                        {/* Code Content */}
                                        <td className={`px-3 py-0.5 whitespace-pre
-                                          ${line.type === 'removed' ? 'text-red-300 line-through opacity-70' : ''}
+                                          ${line.type === 'removed' ? 'text-red-300 opacity-70' : ''}
+                                          ${line.type === 'added' ? 'text-green-300' : ''}
                                           ${line.type === 'unchanged' ? 'text-slate-400' : ''}
                                        `}>
                                           {line.content || ' '}
@@ -409,6 +414,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   // Track if we've synced files from backend on initial load
   const hasInitializedFromBackend = useRef(false);
   const lastProjectIdRef = useRef<string | null>(null);
+  // Guard against rapid project switching race conditions
+  const isSwitchingProjectRef = useRef(false);
 
   // CRITICAL: When project is restored from backend, check WIP first, then reset version history
   // WIP (uncommitted changes) survives page refresh via IndexedDB
@@ -955,19 +962,27 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               return await project.createProject(name, description, files);
             }}
             onOpenProject={async (id) => {
-              // 1. Save current project's full context before switching
-              if (project.currentProject) {
-                const { history: historyToSave, currentIndex: indexToSave } = exportHistory();
-                await project.saveContext({
-                  history: historyToSave,
-                  currentIndex: indexToSave,
-                  activeFile,
-                  activeTab,
-                });
+              // Guard against rapid project switching race conditions
+              if (isSwitchingProjectRef.current) {
+                console.log('[App] Project switch already in progress, ignoring');
+                return false;
               }
+              isSwitchingProjectRef.current = true;
 
-              // 2. Open new project - this returns files directly!
-              const result = await project.openProject(id);
+              try {
+                // 1. Save current project's full context before switching
+                if (project.currentProject) {
+                  const { history: historyToSave, currentIndex: indexToSave } = exportHistory();
+                  await project.saveContext({
+                    history: historyToSave,
+                    currentIndex: indexToSave,
+                    activeFile,
+                    activeTab,
+                  });
+                }
+
+                // 2. Open new project - this returns files directly!
+                const result = await project.openProject(id);
 
               if (result.success) {
                 // 3. Check for WIP (uncommitted changes) in IndexedDB
@@ -1022,6 +1037,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
                 console.log('[App] Switched to project with', Object.keys(currentFiles).length, 'files', restoredFromWIP ? '(from WIP)' : '(from backend)');
               }
               return result.success;
+              } finally {
+                isSwitchingProjectRef.current = false;
+              }
             }}
             onDeleteProject={project.deleteProject}
             onDuplicateProject={project.duplicateProject}
@@ -1267,56 +1285,67 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
            }
          }}
          onOpenProject={async (id) => {
-           // 1. Save current project's full context before switching
-           if (project.currentProject) {
-             const { history: historyToSave, currentIndex: indexToSave } = exportHistory();
-             await project.saveContext({
-               history: historyToSave,
-               currentIndex: indexToSave,
-               activeFile,
-               activeTab,
-             });
+           // Guard against rapid project switching race conditions
+           if (isSwitchingProjectRef.current) {
+             console.log('[App] Project switch already in progress, ignoring');
+             return;
            }
+           isSwitchingProjectRef.current = true;
 
-           // 2. Open new project
-           const result = await project.openProject(id);
+           try {
+             // 1. Save current project's full context before switching
+             if (project.currentProject) {
+               const { history: historyToSave, currentIndex: indexToSave } = exportHistory();
+               await project.saveContext({
+                 history: historyToSave,
+                 currentIndex: indexToSave,
+                 activeFile,
+                 activeTab,
+               });
+             }
 
-           if (result.success) {
-             // 3. Check if we have saved history to restore
-             let currentFiles = result.files;
-             if (result.context?.history && result.context.history.length > 0) {
-               // Restore full version history from backend
-               restoreHistory(result.context.history, result.context.currentIndex);
-               // Get files from the current history entry
-               const currentHistoryEntry = result.context.history[result.context.currentIndex];
-               if (currentHistoryEntry?.files) {
-                 currentFiles = currentHistoryEntry.files;
+             // 2. Open new project
+             const result = await project.openProject(id);
+
+             if (result.success) {
+               // 3. Check if we have saved history to restore
+               let currentFiles = result.files;
+               if (result.context?.history && result.context.history.length > 0) {
+                 // Restore full version history from backend
+                 restoreHistory(result.context.history, result.context.currentIndex);
+                 // Get files from the current history entry
+                 const currentHistoryEntry = result.context.history[result.context.currentIndex];
+                 if (currentHistoryEntry?.files) {
+                   currentFiles = currentHistoryEntry.files;
+                 }
+               } else {
+                 // No saved history, reset to initial state
+                 resetFiles(result.files);
                }
-             } else {
-               // No saved history, reset to initial state
-               resetFiles(result.files);
-             }
 
-             // 4. Restore UI context
-             if (result.context?.activeFile && currentFiles[result.context.activeFile]) {
-               setActiveFile(result.context.activeFile);
-             } else {
-               const firstSrc = Object.keys(currentFiles).find(f => f.startsWith('src/'));
-               setActiveFile(firstSrc || 'package.json');
-             }
+               // 4. Restore UI context
+               if (result.context?.activeFile && currentFiles[result.context.activeFile]) {
+                 setActiveFile(result.context.activeFile);
+               } else {
+                 const firstSrc = Object.keys(currentFiles).find(f => f.startsWith('src/'));
+                 setActiveFile(firstSrc || 'package.json');
+               }
 
-             if (result.context?.activeTab) {
-               setActiveTab(result.context.activeTab as TabType);
-             }
+               if (result.context?.activeTab) {
+                 setActiveTab(result.context.activeTab as TabType);
+               }
 
-             // 5. Reset transient state
-             setSuggestions(null);
-             setPendingReview(null);
-             setIsProjectManagerOpen(false);
+               // 5. Reset transient state
+               setSuggestions(null);
+               setPendingReview(null);
+               setIsProjectManagerOpen(false);
+             }
+           } finally {
+             isSwitchingProjectRef.current = false;
            }
          }}
-         onDeleteProject={project.deleteProject}
-         onDuplicateProject={project.duplicateProject}
+         onDeleteProject={async (id: string) => { await project.deleteProject(id); }}
+         onDuplicateProject={async (id: string) => { await project.duplicateProject(id); }}
          onRefresh={project.refreshProjects}
        />
 

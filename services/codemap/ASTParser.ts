@@ -1,4 +1,5 @@
-import { parse as parseTS, Node, TSESTreeOptions } from '@typescript-eslint/typescript-estree';
+import { parse as parseTS, TSESTree, TSESTreeOptions } from '@typescript-eslint/typescript-estree';
+type Node = TSESTree.Node;
 import { parse as parseJS } from 'acorn';
 import { simple as walk } from 'acorn-walk';
 import { join, extname, basename } from 'path';
@@ -40,11 +41,7 @@ export class ASTParser {
       range: true,
       tokens: true,
       comment: true,
-      ecmaVersion: 2022,
-      sourceType: 'module',
-      ecmaFeatures: {
-        jsx: true,
-      },
+      jsx: true,
       project: false,
       tsconfigRootDir: process.cwd(),
     };
@@ -668,7 +665,7 @@ export class ASTParser {
     return usage;
   }
 
-  private detectStateManagement(node: any): string | undefined {
+  private detectStateManagement(node: any): 'useState' | 'useReducer' | 'context' | 'redux' | 'zustand' | undefined {
     // Implementation to detect state management patterns
     return undefined;
   }

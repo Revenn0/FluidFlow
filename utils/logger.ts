@@ -43,20 +43,25 @@ class Logger {
     };
   }
 
-  private sanitizeData(data: any): any {
+  private sanitizeData(data: any, depth: number = 0, maxDepth: number = 10): any {
+    // Prevent stack overflow from deep recursion
+    if (depth >= maxDepth) {
+      return '[MAX_DEPTH_REACHED]';
+    }
+
     if (typeof data !== 'object' || data === null) {
       return data;
     }
 
     // Remove sensitive fields
-    const sensitiveKeys = ['apiKey', 'password', 'token', 'secret', 'key'];
+    const sensitiveKeys = ['apiKey', 'password', 'token', 'secret', 'key', 'auth', 'bearer', 'credential'];
     const sanitized = Array.isArray(data) ? [...data] : { ...data };
 
     for (const key in sanitized) {
       if (sensitiveKeys.some(sk => key.toLowerCase().includes(sk.toLowerCase()))) {
         sanitized[key] = '[REDACTED]';
-      } else if (typeof sanitized[key] === 'object') {
-        sanitized[key] = this.sanitizeData(sanitized[key]);
+      } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
+        sanitized[key] = this.sanitizeData(sanitized[key], depth + 1, maxDepth);
       }
     }
 

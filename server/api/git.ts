@@ -469,6 +469,19 @@ router.get('/:id/commit/:hash/file', async (req, res) => {
       return res.status(400).json({ error: 'File path required' });
     }
 
+    // Validate filePath - prevent path traversal and injection attacks
+    const sanitizedPath = String(filePath).replace(/\\/g, '/');
+    if (
+      sanitizedPath.includes('..') ||
+      sanitizedPath.startsWith('/') ||
+      /^[a-zA-Z]:/.test(sanitizedPath) ||
+      sanitizedPath.includes('\0') ||
+      /%2e%2e/i.test(sanitizedPath) ||
+      /%00/.test(sanitizedPath)
+    ) {
+      return res.status(400).json({ error: 'Invalid file path' });
+    }
+
     if (!existsSync(filesDir)) {
       return res.status(404).json({ error: 'Project not found' });
     }
@@ -480,8 +493,8 @@ router.get('/:id/commit/:hash/file', async (req, res) => {
     const git: SimpleGit = simpleGit(filesDir);
 
     try {
-      const content = await git.show([`${hash}:${filePath}`]);
-      res.json({ content, path: filePath, hash });
+      const content = await git.show([`${hash}:${sanitizedPath}`]);
+      res.json({ content, path: sanitizedPath, hash });
     } catch {
       // File might not exist at this commit
       res.json({ content: null, path: filePath, hash, notFound: true });

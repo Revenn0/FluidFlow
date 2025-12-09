@@ -158,7 +158,7 @@ export class BatchGenerator {
     completedFiles: string[],
     completedCount: number,
     options: Required<BatchGenerationOptions>
-  ): Promise<{ success: boolean; files?: FileSystem; response?: string; truncated?: boolean }> {
+  ): Promise<{ success: boolean; files?: FileSystem; response?: string; truncated?: boolean; error?: string }> {
     const provider = this.provider.getProvider();
     const activeConfig = this.provider.getActiveConfig();
 
