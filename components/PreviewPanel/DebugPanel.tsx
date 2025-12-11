@@ -183,6 +183,11 @@ const LogEntryCard: React.FC<LogEntryCardProps> = ({ entry, isExpanded, onToggle
         <Icon size={14} className={config.color} />
         <span className={`text-xs font-medium uppercase ${config.color}`}>{entry.type}</span>
         <span className="text-xs text-gray-500 px-1.5 py-0.5 bg-white/5 rounded">{entry.category}</span>
+        {entry.provider && (
+          <span className="text-xs text-gray-500 px-1.5 py-0.5 bg-white/5 rounded">
+            {entry.provider}
+          </span>
+        )}
         {entry.model && (
           <span className="text-xs text-gray-400 px-1.5 py-0.5 bg-white/5 rounded flex items-center gap-1">
             <Zap size={10} />
@@ -193,6 +198,20 @@ const LogEntryCard: React.FC<LogEntryCardProps> = ({ entry, isExpanded, onToggle
           <span className="text-xs text-gray-400 flex items-center gap-1">
             <Clock size={10} />
             {entry.duration}ms
+          </span>
+        )}
+        {/* Stream progress indicator */}
+        {entry.type === 'stream' && entry.streamProgress && (
+          <span className={`text-xs px-1.5 py-0.5 rounded flex items-center gap-1 ${
+            entry.streamProgress.isComplete
+              ? 'bg-green-500/20 text-green-400'
+              : 'bg-yellow-500/20 text-yellow-400 animate-pulse'
+          }`}>
+            <Radio size={10} className={entry.streamProgress.isComplete ? '' : 'animate-spin'} />
+            {entry.streamProgress.isComplete ? 'Complete' : 'Streaming'}
+            <span className="text-gray-400">
+              {(entry.streamProgress.chars / 1024).toFixed(1)}KB
+            </span>
           </span>
         )}
         <span className="flex-1 text-xs text-gray-500 truncate">{getPreview()}</span>
@@ -261,16 +280,57 @@ const LogEntryCard: React.FC<LogEntryCardProps> = ({ entry, isExpanded, onToggle
           )}
 
           {entry.tokenCount && (
-            <div className="flex gap-4 text-xs">
-              {entry.tokenCount.input !== undefined && (
-                <span className="text-gray-400">
-                  Input tokens: <span className="text-blue-400">{entry.tokenCount.input}</span>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-gray-400 font-medium">
+                  Tokens{entry.tokenCount.isEstimated && <span className="text-yellow-500 ml-1">(estimated)</span>}:
                 </span>
-              )}
-              {entry.tokenCount.output !== undefined && (
+              </div>
+              <div className="flex gap-4 text-xs">
+                {entry.tokenCount.input !== undefined && (
+                  <span className="text-gray-400">
+                    Input: <span className="text-blue-400">{entry.tokenCount.input.toLocaleString()}</span>
+                  </span>
+                )}
+                {entry.tokenCount.output !== undefined && (
+                  <span className="text-gray-400">
+                    Output: <span className="text-green-400">{entry.tokenCount.output.toLocaleString()}</span>
+                  </span>
+                )}
+                {entry.tokenCount.input !== undefined && entry.tokenCount.output !== undefined && (
+                  <span className="text-gray-400">
+                    Total: <span className="text-purple-400">{(entry.tokenCount.input + entry.tokenCount.output).toLocaleString()}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Stream progress details */}
+          {entry.streamProgress && (
+            <div className="space-y-2">
+              <div className="text-xs text-gray-400 font-medium">Stream Progress:</div>
+              <div className="flex gap-4 text-xs">
                 <span className="text-gray-400">
-                  Output tokens: <span className="text-green-400">{entry.tokenCount.output}</span>
+                  Characters: <span className="text-purple-400">{entry.streamProgress.chars.toLocaleString()}</span>
                 </span>
+                <span className="text-gray-400">
+                  Chunks: <span className="text-purple-400">{entry.streamProgress.chunks}</span>
+                </span>
+                <span className="text-gray-400">
+                  Status: <span className={entry.streamProgress.isComplete ? 'text-green-400' : 'text-yellow-400'}>
+                    {entry.streamProgress.isComplete ? 'Complete' : 'In Progress'}
+                  </span>
+                </span>
+              </div>
+              {/* Progress bar */}
+              {!entry.streamProgress.isComplete && (
+                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-purple-500 animate-pulse"
+                    style={{ width: '100%' }}
+                  />
+                </div>
               )}
             </div>
           )}

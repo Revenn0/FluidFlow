@@ -95,6 +95,8 @@ export interface GenerationRequest {
   maxTokens?: number;
   temperature?: number;
   responseFormat?: 'text' | 'json';
+  // Debug category for logging (optional, defaults to 'generation')
+  debugCategory?: 'generation' | 'accessibility' | 'quick-edit' | 'auto-fix' | 'other';
 }
 
 export interface GenerationResponse {
@@ -103,6 +105,7 @@ export interface GenerationResponse {
   usage?: {
     inputTokens?: number;
     outputTokens?: number;
+    isEstimated?: boolean; // True if tokens are estimated (not from API)
   };
 }
 

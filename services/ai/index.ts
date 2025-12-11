@@ -3,6 +3,7 @@ import { AIProvider, ProviderConfig, ProviderType, DEFAULT_PROVIDERS, Generation
 import { GeminiProvider, OpenAIProvider, AnthropicProvider, OllamaProvider, LMStudioProvider, ZAIProvider } from './providers';
 import { settingsApi } from '../projectApi';
 import { encryptProviderConfigs, decryptProviderConfigs } from '../../utils/clientEncryption';
+import { debugLog } from '../../hooks/useDebugStore';
 
 export * from './types';
 export * from './providers';
@@ -316,17 +317,64 @@ export class ProviderManager {
     return provider.testConnection();
   }
 
-  // Convenience method for generation
+  // Convenience method for generation (with debug logging)
   async generate(request: GenerationRequest, modelId?: string): Promise<GenerationResponse> {
     const provider = this.getProvider();
     if (!provider) throw new Error('No active provider');
 
     const config = this.getActiveConfig();
     const model = modelId || config?.defaultModel || '';
+    const category = request.debugCategory || 'generation';
+    const startTime = Date.now();
 
-    return provider.generate(request, model);
+    // Log request
+    const requestId = debugLog.request(category, {
+      prompt: request.prompt,
+      systemInstruction: request.systemInstruction,
+      model,
+      provider: config?.name,
+      attachments: request.images?.map(img => ({
+        type: img.mimeType,
+        size: Math.ceil(img.data.length * 0.75), // Base64 to bytes approximation
+      })),
+      metadata: {
+        maxTokens: request.maxTokens,
+        temperature: request.temperature,
+        responseFormat: request.responseFormat,
+      },
+    });
+
+    try {
+      const response = await provider.generate(request, model);
+
+      // Log response
+      debugLog.response(category, {
+        id: `${requestId}-response`,
+        response: response.text,
+        model,
+        provider: config?.name,
+        duration: Date.now() - startTime,
+        tokenCount: response.usage ? {
+          input: response.usage.inputTokens,
+          output: response.usage.outputTokens,
+          isEstimated: response.usage.isEstimated,
+        } : undefined,
+      });
+
+      return response;
+    } catch (error) {
+      // Log error
+      debugLog.error(category, error instanceof Error ? error.message : String(error), {
+        id: `${requestId}-error`,
+        model,
+        provider: config?.name,
+        duration: Date.now() - startTime,
+      });
+      throw error;
+    }
   }
 
+  // Streaming generation with debug logging (stream entry updated in-place)
   async generateStream(
     request: GenerationRequest,
     onChunk: (chunk: StreamChunk) => void,
@@ -337,8 +385,100 @@ export class ProviderManager {
 
     const config = this.getActiveConfig();
     const model = modelId || config?.defaultModel || '';
+    const category = request.debugCategory || 'generation';
+    const startTime = Date.now();
 
-    return provider.generateStream(request, model, onChunk);
+    // Log request
+    const requestId = debugLog.request(category, {
+      prompt: request.prompt,
+      systemInstruction: request.systemInstruction,
+      model,
+      provider: config?.name,
+      attachments: request.images?.map(img => ({
+        type: img.mimeType,
+        size: Math.ceil(img.data.length * 0.75),
+      })),
+      metadata: {
+        maxTokens: request.maxTokens,
+        temperature: request.temperature,
+        responseFormat: request.responseFormat,
+        streaming: true,
+      },
+    });
+
+    // Create stream entry that will be updated
+    const streamId = `${requestId}-stream`;
+    let streamedText = '';
+    let chunkCount = 0;
+
+    debugLog.stream(category, {
+      id: streamId,
+      model,
+      provider: config?.name,
+      response: '',
+      streamProgress: {
+        chars: 0,
+        chunks: 0,
+        isComplete: false,
+      },
+    });
+
+    // Wrap onChunk to update stream log
+    const wrappedOnChunk = (chunk: StreamChunk) => {
+      if (chunk.text) {
+        streamedText += chunk.text;
+        chunkCount++;
+
+        // Update stream log (debounced internally)
+        debugLog.streamUpdate(streamId, {
+          response: streamedText,
+          streamProgress: {
+            chars: streamedText.length,
+            chunks: chunkCount,
+            isComplete: chunk.done,
+          },
+        }, chunk.done); // notifyNow when complete
+      }
+      // Forward to original callback
+      onChunk(chunk);
+    };
+
+    try {
+      const response = await provider.generateStream(request, model, wrappedOnChunk);
+
+      // Final update with complete status
+      debugLog.streamUpdate(streamId, {
+        response: response.text,
+        duration: Date.now() - startTime,
+        tokenCount: response.usage ? {
+          input: response.usage.inputTokens,
+          output: response.usage.outputTokens,
+          isEstimated: response.usage.isEstimated,
+        } : undefined,
+        streamProgress: {
+          chars: response.text.length,
+          chunks: chunkCount,
+          isComplete: true,
+        },
+      }, true); // Immediate update
+
+      return response;
+    } catch (error) {
+      // Log error
+      debugLog.error(category, error instanceof Error ? error.message : String(error), {
+        id: `${requestId}-error`,
+        model,
+        provider: config?.name,
+        duration: Date.now() - startTime,
+        response: streamedText, // Include partial response
+        streamProgress: {
+          chars: streamedText.length,
+          chunks: chunkCount,
+          isComplete: false,
+        },
+      });
+      throw error;
+    }
   }
 }
 

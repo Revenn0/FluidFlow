@@ -116,6 +116,8 @@ export class OpenAIProvider implements AIProvider {
       max_tokens: request.maxTokens || 16384,
       temperature: request.temperature ?? 0.7,
       stream: true,
+      // Request usage stats in streaming (OpenAI API feature)
+      stream_options: { include_usage: true },
     };
 
     // Only add response_format for native OpenAI models that support it
@@ -144,6 +146,7 @@ export class OpenAIProvider implements AIProvider {
     const decoder = new TextDecoder();
     let fullText = '';
     let buffer = ''; // Buffer for incomplete SSE lines
+    let usage: { inputTokens?: number; outputTokens?: number } | undefined;
 
     if (reader) {
       try {
@@ -175,6 +178,13 @@ export class OpenAIProvider implements AIProvider {
                 fullText += text;
                 onChunk({ text, done: false });
               }
+              // Capture usage from final chunk (when stream_options.include_usage is true)
+              if (parsed.usage) {
+                usage = {
+                  inputTokens: parsed.usage.prompt_tokens,
+                  outputTokens: parsed.usage.completion_tokens,
+                };
+              }
             } catch (e) {
               // Log but don't fail on parse errors - might be partial data
               console.debug('[OpenAI Stream] Parse error, skipping chunk:', data.slice(0, 100));
@@ -195,6 +205,13 @@ export class OpenAIProvider implements AIProvider {
                   fullText += text;
                   onChunk({ text, done: false });
                 }
+                // Also check for usage in final buffer
+                if (parsed.usage) {
+                  usage = {
+                    inputTokens: parsed.usage.prompt_tokens,
+                    outputTokens: parsed.usage.completion_tokens,
+                  };
+                }
               } catch {
                 // Ignore final buffer parse errors
               }
@@ -208,7 +225,19 @@ export class OpenAIProvider implements AIProvider {
     }
 
     onChunk({ text: '', done: true });
-    return { text: fullText };
+
+    // If no usage from API, estimate tokens (4 chars ≈ 1 token)
+    let isEstimated = false;
+    if (!usage) {
+      const inputText = JSON.stringify(messages);
+      usage = {
+        inputTokens: Math.ceil(inputText.length / 4),
+        outputTokens: Math.ceil(fullText.length / 4),
+      };
+      isEstimated = true;
+    }
+
+    return { text: fullText, usage: { ...usage, isEstimated } };
   }
 
   async listModels(): Promise<ModelOption[]> {

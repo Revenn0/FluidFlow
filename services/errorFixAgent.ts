@@ -102,6 +102,14 @@ class ErrorFixAgent {
   private currentAttempt = 0;
   private previousAttempts: ErrorContext['previousAttempts'] = [];
 
+  // Stored state for UI reconnection
+  private logs: AgentLogEntry[] = [];
+  private isRunning = false;
+  private completionMessage: string | null = null;
+  private maxAttempts = 5;
+  private currentError: string | null = null;
+  private currentTargetFile: string | null = null;
+
   private generateId(): string {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
@@ -112,9 +120,7 @@ class ErrorFixAgent {
     content: string,
     metadata?: AgentLogEntry['metadata']
   ): void {
-    if (!this.config) return;
-
-    this.config.onLog({
+    const entry: AgentLogEntry = {
       id: this.generateId(),
       timestamp: new Date(),
       type,
@@ -124,7 +130,13 @@ class ErrorFixAgent {
         ...metadata,
         attempt: this.currentAttempt
       }
-    });
+    };
+
+    // Store log for UI reconnection
+    this.logs.push(entry);
+
+    // Notify UI if connected
+    this.config?.onLog(entry);
   }
 
   private setState(newState: AgentState): void {
@@ -147,6 +159,14 @@ class ErrorFixAgent {
     this.currentAttempt = 0;
     this.previousAttempts = [];
     this.abortController = new AbortController();
+
+    // Store state for UI reconnection
+    this.logs = [];
+    this.isRunning = true;
+    this.completionMessage = null;
+    this.maxAttempts = config.maxAttempts;
+    this.currentError = errorMessage;
+    this.currentTargetFile = targetFile;
 
     this.log('info', 'Agent Started', `Starting error fix agent for: ${targetFile}`);
     this.log('error', 'Error Detected', errorMessage, { file: targetFile });
@@ -171,7 +191,9 @@ class ErrorFixAgent {
       if (this.abortController?.signal.aborted) {
         this.log('warning', 'Aborted', 'Agent was stopped by user');
         this.setState('idle');
-        this.config.onComplete(false, 'Agent stopped by user');
+        this.isRunning = false;
+        this.completionMessage = 'Agent stopped by user';
+        this.config.onComplete(false, this.completionMessage);
         return;
       }
 
@@ -223,7 +245,9 @@ class ErrorFixAgent {
             const fixedFilesText = appliedFiles.length === 1 ? appliedFiles[0] : `${appliedFiles.length} files`;
             this.log('success', 'Local Fix Applied', `Successfully fixed ${fixedFilesText} without AI!`);
             this.setState('success');
-            this.config.onComplete(true, `Fixed ${fixedFilesText} locally (no AI needed)`);
+            this.isRunning = false;
+            this.completionMessage = `Fixed ${fixedFilesText} locally (no AI needed)`;
+            this.config.onComplete(true, this.completionMessage);
             return;
           } else {
             this.log('info', 'Local Fix Failed', 'No local fix available, proceeding with AI...');
@@ -296,7 +320,9 @@ class ErrorFixAgent {
 
             this.log('success', 'Fix Applied (Fallback)', `Successfully applied fallback fix to ${targetFile}`);
             this.setState('success');
-            this.config.onComplete(true, `Fixed ${targetFile} after ${this.currentAttempt} attempt(s) (fallback mode)`);
+            this.isRunning = false;
+            this.completionMessage = `Fixed ${targetFile} after ${this.currentAttempt} attempt(s) (fallback mode)`;
+            this.config.onComplete(true, this.completionMessage);
             return;
           }
 
@@ -386,7 +412,9 @@ class ErrorFixAgent {
         const fixedFilesText = appliedFiles.length === 1 ? appliedFiles[0] : `${appliedFiles.length} files`;
         this.log('success', 'Fix Applied', `Successfully applied fix to ${fixedFilesText}`);
         this.setState('success');
-        this.config.onComplete(true, `Fixed ${fixedFilesText} after ${this.currentAttempt} attempt(s)`);
+        this.isRunning = false;
+        this.completionMessage = `Fixed ${fixedFilesText} after ${this.currentAttempt} attempt(s)`;
+        this.config.onComplete(true, this.completionMessage);
         return;
 
       } catch (error) {
@@ -403,7 +431,9 @@ class ErrorFixAgent {
     this.setState('max_attempts_reached');
     this.log('warning', 'Max Attempts Reached',
       `Failed to fix error after ${this.config.maxAttempts} attempts`);
-    this.config.onComplete(false, `Failed after ${this.config.maxAttempts} attempts`);
+    this.isRunning = false;
+    this.completionMessage = `Failed after ${this.config.maxAttempts} attempts`;
+    this.config.onComplete(false, this.completionMessage);
   }
 
   /**
@@ -440,6 +470,8 @@ class ErrorFixAgent {
     this.abortController?.abort();
     this.log('warning', 'Stopping', 'Agent stop requested');
     this.setState('idle');
+    this.isRunning = false;
+    this.completionMessage = 'Agent stopped by user';
   }
 
   /**
@@ -447,6 +479,66 @@ class ErrorFixAgent {
    */
   getState(): AgentState {
     return this.state;
+  }
+
+  /**
+   * Get stored logs for UI reconnection
+   */
+  getLogs(): AgentLogEntry[] {
+    return [...this.logs];
+  }
+
+  /**
+   * Check if agent is currently running
+   */
+  getIsRunning(): boolean {
+    return this.isRunning;
+  }
+
+  /**
+   * Get completion message
+   */
+  getCompletionMessage(): string | null {
+    return this.completionMessage;
+  }
+
+  /**
+   * Get max attempts setting
+   */
+  getMaxAttempts(): number {
+    return this.maxAttempts;
+  }
+
+  /**
+   * Get current error being fixed
+   */
+  getCurrentError(): string | null {
+    return this.currentError;
+  }
+
+  /**
+   * Get target file being fixed
+   */
+  getCurrentTargetFile(): string | null {
+    return this.currentTargetFile;
+  }
+
+  /**
+   * Reconnect UI callbacks to a running agent
+   * Called when the ErrorFixPanel remounts
+   */
+  reconnect(callbacks: {
+    onStateChange: (state: AgentState) => void;
+    onLog: (entry: AgentLogEntry) => void;
+    onFileUpdate: (path: string, content: string) => void;
+    onComplete: (success: boolean, message: string) => void;
+  }): void {
+    if (this.config) {
+      this.config.onStateChange = callbacks.onStateChange;
+      this.config.onLog = callbacks.onLog;
+      this.config.onFileUpdate = callbacks.onFileUpdate;
+      this.config.onComplete = callbacks.onComplete;
+    }
   }
 
   /**

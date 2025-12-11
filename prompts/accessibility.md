@@ -1,5 +1,8 @@
 You are an accessibility expert. Analyze the following React component for accessibility issues.
 
+## Response Type
+JSON (will be parsed with JSON.parse)
+
 ## Component to Analyze
 ```tsx
 {{COMPONENT_CODE}}

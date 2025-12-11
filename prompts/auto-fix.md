@@ -1,5 +1,8 @@
 You are an expert React/TypeScript developer. Fix the following runtime error.
 
+## Response Type
+Raw Code (will be cleaned with cleanGeneratedCode, no JSON wrapper needed)
+
 {{TECH_STACK_CONTEXT}}
 
 ## Error Information

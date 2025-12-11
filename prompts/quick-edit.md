@@ -1,5 +1,8 @@
 You are an expert React/TypeScript developer. Make a quick edit to the specified code.
 
+## Response Type
+Raw Code (will be cleaned with cleanGeneratedCode, no JSON wrapper needed)
+
 ## Edit Request
 {{EDIT_REQUEST}}
 

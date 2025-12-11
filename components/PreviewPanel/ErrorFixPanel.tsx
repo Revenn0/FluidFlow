@@ -80,6 +80,41 @@ export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
 
   const logsEndRef = useRef<HTMLDivElement>(null);
 
+  // Restore state from agent on mount (handles tab switching)
+  // We intentionally only run on mount to restore state, callbacks are passed by ref
+  useEffect(() => {
+    // Check if agent has stored state to restore
+    const agentIsRunning = errorFixAgent.getIsRunning();
+    const storedLogs = errorFixAgent.getLogs();
+    const storedState = errorFixAgent.getState();
+    const storedCompletionMessage = errorFixAgent.getCompletionMessage();
+    const storedMaxAttempts = errorFixAgent.getMaxAttempts();
+
+    // Restore state if there's something to restore
+    if (storedLogs.length > 0 || storedState !== 'idle') {
+      setLogs(storedLogs);
+      setAgentState(storedState);
+      setIsRunning(agentIsRunning);
+      setCompletionMessage(storedCompletionMessage);
+      setMaxAttempts(storedMaxAttempts);
+
+      // Reconnect callbacks if agent is still running
+      if (agentIsRunning) {
+        errorFixAgent.reconnect({
+          onStateChange: setAgentState,
+          onLog: (entry) => setLogs(prev => [...prev, entry]),
+          onFileUpdate,
+          onComplete: (success, message) => {
+            setIsRunning(false);
+            setCompletionMessage(message);
+            onFixComplete?.(success);
+          }
+        });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only on mount to restore state
+
   // Auto-scroll to latest log (only when logs exist, and use block: 'nearest' to prevent parent scroll)
   useEffect(() => {
     if (logs.length > 0) {

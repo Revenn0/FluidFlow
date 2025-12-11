@@ -146,6 +146,7 @@ export interface DebugLogEntry {
   type: 'request' | 'response' | 'stream' | 'error' | 'info';
   category: 'generation' | 'accessibility' | 'quick-edit' | 'auto-fix' | 'other';
   model?: string;
+  provider?: string;
   duration?: number;
   // Request data
   prompt?: string;
@@ -156,6 +157,13 @@ export interface DebugLogEntry {
   tokenCount?: {
     input?: number;
     output?: number;
+    isEstimated?: boolean; // True if tokens are estimated (not from API)
+  };
+  // Streaming progress (for live updates)
+  streamProgress?: {
+    chars: number;       // Characters received so far
+    chunks: number;      // Number of chunks received
+    isComplete: boolean; // Whether streaming is done
   };
   // Error data
   error?: string;

@@ -107,7 +107,8 @@ export class GeminiProvider implements AIProvider {
       text: fullText,
       usage: {
         inputTokens: estimatedInputTokens,
-        outputTokens: estimatedOutputTokens
+        outputTokens: estimatedOutputTokens,
+        isEstimated: true, // Mark as estimated since streaming doesn't return real usage
       }
     };
   }

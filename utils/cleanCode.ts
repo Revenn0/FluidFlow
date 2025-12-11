@@ -211,31 +211,35 @@ export function parseMultiFileResponse(response: string, noThrow: boolean = fals
 
     // Remove PLAN comment if present (it has its own JSON that would confuse parsing)
     // Format: // PLAN: {"create":[...],"update":[...],"delete":[],"total":N}
-    // The PLAN JSON can have nested arrays, so we need to match balanced braces
-    const planMatch = jsonString.match(/^(\/\/\s*PLAN:\s*)(\{[\s\S]*?\})\s*\n/m);
-    if (planMatch) {
-      // Find where the PLAN JSON actually ends by counting braces
-      const planStart = planMatch.index || 0;
-      const jsonStart = planStart + planMatch[1].length;
-      let braceCount = 0;
-      let planEnd = jsonStart;
+    // Match just the prefix, then use brace counting for the JSON boundary
+    const planPrefixMatch = jsonString.match(/^(\/\/\s*PLAN:\s*)/m);
+    if (planPrefixMatch && planPrefixMatch.index !== undefined) {
+      const planStart = planPrefixMatch.index;
+      const jsonStart = planStart + planPrefixMatch[1].length;
 
-      for (let i = jsonStart; i < jsonString.length; i++) {
-        const char = jsonString[i];
-        if (char === '{') braceCount++;
-        else if (char === '}') {
-          braceCount--;
-          if (braceCount === 0) {
-            planEnd = i + 1;
-            break;
+      // Check if there's a { after the prefix
+      if (jsonString[jsonStart] === '{') {
+        // Use brace counting to find where the PLAN JSON ends
+        let braceCount = 0;
+        let planEnd = jsonStart;
+
+        for (let i = jsonStart; i < jsonString.length; i++) {
+          const char = jsonString[i];
+          if (char === '{') braceCount++;
+          else if (char === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              planEnd = i + 1;
+              break;
+            }
           }
         }
-      }
 
-      // Remove the PLAN comment (including any trailing newline)
-      const afterPlan = jsonString.substring(planEnd).replace(/^\s*\n/, '');
-      jsonString = afterPlan;
-      console.log('[parseMultiFileResponse] Removed PLAN comment, remaining:', jsonString.slice(0, 100) + '...');
+        // Remove the PLAN comment (including any trailing whitespace/newlines - handle both \r\n and \n)
+        const afterPlan = jsonString.substring(planEnd).replace(/^[\s\r\n]+/, '');
+        jsonString = afterPlan;
+        console.log('[parseMultiFileResponse] Removed PLAN comment, remaining:', jsonString.slice(0, 100) + '...');
+      }
     }
 
     // Try to find JSON object in the string - be more greedy to capture full JSON

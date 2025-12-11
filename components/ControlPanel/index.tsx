@@ -233,6 +233,7 @@ export const ControlPanel = forwardRef<ControlPanelRef, ControlPanelProps>(({
     generationMeta: GenerationMeta;
     accumulatedFiles: FileSystem;
     currentBatch: number;
+    retryAttempts?: number; // Track retry attempts for current batch
   } | null>(null);
 
   // External prompt for auto-fill (e.g., from continuation)
@@ -420,6 +421,86 @@ Original prompt: ${prompt}`;
     }
   };
 
+  // Targeted request for specific missing files - more focused than general continuation
+  const requestMissingFiles = async (
+    missingFiles: string[],
+    accumulatedFiles: FileSystem,
+    systemInstruction: string
+  ): Promise<{ success: boolean; files: FileSystem; explanation?: string }> => {
+    if (missingFiles.length === 0) {
+      return { success: true, files: accumulatedFiles };
+    }
+
+    console.log('[MissingFiles] Requesting specific files:', missingFiles);
+    setStreamingStatus(`🎯 Requesting ${missingFiles.length} missing file(s)...`);
+
+    const manager = getProviderManager();
+    const activeConfig = manager.getActiveConfig();
+    const currentModel = activeConfig?.defaultModel || selectedModel;
+
+    // Very focused prompt - only ask for the missing files
+    const targetedPrompt = `Generate ONLY the following specific files. These files are missing from the project.
+
+## REQUIRED FILES (generate ALL of these):
+${missingFiles.map((f, i) => `${i + 1}. ${f}`).join('\n')}
+
+## CONTEXT
+These files should integrate with the existing project structure. Use the same patterns and styles.
+
+## EXISTING FILES FOR REFERENCE:
+${Object.keys(accumulatedFiles).slice(0, 5).map(f => `- ${f}`).join('\n')}
+${Object.keys(accumulatedFiles).length > 5 ? `... and ${Object.keys(accumulatedFiles).length - 5} more files` : ''}
+
+## CRITICAL INSTRUCTIONS:
+1. Generate EXACTLY the ${missingFiles.length} files listed above
+2. Use relative imports (./component, ../utils)
+3. Return complete file contents - no truncation
+4. Use Tailwind CSS for styling
+5. Include data-ff-group and data-ff-id attributes on interactive elements
+
+Return ONLY a JSON object with the files:
+{
+  "files": {
+    "${missingFiles[0]}": "// complete file content...",
+    ${missingFiles.length > 1 ? `"${missingFiles[1]}": "// complete file content..."` : ''}
+  },
+  "explanation": "Generated ${missingFiles.length} missing files"
+}`;
+
+    try {
+      let fullText = '';
+      await manager.generateStream(
+        {
+          prompt: targetedPrompt,
+          systemInstruction,
+          maxTokens: 32768,
+          temperature: 0.7,
+          responseFormat: 'json'
+        },
+        (chunk) => {
+          if (chunk.text) {
+            fullText += chunk.text;
+          }
+        },
+        currentModel
+      );
+
+      const parseResult = parseMultiFileResponse(fullText);
+
+      if (parseResult && parseResult.files && Object.keys(parseResult.files).length > 0) {
+        const newFiles = { ...accumulatedFiles, ...parseResult.files };
+        console.log('[MissingFiles] Successfully generated:', Object.keys(parseResult.files));
+        return { success: true, files: newFiles, explanation: parseResult.explanation };
+      }
+
+      console.warn('[MissingFiles] No files in response');
+      return { success: false, files: accumulatedFiles };
+    } catch (error) {
+      console.error('[MissingFiles] Request failed:', error);
+      return { success: false, files: accumulatedFiles };
+    }
+  };
+
   // Smart continuation handler - automatically continues generation for remaining files
   const handleContinueGeneration = async (
     contState?: typeof continuationState,
@@ -508,6 +589,36 @@ Generate the remaining files. Each file must be COMPLETE and FUNCTIONAL.`;
       if (!parseResult || !parseResult.files || Object.keys(parseResult.files).length === 0) {
         console.error('[Continuation] Failed to parse - no files found');
         throw new Error('Failed to parse continuation response - no files found');
+      }
+
+      // Check for truncation and auto-retry if needed
+      if (parseResult.truncated) {
+        const currentRetryAttempts = state.retryAttempts || 0;
+        const maxRetryAttempts = 3;
+
+        if (currentRetryAttempts < maxRetryAttempts) {
+          console.log(`[Continuation] Response truncated, auto-retry attempt ${currentRetryAttempts + 1}/${maxRetryAttempts}`);
+          setStreamingStatus(`🔄 Response truncated, retrying (${currentRetryAttempts + 1}/${maxRetryAttempts})...`);
+
+          // Merge any partial files we got before retrying
+          const partialAccumulatedFiles = { ...accumulatedFiles, ...parseResult.files };
+
+          const retryState = {
+            ...state,
+            accumulatedFiles: partialAccumulatedFiles,
+            retryAttempts: currentRetryAttempts + 1
+          };
+          setContinuationState(retryState);
+
+          // Wait before retrying (exponential backoff)
+          setTimeout(() => {
+            handleContinueGeneration(retryState, existingFiles);
+          }, 1000 * (currentRetryAttempts + 1));
+
+          return; // Exit this attempt
+        } else {
+          console.warn('[Continuation] Max retries for truncation reached, proceeding with partial files');
+        }
       }
 
       // Merge new files with accumulated files
@@ -683,7 +794,8 @@ Generate the remaining files. Each file must be COMPLETE and FUNCTIONAL.`;
           systemInstruction,
           generationMeta: newGenerationMeta,
           accumulatedFiles: newAccumulatedFiles,
-          currentBatch: currentBatch + 1
+          currentBatch: currentBatch + 1,
+          retryAttempts: 0 // Reset retry counter for new batch
         };
 
         setContinuationState(newContState);
@@ -698,20 +810,99 @@ Generate the remaining files. Each file must be COMPLETE and FUNCTIONAL.`;
     } catch (error) {
       console.error('[Continuation] Error:', error);
 
-      // If we have accumulated files, show them anyway
+      // Auto-retry logic - retry up to 3 times before giving up
+      const currentRetryAttempts = state.retryAttempts || 0;
+      const maxRetryAttempts = 3;
+
+      if (currentRetryAttempts < maxRetryAttempts && generationMeta.remainingFiles.length > 0) {
+        console.log(`[Continuation] Auto-retry attempt ${currentRetryAttempts + 1}/${maxRetryAttempts}`);
+        setStreamingStatus(`🔄 Retrying batch (attempt ${currentRetryAttempts + 1}/${maxRetryAttempts})...`);
+
+        // Create new state with incremented retry counter
+        const retryState = {
+          ...state,
+          retryAttempts: currentRetryAttempts + 1
+        };
+        setContinuationState(retryState);
+
+        // Wait 1 second before retrying (exponential backoff)
+        setTimeout(() => {
+          handleContinueGeneration(retryState, existingFiles);
+        }, 1000 * (currentRetryAttempts + 1)); // 1s, 2s, 3s delays
+
+        return; // Don't fall through to error handling
+      }
+
+      // All retries exhausted - try targeted request for missing files
+      if (generationMeta.remainingFiles.length > 0 && Object.keys(accumulatedFiles).length > 0) {
+        console.log('[Continuation] Retries exhausted, trying targeted request for:', generationMeta.remainingFiles);
+        setStreamingStatus(`🎯 Requesting ${generationMeta.remainingFiles.length} missing file(s) directly...`);
+
+        // Try targeted request for missing files
+        const targetedResult = await requestMissingFiles(
+          generationMeta.remainingFiles,
+          accumulatedFiles,
+          systemInstruction
+        );
+
+        if (targetedResult.success) {
+          // Check which files are still missing after targeted request
+          const stillMissing = generationMeta.remainingFiles.filter(
+            f => !targetedResult.files[f]
+          );
+
+          const generatedFileList = Object.keys(targetedResult.files);
+          const finalFiles = existingFiles ? { ...existingFiles, ...targetedResult.files } : targetedResult.files;
+          const fileChanges = calculateFileChanges(files, finalFiles);
+
+          // Use AI's explanation, with fallback for missing files info
+          let explanationText = targetedResult.explanation || 'Generation complete.';
+          if (stillMissing.length > 0) {
+            explanationText += `\n\n⚠️ **${stillMissing.length} files could not be generated:** ${stillMissing.join(', ')}`;
+          }
+
+          const completionMessage: ChatMessage = {
+            id: crypto.randomUUID(),
+            role: 'assistant',
+            timestamp: Date.now(),
+            explanation: explanationText,
+            files: targetedResult.files,
+            fileChanges,
+            snapshotFiles: { ...files },
+            model: currentModel,
+            provider: providerName,
+            generationTime: Date.now() - continuationStartTime
+          };
+          setMessages(prev => [...prev, completionMessage]);
+          setStreamingStatus(`✅ Generated ${generatedFileList.length} files${stillMissing.length > 0 ? ` (${stillMissing.length} missing)` : ''}`);
+
+          // Complete generation
+          setTimeout(() => {
+            setContinuationState(null);
+            setIsGenerating(false);
+            setFilePlan(null);
+            reviewChange('Generated App', finalFiles);
+          }, 100);
+          return;
+        }
+      }
+
+      // Targeted request also failed or no accumulated files - show what we have
       if (Object.keys(accumulatedFiles).length > 0) {
-        console.log('[Continuation] Error but have accumulated files:', Object.keys(accumulatedFiles));
+        console.log('[Continuation] All attempts exhausted, showing accumulated files:', Object.keys(accumulatedFiles));
 
         const generatedFileList = Object.keys(accumulatedFiles);
         const finalFiles = existingFiles ? { ...existingFiles, ...accumulatedFiles } : accumulatedFiles;
         const fileChanges = calculateFileChanges(files, finalFiles);
 
-        // IMPORTANT: Add completion message FIRST (before clearing generating UI)
+        // Use last known explanation or simple fallback
+        const explanationText = `Generation complete.\n\n⚠️ **${generationMeta.remainingFiles.length} files could not be generated:** ${generationMeta.remainingFiles.join(', ')}`;
+
         const completionMessage: ChatMessage = {
           id: crypto.randomUUID(),
           role: 'assistant',
           timestamp: Date.now(),
-          explanation: `⚠️ **Generation completed with ${generatedFileList.length} files** (some may be missing):\n${generatedFileList.map(f => `- \`${f}\``).join('\n')}`,
+          explanation: explanationText,
           files: accumulatedFiles,
           fileChanges,
           snapshotFiles: { ...files },
@@ -721,10 +912,8 @@ Generate the remaining files. Each file must be COMPLETE and FUNCTIONAL.`;
         };
         setMessages(prev => [...prev, completionMessage]);
 
-        // Update status
-        setStreamingStatus(`✅ Generated ${generatedFileList.length} files (partial)`);
+        setStreamingStatus(`✅ Generated ${generatedFileList.length} files (${generationMeta.remainingFiles.length} missing)`);
 
-        // Small delay to ensure message renders before modal opens
         setTimeout(() => {
           setContinuationState(null);
           setIsGenerating(false);

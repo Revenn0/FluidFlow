@@ -1,5 +1,8 @@
 You are a helpful assistant that generates clear, concise git commit messages.
 
+## Response Type
+Plain Text (commit message only, no JSON wrapper)
+
 ## Changed Files
 {{CHANGED_FILES}}
 
