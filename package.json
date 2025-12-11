@@ -22,6 +22,8 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@codesandbox/sandpack-react": "^2.20.0",
+    "@codesandbox/sandpack-themes": "^2.0.21",
     "@google/genai": "latest",
     "@monaco-editor/react": "^4.7.0",
     "@typescript-eslint/typescript-estree": "^8.48.1",

@@ -749,7 +749,13 @@ Generate the remaining files. Each file must be COMPLETE and FUNCTIONAL.`;
     // multi-batch path keeps generating, and error path handles it above
   };
 
-  const handleSend = async (prompt: string, attachments: ChatAttachment[], _fileContext?: string[]) => {
+  // Inspect context for targeted element editing
+  interface InspectContext {
+    element: InspectedElement;
+    scope: EditScope;
+  }
+
+  const handleSend = async (prompt: string, attachments: ChatAttachment[], _fileContext?: string[], inspectContext?: InspectContext) => {
     // Track if continuation was started (to prevent finally block from clearing isGenerating)
     let continuationStarted = false;
 
@@ -839,6 +845,150 @@ Output ONLY a raw JSON array of strings containing your specific suggestions. Do
         } catch {
           setSuggestions(['Error parsing consultant suggestions.']);
         }
+      } else if (inspectContext) {
+        // INSPECT EDIT MODE - Strict element-scoped editing
+        const { element, scope } = inspectContext;
+        const targetSelector = scope === 'element' && element.ffId
+          ? `data-ff-id="${element.ffId}"`
+          : scope === 'group' && element.ffGroup
+            ? `data-ff-group="${element.ffGroup}"`
+            : `<${element.tagName.toLowerCase()}> in ${element.componentName}`;
+
+        const systemInstruction = `You are an expert React Developer performing a SURGICAL EDIT on a specific element.
+
+## 🚨 CRITICAL: STRICT SCOPE ENFORCEMENT 🚨
+
+**TARGET**: ${scope === 'element' ? 'SINGLE ELEMENT' : 'ELEMENT GROUP'}
+**SELECTOR**: ${targetSelector}
+**COMPONENT**: ${element.componentName || 'Unknown'}
+
+### ABSOLUTE RULES - VIOLATION = FAILURE
+
+1. **ONLY modify the element(s) matching**: ${targetSelector}
+2. **DO NOT touch ANY other elements** - not siblings, not parents, not children of other elements
+3. **DO NOT add new components or sections**
+4. **DO NOT restructure the component hierarchy**
+5. **DO NOT change imports unless absolutely necessary for the specific element**
+6. **DO NOT modify any element that does NOT have the target selector**
+
+### WHAT YOU CAN CHANGE (ONLY for target element):
+- Tailwind classes on the target element
+- Text content of the target element
+- Style properties of the target element
+- Add/modify props on the target element ONLY
+
+### WHAT YOU CANNOT CHANGE:
+- Parent elements (even their classes)
+- Sibling elements
+- Other components
+- Component structure/hierarchy
+- Layout or positioning of other elements
+- Adding new HTML elements outside the target
+
+### VERIFICATION CHECKLIST:
+Before outputting, verify:
+✅ Changes ONLY affect element with ${targetSelector}
+✅ No new elements added outside target
+✅ No structural changes to component
+✅ Parent/sibling elements are IDENTICAL to original
+
+**RESPONSE FORMAT (MANDATORY)**:
+Line 1: File plan
+Line 2+: JSON with files
+
+// PLAN: {"create":[],"update":["${element.componentName ? `src/components/${element.componentName}.tsx` : 'src/App.tsx'}"],"delete":[],"total":1}
+
+{
+  "explanation": "Modified ONLY the ${element.tagName.toLowerCase()} element with ${targetSelector}: [describe specific changes]",
+  "files": {
+    "${element.componentName ? `src/components/${element.componentName}.tsx` : 'src/App.tsx'}": "// complete file content..."
+  }
+}
+
+**CODE REQUIREMENTS**:
+- Use Tailwind CSS for styling
+- Preserve ALL existing data-ff-group and data-ff-id attributes
+- Keep file structure identical except for target element changes`;
+
+        // Add tech stack
+        const techStackInstruction = generateSystemInstruction();
+
+        // Build the prompt with element context
+        const elementDetails = `
+## TARGET ELEMENT DETAILS:
+- Tag: <${element.tagName.toLowerCase()}>
+- Component: ${element.componentName || 'Unknown'}
+- Classes: ${element.className || 'none'}
+- ID: ${element.id || 'none'}
+${element.ffGroup ? `- FluidFlow Group: data-ff-group="${element.ffGroup}"` : ''}
+${element.ffId ? `- FluidFlow ID: data-ff-id="${element.ffId}"` : ''}
+- Text: "${element.textContent?.slice(0, 100) || ''}"
+${element.parentComponents ? `- Parent chain: ${element.parentComponents.join(' > ')}` : ''}
+
+## USER REQUEST:
+${prompt}
+
+## REMINDER: Only modify the element with ${targetSelector}. Everything else MUST remain unchanged.`;
+
+        const promptParts: string[] = [elementDetails];
+        const images: { data: string; mimeType: string }[] = [];
+
+        // Add existing files context
+        const existingFilesJson = JSON.stringify(files, null, 2);
+        promptParts.push(`\n## CURRENT PROJECT FILES:\n\`\`\`json\n${existingFilesJson}\n\`\`\``);
+
+        const finalPrompt = promptParts.join('\n');
+
+        // Make AI request
+        const manager = getProviderManager();
+        const activeProvider = manager.getActiveConfig();
+        const currentModel = activeProvider?.defaultModel || selectedModel;
+        const providerName = activeProvider?.name || 'AI';
+
+        debugLog.request('quick-edit', {
+          model: currentModel,
+          prompt: finalPrompt.slice(0, 500) + '...',
+          metadata: { element: element.ffId || element.tagName, scope }
+        });
+
+        setStreamingStatus('🎯 Editing element...');
+
+        const response = await manager.generate({
+          prompt: finalPrompt,
+          systemInstruction: systemInstruction + techStackInstruction,
+          responseFormat: 'json',
+          images: images.length > 0 ? images : undefined
+        }, currentModel);
+
+        const rawResponse = response.text || '';
+
+        // Parse response
+        const jsonMatch = rawResponse.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (parsed.files && Object.keys(parsed.files).length > 0) {
+            const newFiles = { ...files, ...parsed.files };
+
+            const assistantMessage: ChatMessage = {
+              id: crypto.randomUUID(),
+              role: 'assistant',
+              timestamp: Date.now(),
+              explanation: parsed.explanation || `🎯 Modified element: ${targetSelector}`,
+              files: parsed.files,
+              fileChanges: calculateFileChanges(files, newFiles),
+              snapshotFiles: { ...files },
+              model: currentModel,
+              provider: providerName
+            };
+            setMessages(prev => [...prev, assistantMessage]);
+
+            reviewChange(`Edit: ${element.ffId || element.tagName}`, newFiles);
+          }
+        }
+
+        setIsGenerating(false);
+        return;
+
       } else {
         // Generate/Update app mode
         let systemInstruction = `You are an expert React Developer. Your task is to generate or update a React application.
@@ -2007,36 +2157,11 @@ Generate ONLY these files. Each file must be COMPLETE and FUNCTIONAL.`;
     );
   };
 
-  // Handle inspect edit from PreviewPanel - with chat history and streaming
-  // Handle inspect edit from PreviewPanel - using normal chat flow
+  // Handle inspect edit from PreviewPanel - with strict scope enforcement
   const handleInspectEdit = useCallback(async (prompt: string, element: InspectedElement, scope: EditScope) => {
-    const appCode = files['src/App.tsx'];
-    if (!appCode) return;
-
-    // Build element context with FluidFlow identification
-    const elementContext = `
-🎯 **Selected Element:**
-- Tag: <${element.tagName.toLowerCase()}>
-- Component: ${element.componentName || 'Unknown'}
-- Classes: ${element.className || 'none'}
-- ID: ${element.id || 'none'}
-${element.ffGroup ? `- FluidFlow Group: data-ff-group="${element.ffGroup}"` : ''}
-${element.ffId ? `- FluidFlow ID: data-ff-id="${element.ffId}"` : ''}
-- Text content: "${element.textContent?.slice(0, 100) || ''}"
-${element.parentComponents ? `- Parent components: ${element.parentComponents.join(' > ')}` : ''}
-
-📋 **Edit Scope:** ${scope === 'group' ? `ALL elements with data-ff-group="${element.ffGroup}"` : element.ffId ? `ONLY this element (data-ff-id="${element.ffId}")` : 'This specific element'}
-`;
-
-    // Combine element context with user prompt
-    const combinedPrompt = `${elementContext}
-
-**User Request:**
-${prompt}`;
-
-    // Use the normal handleSend function to integrate with chat history
-    await handleSend(combinedPrompt, []);
-  }, [files, handleSend]);
+    // Use handleSend with inspectContext for strict scope enforcement
+    await handleSend(prompt, [], undefined, { element, scope });
+  }, [handleSend]);
 
   // Send error to chat - called from PreviewPanel when auto-fix fails
   const sendErrorToChat = useCallback((errorMessage: string) => {

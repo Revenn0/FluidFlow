@@ -3,7 +3,8 @@ import {
   Monitor, Smartphone, Tablet, RefreshCw, Eye, Code2, Copy, Check, Download, Database,
   ShieldCheck, Pencil, Send, FileText, Wrench, FlaskConical, Package, Loader2,
   SplitSquareVertical, X, Zap, ZapOff, MousePointer2, Bug, Settings, ChevronDown, Shield,
-  ChevronLeft, ChevronRight, Globe, GitBranch, Play, AlertTriangle, Box, MessageSquare, Bot
+  ChevronLeft, ChevronRight, Globe, GitBranch, Play, AlertTriangle, Box, MessageSquare, Bot,
+  Layers
 } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import { getProviderManager } from '../../services/ai';
@@ -33,6 +34,7 @@ import { GitPanel } from '../GitPanel';
 import { RunnerPanel } from './RunnerPanel';
 import { WebContainerPanel } from './WebContainerPanel';
 import { ErrorFixPanel } from './ErrorFixPanel';
+import { SandpackPanel } from './SandpackPanel';
 import { GitStatus } from '../../services/projectApi';
 
 interface PreviewPanelProps {
@@ -351,19 +353,18 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     const startTime = Date.now();
 
     try {
-      // Use ProviderManager - same provider and model as main chat
+      // Use ProviderManager - let it handle provider and model selection
       const manager = getProviderManager();
-      const provider = manager.getProvider();
       const activeConfig = manager.getActiveConfig();
 
-      if (!provider) {
+      if (!activeConfig) {
         throw new Error('No AI provider configured');
       }
 
-      // Use the same model as main chat (selectedModel is passed from App.tsx)
-      const modelToUse = selectedModel || activeConfig?.defaultModel;
+      // Use active provider's default model (don't use selectedModel - it might be from a different provider)
+      const modelToUse = activeConfig.defaultModel;
 
-      console.log('[AutoFix] Using provider:', activeConfig?.type, 'model:', modelToUse);
+      console.log('[AutoFix] Using provider:', activeConfig.type, 'model:', modelToUse);
 
       // Build comprehensive context for AI
       setAutoFixToast('📦 Building context...');
@@ -471,7 +472,7 @@ Return ONLY the complete fixed ${targetFile} code.
       const shortModelName = modelToUse.split('/').pop()?.replace('models-', '') || modelToUse;
       setAutoFixToast(`🤖 Fixing ${targetFile.split('/').pop()} (${shortModelName})...`);
 
-      const response = await provider.generate({
+      const response = await manager.generate({
         prompt: systemPrompt,
         responseFormat: 'text'
       }, modelToUse);
@@ -1254,6 +1255,7 @@ Thumbs.db
             {[
               { id: 'preview', icon: Eye, label: 'Preview' },
               { id: 'code', icon: Code2, label: 'Code' },
+              { id: 'sandpack', icon: Layers, label: 'Sandpack' },
               { id: 'git', icon: GitBranch, label: 'Git' },
               { id: 'run', icon: Play, label: 'Run' },
               { id: 'webcontainer', icon: Box, label: 'WebContainer' },
@@ -1477,6 +1479,13 @@ Thumbs.db
                   setCurrentErrorStack(undefined);
                 }
               }}
+            />
+          </div>
+        ) : activeTab === 'sandpack' ? (
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+            <SandpackPanel
+              files={files}
+              onFilesChange={setFiles}
             />
           </div>
         ) : activeTab === 'preview' ? (
