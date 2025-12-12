@@ -6,9 +6,9 @@
 
 Transform wireframes and sketches into functional React applications using AI.
 
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)](https://www.typescriptlang.org/) [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite)](https://vitejs.dev/) [![Multi-AI](https://img.shields.io/badge/AI-Multi--Provider-8B5CF6)](https://ai.google.dev/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev/) [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript)](https://www.typescriptlang.org/) [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite)](https://vitejs.dev/) [![Multi-AI](https://img.shields.io/badge/AI-Multi--Provider-8B5CF6)](https://ai.google.dev/) [![Tests](https://img.shields.io/badge/Tests-75%20passing-22c55e?logo=vitest)](https://vitest.dev/) [![ESLint](https://img.shields.io/badge/ESLint-0%20errors-4b32c3?logo=eslint)](https://eslint.org/)
 
-[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Architecture](#architecture)
+[Features](#features) | [Installation](#installation) | [Usage](#usage) | [Architecture](#architecture) | [Security](#security)
 
 </div>
 
@@ -80,6 +80,7 @@ Transform wireframes and sketches into functional React applications using AI.
 - **Version History** - Undo/redo with full timeline navigation
 - **Database Studio** - Visual SQLite database management
 - **Environment Panel** - Manage environment variables
+- **CodeMap** - Visual project structure analysis and navigation
 
 ---
 
@@ -87,7 +88,7 @@ Transform wireframes and sketches into functional React applications using AI.
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 20+ (LTS recommended)
 - API Key from any supported provider
 
 ### Quick Start
@@ -114,6 +115,7 @@ GEMINI_API_KEY=your_gemini_api_key
 OPENAI_API_KEY=your_openai_api_key
 ANTHROPIC_API_KEY=your_anthropic_api_key
 OPENROUTER_API_KEY=your_openrouter_api_key
+ZAI_API_KEY=your_zai_api_key
 
 # Backend API (optional)
 VITE_API_URL=http://localhost:3200/api
@@ -144,7 +146,7 @@ VITE_API_URL=http://localhost:3200/api
 | Command | Description |
 |---------|-------------|
 | `npm test` | Run tests in watch mode (Vitest) |
-| `npm run test:run` | Run tests once (CI mode) |
+| `npm run test:run` | Run tests once (CI mode) - 75 tests |
 | `npm run test:coverage` | Run tests with coverage report |
 | `npm run test:ui` | Run tests with Vitest UI |
 | `npm run test:security` | Run security tests only |
@@ -241,10 +243,12 @@ fluidflow/
 ├── types/
 │   └── index.ts               # TypeScript definitions
 │
-├── tests/                     # Test files
+├── tests/                     # Test files (75 tests)
 │   ├── setup.ts               # Test configuration
 │   ├── utils/                 # Utility tests
-│   └── security/              # Security tests
+│   ├── security/              # Security tests
+│   ├── integration/           # API integration tests
+│   └── services/              # Service tests
 │
 ├── projects/                  # Local project storage (auto-generated)
 ├── App.tsx                    # Main app + diff modal
@@ -402,6 +406,22 @@ Monitor all AI API interactions in real-time.
 - Firefox 90+
 - Safari 15+
 - Edge 90+
+
+---
+
+## Security
+
+FluidFlow includes built-in security measures:
+
+- **Input Validation** - XSS prevention, SQL injection protection, path traversal detection
+- **Content Sanitization** - Safe handling of user inputs and AI responses
+- **Security Testing** - Automated tests for common attack vectors
+- **ESLint Security Plugin** - Static analysis for security vulnerabilities
+
+Run security tests with:
+```bash
+npm run test:security
+```
 
 ---
 
