@@ -44,6 +44,17 @@ export class ZAIProvider implements AIProvider {
     if (systemContent) {
       messages.push({ role: 'system', content: systemContent });
     }
+
+    // Add conversation history if present
+    if (request.conversationHistory && request.conversationHistory.length > 0) {
+      for (const msg of request.conversationHistory) {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
+    }
+
     messages.push({ role: 'user', content: request.prompt });
 
     const body: any = {
@@ -112,6 +123,17 @@ export class ZAIProvider implements AIProvider {
     if (systemContent) {
       messages.push({ role: 'system', content: systemContent });
     }
+
+    // Add conversation history if present
+    if (request.conversationHistory && request.conversationHistory.length > 0) {
+      for (const msg of request.conversationHistory) {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
+    }
+
     messages.push({ role: 'user', content: request.prompt });
 
     const body: any = {

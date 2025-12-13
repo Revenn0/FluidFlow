@@ -54,6 +54,18 @@ export class AnthropicProvider implements AIProvider {
       ? prepareJsonRequest('anthropic', request.systemInstruction || '', request.responseSchema)
       : null;
 
+    // Add conversation history if present
+    if (request.conversationHistory && request.conversationHistory.length > 0) {
+      for (const msg of request.conversationHistory) {
+        // Anthropic doesn't support 'system' role in messages array (it uses 'system' param)
+        if (msg.role === 'system') continue;
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
+    }
+
     // Build user message content
     const content: any[] = [];
 
@@ -153,6 +165,18 @@ export class AnthropicProvider implements AIProvider {
     const jsonRequest = request.responseFormat === 'json'
       ? prepareJsonRequest('anthropic', request.systemInstruction || '', request.responseSchema)
       : null;
+
+    // Add conversation history if present
+    if (request.conversationHistory && request.conversationHistory.length > 0) {
+      for (const msg of request.conversationHistory) {
+        // Anthropic doesn't support 'system' role in messages array (it uses 'system' param)
+        if (msg.role === 'system') continue;
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
+    }
 
     const content: any[] = [];
 

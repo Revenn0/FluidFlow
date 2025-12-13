@@ -25,8 +25,18 @@ export class OllamaProvider implements AIProvider {
   }
 
   async generate(request: GenerationRequest, model: string): Promise<GenerationResponse> {
-    // Build prompt with images if present
-    const prompt = request.prompt;
+    // Build prompt with conversation history
+    let prompt = '';
+
+    // Include conversation history in prompt (Ollama uses single prompt, not messages array)
+    if (request.conversationHistory && request.conversationHistory.length > 0) {
+      const historyText = request.conversationHistory
+        .map(msg => `${msg.role === 'user' ? 'User' : msg.role === 'assistant' ? 'Assistant' : 'System'}: ${msg.content}`)
+        .join('\n\n');
+      prompt = `${historyText}\n\nUser: ${request.prompt}`;
+    } else {
+      prompt = request.prompt;
+    }
 
     const body: any = {
       model,
@@ -84,9 +94,22 @@ export class OllamaProvider implements AIProvider {
     model: string,
     onChunk: (chunk: StreamChunk) => void
   ): Promise<GenerationResponse> {
+    // Build prompt with conversation history
+    let prompt = '';
+
+    // Include conversation history in prompt (Ollama uses single prompt, not messages array)
+    if (request.conversationHistory && request.conversationHistory.length > 0) {
+      const historyText = request.conversationHistory
+        .map(msg => `${msg.role === 'user' ? 'User' : msg.role === 'assistant' ? 'Assistant' : 'System'}: ${msg.content}`)
+        .join('\n\n');
+      prompt = `${historyText}\n\nUser: ${request.prompt}`;
+    } else {
+      prompt = request.prompt;
+    }
+
     const body: any = {
       model,
-      prompt: request.prompt,
+      prompt,
       stream: true,
       options: {
         temperature: request.temperature ?? 0.7,

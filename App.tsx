@@ -688,6 +688,28 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   } | null>(null);
   const [autoAcceptChanges, setAutoAcceptChanges] = useState(false);
 
+  // Auto-checkpoint: save files to backend after each AI generation
+  const saveCheckpoint = useCallback(async (filesToSave: FileSystem, label: string) => {
+    if (!project.currentProject) {
+      console.log('[Checkpoint] No current project, skipping checkpoint');
+      return;
+    }
+
+    const fileCount = Object.keys(filesToSave).length;
+    if (fileCount === 0) {
+      console.log('[Checkpoint] No files to save, skipping checkpoint');
+      return;
+    }
+
+    try {
+      console.log(`[Checkpoint] Saving ${fileCount} files (${label})...`);
+      await projectApi.update(project.currentProject.id, { files: filesToSave, force: true });
+      console.log(`[Checkpoint] Saved successfully`);
+    } catch (err) {
+      console.error('[Checkpoint] Failed to save:', err);
+    }
+  }, [project.currentProject]);
+
   const reviewChange = (label: string, newFiles: FileSystem) => {
      if (autoAcceptChanges) {
         // Auto-accept: apply changes directly without showing modal
@@ -698,6 +720,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
            const firstSrc = Object.keys(newFiles).find(f => f.startsWith('src/'));
            setActiveFile(firstSrc || 'package.json');
         }
+
+        // Auto-checkpoint: save to backend after AI generation
+        saveCheckpoint(newFiles, label);
      } else {
         // Show review modal
         setPendingReview({ label, newFiles });
@@ -713,6 +738,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
              const firstSrc = Object.keys(pendingReview.newFiles).find(f => f.startsWith('src/'));
              setActiveFile(firstSrc || 'package.json');
         }
+
+        // Auto-checkpoint: save to backend after user approves changes
+        saveCheckpoint(pendingReview.newFiles, pendingReview.label);
 
         setPendingReview(null);
      }

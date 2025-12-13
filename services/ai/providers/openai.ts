@@ -40,6 +40,16 @@ export class OpenAIProvider implements AIProvider {
       messages.push({ role: 'system', content: systemContent });
     }
 
+    // Add conversation history if present
+    if (request.conversationHistory && request.conversationHistory.length > 0) {
+      for (const msg of request.conversationHistory) {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
+    }
+
     // Build user message content
     const content: any[] = [];
 
@@ -134,6 +144,16 @@ export class OpenAIProvider implements AIProvider {
 
     if (systemContent) {
       messages.push({ role: 'system', content: systemContent });
+    }
+
+    // Add conversation history if present
+    if (request.conversationHistory && request.conversationHistory.length > 0) {
+      for (const msg of request.conversationHistory) {
+        messages.push({
+          role: msg.role,
+          content: msg.content
+        });
+      }
     }
 
     const content: any[] = [];

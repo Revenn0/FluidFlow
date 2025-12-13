@@ -56,6 +56,43 @@ import { getContextManager, CONTEXT_IDS } from '../../services/conversationConte
 import { ContextIndicator } from '../ContextIndicator';
 import { getFluidFlowConfig } from '../../services/fluidflowConfig';
 
+// Helper function to estimate tokens for accurate tracking
+function estimateTokenCount(text: string): number {
+  if (!text) return 0;
+  // ~4 characters per token for mixed content (code + text)
+  return Math.ceil(text.length / 4);
+}
+
+// Helper to create token usage from API response or estimate
+function createTokenUsage(
+  usage?: { inputTokens?: number; outputTokens?: number; isEstimated?: boolean },
+  promptText?: string,
+  responseText?: string,
+  files?: Record<string, string>
+): { inputTokens: number; outputTokens: number; totalTokens: number; isEstimated: boolean } {
+  // If API provided usage, use it
+  if (usage?.inputTokens || usage?.outputTokens) {
+    return {
+      inputTokens: usage.inputTokens || 0,
+      outputTokens: usage.outputTokens || 0,
+      totalTokens: (usage.inputTokens || 0) + (usage.outputTokens || 0),
+      isEstimated: usage.isEstimated ?? false
+    };
+  }
+
+  // Otherwise estimate from content
+  const inputTokens = promptText ? estimateTokenCount(promptText) : 0;
+  const filesContent = files ? Object.values(files).join('\n') : '';
+  const outputTokens = estimateTokenCount((responseText || '') + filesContent);
+
+  return {
+    inputTokens,
+    outputTokens,
+    totalTokens: inputTokens + outputTokens,
+    isEstimated: true
+  };
+}
+
 // Sub-components
 import { ChatPanel } from './ChatPanel';
 import { ChatInput } from './ChatInput';
@@ -250,10 +287,15 @@ export const ControlPanel = forwardRef<ControlPanelRef, ControlPanelProps>(({
   // Context management
   const contextManager = getContextManager();
   const sessionIdRef = useRef<string>(`${CONTEXT_IDS.MAIN_CHAT}-${currentProject?.id || 'default'}`);
+  // Track which messages have been synced to context manager (prevents duplicates on batch updates)
+  const syncedMessageIdsRef = useRef<Set<string>>(new Set());
 
   // Update session ID when project changes
   useEffect(() => {
     sessionIdRef.current = `${CONTEXT_IDS.MAIN_CHAT}-${currentProject?.id || 'default'}`;
+    // Clear synced message IDs when project changes (different projects have different contexts)
+    syncedMessageIdsRef.current.clear();
+    console.log(`[ContextSync] Project changed, new session: ${sessionIdRef.current}`);
   }, [currentProject?.id]);
 
   // Modal exclusivity handlers
@@ -266,17 +308,55 @@ export const ControlPanel = forwardRef<ControlPanelRef, ControlPanelProps>(({
   };
 
   // Sync messages with context manager
+  // BUG FIX: Sync ALL new messages, not just the last one
+  // React 18 batches state updates, so multiple messages can be added before this runs
   useEffect(() => {
     if (messages.length === 0) return;
-    const lastMsg = messages[messages.length - 1];
-    if (lastMsg) {
+
+    // Find all messages that haven't been synced yet
+    const unsynced = messages.filter(msg => !syncedMessageIdsRef.current.has(msg.id));
+    if (unsynced.length === 0) return;
+
+    console.log(`[ContextSync] Found ${unsynced.length} unsync'd message(s) to add`);
+
+    for (const msg of unsynced) {
+      // For user messages: use llmContent (full codebase) or prompt
+      // For assistant messages: use explanation/error + file content for accurate token counting
+      let content: string;
+      let actualTokens: number | undefined;
+
+      if (msg.role === 'user') {
+        content = msg.llmContent || msg.prompt || '';
+        // Use actual token count if available (e.g., from codebase sync)
+        if (msg.tokenUsage?.totalTokens) {
+          actualTokens = msg.tokenUsage.totalTokens;
+        }
+      } else {
+        // For assistant messages, include file content in token estimation
+        const textContent = msg.explanation || msg.error || '';
+        const filesContent = msg.files
+          ? Object.entries(msg.files).map(([path, code]) => `// ${path}\n${code}`).join('\n\n')
+          : '';
+        content = textContent + (filesContent ? '\n\n' + filesContent : '');
+
+        // Use actual token count from API if available
+        if (msg.tokenUsage?.totalTokens) {
+          actualTokens = msg.tokenUsage.totalTokens;
+        }
+      }
+
+      console.log(`[ContextSync] Adding ${msg.role} message (id: ${msg.id.slice(0, 8)}...) to session "${sessionIdRef.current}", content length: ${content.length}, tokens: ${actualTokens || 'estimated'}`);
+
       contextManager.addMessage(
         sessionIdRef.current,
-        lastMsg.role,
-        // Use llmContent if available (for codebase sync), otherwise use prompt/explanation
-        lastMsg.role === 'user' ? (lastMsg.llmContent || lastMsg.prompt || '') : (lastMsg.explanation || lastMsg.error || ''),
-        { messageId: lastMsg.id }
+        msg.role,
+        content,
+        { messageId: msg.id },
+        actualTokens
       );
+
+      // Mark as synced
+      syncedMessageIdsRef.current.add(msg.id);
     }
   }, [messages.length]);
 
@@ -881,7 +961,8 @@ Generate the remaining files. Each file must be COMPLETE and FUNCTIONAL.`;
             snapshotFiles: { ...files },
             model: currentModel,
             provider: providerName,
-            generationTime: Date.now() - continuationStartTime
+            generationTime: Date.now() - continuationStartTime,
+            tokenUsage: createTokenUsage(undefined, undefined, explanationText, targetedResult.files)
           };
           setMessages(prev => [...prev, completionMessage]);
           setStreamingStatus(`✅ Generated ${generatedFileList.length} files${stillMissing.length > 0 ? ` (${stillMissing.length} missing)` : ''}`);
@@ -918,7 +999,8 @@ Generate the remaining files. Each file must be COMPLETE and FUNCTIONAL.`;
           snapshotFiles: { ...files },
           model: currentModel,
           provider: providerName,
-          generationTime: Date.now() - continuationStartTime
+          generationTime: Date.now() - continuationStartTime,
+          tokenUsage: createTokenUsage(undefined, undefined, explanationText, accumulatedFiles)
         };
         setMessages(prev => [...prev, completionMessage]);
 
@@ -1176,7 +1258,8 @@ ${prompt}
             fileChanges: calculateFileChanges(files, newFiles),
             snapshotFiles: { ...files },
             model: currentModel,
-            provider: providerName
+            provider: providerName,
+            tokenUsage: createTokenUsage(response?.usage, undefined, rawResponse, parsed.files)
           };
           setMessages(prev => [...prev, assistantMessage]);
 
@@ -1420,6 +1503,14 @@ Write a clear markdown explanation including:
           promptParts.push(`TASK: Create a React app from this design. ${prompt ? `Additional context: ${prompt}` : ''}`);
         }
 
+        // Get conversation history for multi-turn context (includes synced codebase)
+        const conversationHistory = contextManager.getMessagesForAI(sessionIdRef.current);
+        console.log(`[handleSend] Session: ${sessionIdRef.current}, History messages: ${conversationHistory.length}`);
+        if (conversationHistory.length > 0) {
+          const totalHistoryChars = conversationHistory.reduce((sum, m) => sum + m.content.length, 0);
+          console.log(`[handleSend] History total chars: ${totalHistoryChars}, estimated tokens: ~${Math.ceil(totalHistoryChars / 4)}`);
+        }
+
         const request: GenerationRequest = {
           prompt: promptParts.join('\n\n'),
           systemInstruction,
@@ -1429,7 +1520,9 @@ Write a clear markdown explanation including:
           // (FILE_GENERATION_SCHEMA uses additionalProperties for file paths)
           responseSchema: activeProvider?.type && supportsAdditionalProperties(activeProvider.type)
             ? FILE_GENERATION_SCHEMA
-            : undefined
+            : undefined,
+          // Include conversation history for multi-turn context
+          conversationHistory: conversationHistory.length > 0 ? conversationHistory : undefined
         };
 
         // Use streaming for better UX
@@ -1830,11 +1923,7 @@ Write a clear markdown explanation including:
             provider: providerName,
             generationTime: Date.now() - genStartTime,
             continuation: parseResult.continuation,
-            tokenUsage: streamResponse?.usage ? {
-              inputTokens: streamResponse.usage.inputTokens || 0,
-              outputTokens: streamResponse.usage.outputTokens || 0,
-              totalTokens: (streamResponse.usage.inputTokens || 0) + (streamResponse.usage.outputTokens || 0)
-            } : undefined
+            tokenUsage: createTokenUsage(streamResponse?.usage, prompt, fullText, newFiles)
           };
 
           // IMPORTANT: Add message FIRST so user sees it in chat
@@ -3071,18 +3160,33 @@ Fix the error in src/App.tsx.`;
             timestamp: Date.now(),
             prompt: displayMessage,
             // Store full content for LLM in a separate field
-            llmContent: llmMessage
+            llmContent: llmMessage,
+            // Track precise token count from sync calculation
+            tokenUsage: {
+              inputTokens: tokenEstimate,
+              outputTokens: 0,
+              totalTokens: tokenEstimate,
+              isEstimated: false // This is calculated precisely from file sizes
+            }
           };
           setMessages(prev => [...prev, syncMessage]);
 
           // If this is the last batch, add an AI acknowledgment
           if (batchIndex === totalBatches - 1) {
             const totalFiles = Object.keys(files).length;
+            const ackExplanation = `✅ **Codebase synced successfully!**\n\nI now have the complete and up-to-date view of your project (${totalFiles} files). I'll use this as the reference for all future requests.\n\nFeel free to ask me to make changes or improvements!`;
+            const ackTokens = estimateTokenCount(ackExplanation);
             const ackMessage: ChatMessage = {
               id: crypto.randomUUID(),
               role: 'assistant',
               timestamp: Date.now(),
-              explanation: `✅ **Codebase synced successfully!**\n\nI now have the complete and up-to-date view of your project (${totalFiles} files). I'll use this as the reference for all future requests.\n\nFeel free to ask me to make changes or improvements!`
+              explanation: ackExplanation,
+              tokenUsage: {
+                inputTokens: 0,
+                outputTokens: ackTokens,
+                totalTokens: ackTokens,
+                isEstimated: true
+              }
             };
             setMessages(prev => [...prev, ackMessage]);
 

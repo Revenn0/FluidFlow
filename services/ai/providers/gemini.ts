@@ -26,6 +26,26 @@ export class GeminiProvider implements AIProvider {
   }
 
   async generate(request: GenerationRequest, model: string): Promise<GenerationResponse> {
+    // Build contents array with conversation history
+    const contents: Array<{ role?: string; parts: any[] }> = [];
+
+    // Add conversation history if present
+    if (request.conversationHistory && request.conversationHistory.length > 0) {
+      console.log(`[GeminiProvider] Adding ${request.conversationHistory.length} history messages to request`);
+      for (const msg of request.conversationHistory) {
+        // Gemini uses 'model' for assistant role
+        const role = msg.role === 'assistant' ? 'model' : msg.role === 'system' ? 'user' : msg.role;
+        contents.push({
+          role,
+          parts: [{ text: msg.content }]
+        });
+        console.log(`[GeminiProvider] History msg role=${role}, content length=${msg.content.length}`);
+      }
+    } else {
+      console.log(`[GeminiProvider] No conversation history provided`);
+    }
+
+    // Build current prompt parts
     const parts: any[] = [];
 
     // Add images if present
@@ -37,6 +57,9 @@ export class GeminiProvider implements AIProvider {
 
     // Add text prompt
     parts.push({ text: request.prompt });
+
+    // Add current prompt to contents
+    contents.push({ role: 'user', parts });
 
     // Check if native schema enforcement can be used (only for static schemas)
     const useNativeSchema = request.responseFormat === 'json' &&
@@ -69,7 +92,7 @@ export class GeminiProvider implements AIProvider {
 
     const response = await this.client.models.generateContent({
       model,
-      contents: [{ parts }],
+      contents,
       config,
     });
 
@@ -87,6 +110,26 @@ export class GeminiProvider implements AIProvider {
     model: string,
     onChunk: (chunk: StreamChunk) => void
   ): Promise<GenerationResponse> {
+    // Build contents array with conversation history
+    const contents: Array<{ role?: string; parts: any[] }> = [];
+
+    // Add conversation history if present
+    if (request.conversationHistory && request.conversationHistory.length > 0) {
+      console.log(`[GeminiProvider:Stream] Adding ${request.conversationHistory.length} history messages to request`);
+      for (const msg of request.conversationHistory) {
+        // Gemini uses 'model' for assistant role
+        const role = msg.role === 'assistant' ? 'model' : msg.role === 'system' ? 'user' : msg.role;
+        contents.push({
+          role,
+          parts: [{ text: msg.content }]
+        });
+        console.log(`[GeminiProvider:Stream] History msg role=${role}, content length=${msg.content.length}`);
+      }
+    } else {
+      console.log(`[GeminiProvider:Stream] No conversation history provided`);
+    }
+
+    // Build current prompt parts
     const parts: any[] = [];
 
     if (request.images) {
@@ -96,6 +139,9 @@ export class GeminiProvider implements AIProvider {
     }
 
     parts.push({ text: request.prompt });
+
+    // Add current prompt to contents
+    contents.push({ role: 'user', parts });
 
     let fullText = '';
 
@@ -131,7 +177,7 @@ export class GeminiProvider implements AIProvider {
     try {
       const stream = await this.client.models.generateContentStream({
         model,
-        contents: [{ parts }],
+        contents,
         config,
       });
 

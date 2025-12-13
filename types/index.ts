@@ -47,6 +47,7 @@ export interface ChatMessage {
     inputTokens: number;
     outputTokens: number;
     totalTokens: number;
+    isEstimated?: boolean; // true if tokens are estimated, false if from API
   };
   // Model and provider info
   model?: string;

@@ -138,7 +138,8 @@ class ConversationContextManager {
     contextId: string,
     role: 'user' | 'assistant' | 'system',
     content: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
+    actualTokens?: number // Optional: actual token count from API
   ): ContextMessage {
     const context = this.getContext(contextId);
 
@@ -151,8 +152,13 @@ class ConversationContextManager {
     };
 
     context.messages.push(message);
-    context.estimatedTokens += estimateTokens(content);
+    // Use actual tokens if provided, otherwise estimate
+    const tokenCount = actualTokens ?? estimateTokens(content);
+    context.estimatedTokens += tokenCount;
     context.lastUpdatedAt = Date.now();
+
+    // Debug logging for message tracking
+    console.log(`[ContextManager] addMessage to "${contextId}": role=${role}, contentLen=${content.length}, tokens=${tokenCount}, totalMessages=${context.messages.length}, totalTokens=${context.estimatedTokens}`);
 
     // Check if compaction needed
     if (context.estimatedTokens > this.config.maxTokensPerContext) {
@@ -162,6 +168,22 @@ class ConversationContextManager {
 
     this.saveToStorage();
     return message;
+  }
+
+  // Add tokens directly (for tracking API response tokens)
+  addTokens(contextId: string, tokens: number): void {
+    const context = this.getContext(contextId);
+    context.estimatedTokens += tokens;
+    context.lastUpdatedAt = Date.now();
+    this.saveToStorage();
+  }
+
+  // Set exact token count (from API response)
+  setTokenCount(contextId: string, tokens: number): void {
+    const context = this.getContext(contextId);
+    context.estimatedTokens = tokens;
+    context.lastUpdatedAt = Date.now();
+    this.saveToStorage();
   }
 
   // Update the last assistant message (for streaming)
@@ -201,15 +223,20 @@ class ConversationContextManager {
   }
 
   // Get messages formatted for AI (as conversation history)
-  getMessagesForAI(contextId: string, maxMessages?: number): Array<{ role: string; content: string }> {
+  getMessagesForAI(contextId: string, maxMessages?: number): Array<{ role: 'user' | 'assistant' | 'system'; content: string }> {
     const context = this.contexts.get(contextId);
-    if (!context) return [];
+    if (!context) {
+      console.log(`[ContextManager] getMessagesForAI: No context found for "${contextId}"`);
+      return [];
+    }
 
     let messages = context.messages.filter(m => m.role !== 'system');
 
     if (maxMessages && messages.length > maxMessages) {
       messages = messages.slice(-maxMessages);
     }
+
+    console.log(`[ContextManager] getMessagesForAI("${contextId}"): returning ${messages.length} messages, total tokens: ${context.estimatedTokens}`);
 
     return messages.map(m => ({
       role: m.role,

@@ -87,6 +87,11 @@ export interface ModelOption {
   supportsStreaming?: boolean;
 }
 
+export interface ConversationMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
+
 export interface GenerationRequest {
   prompt: string;
   systemInstruction?: string;
@@ -100,6 +105,9 @@ export interface GenerationRequest {
   responseSchema?: Record<string, unknown>;
   // Debug category for logging (optional, defaults to 'generation')
   debugCategory?: 'generation' | 'accessibility' | 'quick-edit' | 'auto-fix' | 'other';
+  // Conversation history for multi-turn conversations
+  // Messages are sent before the current prompt
+  conversationHistory?: ConversationMessage[];
 }
 
 export interface GenerationResponse {
