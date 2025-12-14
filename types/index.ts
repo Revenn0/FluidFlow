@@ -313,15 +313,21 @@ export const DEFAULT_WEBCONTAINER_SETTINGS: WebContainerSettings = {
   enabled: false,
 };
 
-// Diff Mode Types (Beta) - Token-efficient updates
-export interface DiffFileChange {
-  diff: string;        // Unified diff format OR full content for new files
-  isNew?: boolean;     // true = new file (diff contains full content)
+// Search/Replace Mode Types (Beta) - Token-efficient updates
+export interface SearchReplaceOperation {
+  search: string;   // Exact text to find
+  replace: string;  // Text to replace with
+}
+
+export interface SearchReplaceFileChange {
+  replacements?: SearchReplaceOperation[];  // For existing files - list of search/replace pairs
+  isNew?: boolean;     // true = new file (use content field)
+  content?: string;    // Full content for new files only
   isDeleted?: boolean; // true = file should be deleted
 }
 
-export interface DiffModeResponse {
+export interface SearchReplaceModeResponse {
   explanation: string;
-  changes: Record<string, DiffFileChange>;
+  changes: Record<string, SearchReplaceFileChange>;
   deletedFiles?: string[];
 }

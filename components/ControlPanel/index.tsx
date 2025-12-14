@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useImperativeHandle, forwardRef, useRef, useEffect } from 'react';
 import { Layers, RotateCcw, AlertTriangle, X, MessageSquare, FileCode, History, Settings, ChevronDown, SlidersHorizontal, Upload } from 'lucide-react';
 import { FileSystem, ChatMessage, ChatAttachment, FileChange } from '../../types';
-import { cleanGeneratedCode, parseMultiFileResponse, GenerationMeta, stripPlanComment, safeParseAIResponse, parseDiffModeResponse, safeMergeDiffChanges } from '../../utils/cleanCode';
+import { cleanGeneratedCode, parseMultiFileResponse, GenerationMeta, stripPlanComment, safeParseAIResponse, parseSearchReplaceModeResponse, mergeSearchReplaceChanges } from '../../utils/cleanCode';
 import { extractFilesFromTruncatedResponse } from '../../utils/extractPartialFiles';
 
 // Helper function to extract file list from response
@@ -1490,40 +1490,43 @@ Write a clear markdown explanation including:
           promptParts.push(`${codeContext}\n\n### Current Files Summary\n\`\`\`json\n${JSON.stringify(fileSummaries, null, 2)}\n\`\`\``);
           promptParts.push(`USER REQUEST: ${prompt || 'Refine the app based on the attached images.'}`);
 
-          // DIFF MODE (BETA) - Token-efficient updates using unified diff format
+          // SEARCH/REPLACE MODE (BETA) - Token-efficient updates using search/replace pairs
           if (diffModeEnabled) {
-            systemInstruction += `\n\n**DIFF MODE ENABLED** - Return ONLY changed lines in unified diff format for maximum token efficiency.
+            systemInstruction += `\n\n**SEARCH/REPLACE MODE ENABLED** - Return ONLY changed lines using search/replace pairs for maximum token efficiency.
 
 **RESPONSE FORMAT**:
 {
   "explanation": "What changed and why",
   "changes": {
     "src/App.tsx": {
-      "diff": "--- src/App.tsx\\n+++ src/App.tsx\\n@@ -10,6 +10,7 @@\\n import { Header } from './components/Header';\\n+import { Sidebar } from './components/Sidebar';\\n \\n export default function App() {"
+      "replacements": [
+        {
+          "search": "import { Header } from './components/Header';",
+          "replace": "import { Header } from './components/Header';\\nimport { Sidebar } from './components/Sidebar';"
+        },
+        {
+          "search": "return <div>Hello</div>;",
+          "replace": "return <div className=\\"flex\\"><Sidebar /><main>Hello</main></div>;"
+        }
+      ]
     },
     "src/components/NewFile.tsx": {
       "isNew": true,
-      "diff": "// Full content for new files\\nimport React from 'react';\\n..."
+      "content": "// Full content for new files\\nimport React from 'react';\\n..."
     }
   },
   "deletedFiles": ["src/old/Unused.tsx"]
 }
 
-**DIFF RULES**:
-- For MODIFIED files: Return unified diff with 3 lines context (like git diff)
-- For NEW files: Set "isNew": true and put full content in "diff" field
+**SEARCH/REPLACE RULES**:
+- For MODIFIED files: Provide array of search/replace pairs. Use EXACT text that exists in the file.
+- Each "search" must match EXACTLY what's in the current file (including whitespace)
+- Each "replace" is the new text to put in place of the search text
+- For NEW files: Set "isNew": true and put full content in "content" field
 - For DELETED files: Add path to "deletedFiles" array
 - NEVER include unchanged files
-- Use \\n for line breaks in diff strings (JSON escaped)
-
-**UNIFIED DIFF FORMAT**:
---- filename
-+++ filename
-@@ -startLine,count +startLine,count @@
- context line (unchanged)
--removed line
-+added line
- context line (unchanged)`;
+- Use \\n for line breaks in strings (JSON escaped)
+- Include enough context in search strings to ensure unique matches`;
           } else {
             // Standard full-file mode
             systemInstruction += `\n\nYou are UPDATING an existing project. Use EFFICIENT file updates to save tokens:
@@ -1786,13 +1789,13 @@ Write a clear markdown explanation including:
           let generationMeta: GenerationMeta | undefined;
           let continuation: { prompt: string; remainingFiles: string[]; currentBatch: number; totalBatches: number; } | undefined;
 
-          // DIFF MODE (BETA) - Parse and merge diff-based response
+          // SEARCH/REPLACE MODE (BETA) - Parse and merge search/replace-based response
           if (diffModeEnabled && existingApp) {
-            console.log('[DiffMode] Parsing diff-based response...');
-            const diffResult = parseDiffModeResponse(fullText);
+            console.log('[SearchReplaceMode] Parsing search/replace response...');
+            const srResult = parseSearchReplaceModeResponse(fullText);
 
-            if (!diffResult) {
-              console.warn('[DiffMode] Failed to parse diff response, falling back to full mode');
+            if (!srResult) {
+              console.warn('[SearchReplaceMode] Failed to parse response, falling back to full mode');
               // Fallback to standard parsing
               const fallbackResult = parseMultiFileResponse(fullText);
               if (!fallbackResult) {
@@ -1806,21 +1809,20 @@ Write a clear markdown explanation including:
                 delete mergedFiles[deletedPath];
               }
             } else {
-              // Successfully parsed diff mode response
-              explanation = diffResult.explanation || 'Changes applied successfully.';
-              deletedFiles = diffResult.deletedFiles || [];
+              // Successfully parsed search/replace mode response
+              explanation = srResult.explanation || 'Changes applied successfully.';
+              deletedFiles = srResult.deletedFiles || [];
 
-              // Use safe merge with detailed error reporting
-              const mergeResult = safeMergeDiffChanges(files, diffResult);
+              // Use merge with detailed error reporting
+              const mergeResult = mergeSearchReplaceChanges(files, srResult);
 
               if (!mergeResult.success) {
-                console.warn('[DiffMode] Some diffs failed to apply:', mergeResult.errors);
-                setStreamingStatus(`⚠️ ${mergeResult.stats.failed} diff(s) failed to apply`);
+                console.warn('[SearchReplaceMode] Some replacements failed:', mergeResult.errors);
+                setStreamingStatus(`⚠️ ${mergeResult.stats.replacementsFailed} replacement(s) failed`);
               }
 
               mergedFiles = mergeResult.files;
 
-              // For diff mode, newFiles should contain the changed files for proper tracking
               // Calculate which files actually changed
               newFiles = {};
               for (const [path, content] of Object.entries(mergedFiles)) {
@@ -1828,11 +1830,10 @@ Write a clear markdown explanation including:
                   newFiles[path] = content;
                 }
               }
-              // Deleted files are tracked in deletedFiles array, not in newFiles
 
-              // Log diff mode efficiency
-              console.log(`🔥 [DiffMode] Efficient update: ${mergeResult.stats.created} created, ${mergeResult.stats.updated} updated, ${mergeResult.stats.deleted} deleted`);
-              console.log(`[DiffMode] Changed files: ${Object.keys(newFiles).join(', ')}`);
+              // Log search/replace mode efficiency
+              console.log(`🔥 [SearchReplaceMode] Efficient update: ${mergeResult.stats.created} created, ${mergeResult.stats.updated} updated, ${mergeResult.stats.deleted} deleted, ${mergeResult.stats.replacementsApplied} replacements applied`);
+              console.log(`[SearchReplaceMode] Changed files: ${Object.keys(newFiles).join(', ')}`);
 
               debugLog.response('generation', {
                 id: genRequestId,
@@ -1840,16 +1841,16 @@ Write a clear markdown explanation including:
                 duration: Date.now() - genStartTime,
                 response: JSON.stringify({
                   explanation,
-                  mode: 'diff',
+                  mode: 'search-replace',
                   stats: mergeResult.stats,
                   errors: mergeResult.errors
                 }),
                 metadata: {
-                  mode: 'diff-mode',
+                  mode: 'search-replace-mode',
                   totalChunks: chunkCount,
                   totalChars: fullText.length,
                   provider: providerName,
-                  diffStats: mergeResult.stats
+                  srStats: mergeResult.stats
                 }
               });
             }

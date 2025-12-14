@@ -1,5 +1,4 @@
-import { applyPatch } from 'diff';
-import type { DiffFileChange, DiffModeResponse, FileSystem } from '../types';
+import type { FileSystem, SearchReplaceFileChange, SearchReplaceModeResponse } from '../types';
 
 // Paths that should never be included in virtual file system
 const IGNORED_PATHS = ['.git', 'node_modules', '.next', '.nuxt', 'dist', 'build', '.cache', '.DS_Store', 'Thumbs.db'];
@@ -766,22 +765,26 @@ export function isValidCode(code: string): boolean {
 }
 
 // ============================================================================
-// DIFF MODE (BETA) - Token-efficient updates
+// SEARCH/REPLACE MODE (BETA) - Token-efficient updates
 // ============================================================================
 
 /**
- * Parses AI response in diff mode format.
+ * Parses AI response in search/replace mode format.
  * Expected format:
  * {
  *   "explanation": "What changed",
  *   "changes": {
- *     "src/App.tsx": { "diff": "--- src/App.tsx\n+++ src/App.tsx\n@@ -1,3..." },
- *     "src/New.tsx": { "isNew": true, "diff": "full content here" }
+ *     "src/App.tsx": {
+ *       "replacements": [
+ *         { "search": "old code", "replace": "new code" }
+ *       ]
+ *     },
+ *     "src/New.tsx": { "isNew": true, "content": "full content here" }
  *   },
  *   "deletedFiles": ["src/old.tsx"]
  * }
  */
-export function parseDiffModeResponse(response: string): DiffModeResponse | null {
+export function parseSearchReplaceModeResponse(response: string): SearchReplaceModeResponse | null {
   try {
     // Strip PLAN comment if present
     let cleaned = stripPlanComment(response);
@@ -795,7 +798,7 @@ export function parseDiffModeResponse(response: string): DiffModeResponse | null
     // Find JSON object
     const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.warn('[parseDiffModeResponse] No JSON found in response');
+      console.warn('[parseSearchReplaceModeResponse] No JSON found in response');
       return null;
     }
 
@@ -810,15 +813,15 @@ export function parseDiffModeResponse(response: string): DiffModeResponse | null
 
     // Validate structure
     if (!parsed || typeof parsed !== 'object') {
-      console.warn('[parseDiffModeResponse] Invalid response structure');
+      console.warn('[parseSearchReplaceModeResponse] Invalid response structure');
       return null;
     }
 
     // Extract changes - support both "changes" and "files" keys
     const changes = parsed.changes || parsed.files || {};
 
-    // Convert to DiffModeResponse format
-    const result: DiffModeResponse = {
+    // Convert to SearchReplaceModeResponse format
+    const result: SearchReplaceModeResponse = {
       explanation: parsed.explanation || '',
       changes: {},
       deletedFiles: parsed.deletedFiles || []
@@ -833,189 +836,109 @@ export function parseDiffModeResponse(response: string): DiffModeResponse | null
       if (typeof change === 'string') {
         // Simple string content - treat as full file (isNew)
         result.changes[filePath] = {
-          diff: change,
-          isNew: true
+          isNew: true,
+          content: change
         };
       } else if (typeof change === 'object' && change !== null) {
         const changeObj = change as Record<string, unknown>;
-        result.changes[filePath] = {
-          diff: (changeObj.diff as string) || (changeObj.content as string) || '',
-          isNew: Boolean(changeObj.isNew),
-          isDeleted: Boolean(changeObj.isDeleted)
-        };
+
+        const fileChange: SearchReplaceFileChange = {};
+
+        // Check if it's a new file
+        if (changeObj.isNew) {
+          fileChange.isNew = true;
+          fileChange.content = (changeObj.content as string) || (changeObj.diff as string) || '';
+        }
+
+        // Check if it's deleted
+        if (changeObj.isDeleted) {
+          fileChange.isDeleted = true;
+        }
+
+        // Check for replacements array
+        if (Array.isArray(changeObj.replacements)) {
+          fileChange.replacements = changeObj.replacements.map((r: unknown) => {
+            const rep = r as Record<string, string>;
+            return {
+              search: rep.search || '',
+              replace: rep.replace || ''
+            };
+          }).filter(r => r.search); // Filter out empty searches
+        }
+
+        result.changes[filePath] = fileChange;
       }
     }
 
-    console.log('[parseDiffModeResponse] Parsed diff mode response:', {
+    console.log('[parseSearchReplaceModeResponse] Parsed search/replace response:', {
       filesChanged: Object.keys(result.changes).length,
       deletedFiles: result.deletedFiles?.length || 0
     });
 
     return result;
   } catch (e) {
-    console.error('[parseDiffModeResponse] Parse error:', e);
+    console.error('[parseSearchReplaceModeResponse] Parse error:', e);
     return null;
   }
 }
 
 /**
- * Unescapes JSON-escaped newlines and other characters in diff content.
- * AI often returns diffs with \\n instead of actual newlines.
+ * Applies search/replace operations to file content.
+ * Returns the modified content.
  */
-function unescapeDiffContent(diff: string): string {
-  return diff
-    .replace(/\\n/g, '\n')
-    .replace(/\\t/g, '\t')
-    .replace(/\\r/g, '\r')
-    .replace(/\\\\/g, '\\');
-}
+export function applySearchReplace(
+  originalContent: string,
+  replacements: { search: string; replace: string }[]
+): { content: string; appliedCount: number; failedSearches: string[] } {
+  let content = originalContent;
+  let appliedCount = 0;
+  const failedSearches: string[] = [];
 
-/**
- * Checks if content looks like a unified diff format.
- */
-function isUnifiedDiffFormat(content: string): boolean {
-  // Must have @@ hunk markers
-  if (!content.includes('@@')) return false;
+  for (const { search, replace } of replacements) {
+    if (!search) continue;
 
-  // Should have --- and/or +++ file markers, or at least +/- lines
-  const hasFileMarkers = content.includes('---') || content.includes('+++');
-  const hasChangeLines = /^[+-][^+-]/m.test(content);
+    // Unescape JSON-escaped characters
+    const unescapedSearch = search
+      .replace(/\\n/g, '\n')
+      .replace(/\\t/g, '\t')
+      .replace(/\\r/g, '\r')
+      .replace(/\\\\/g, '\\');
 
-  return hasFileMarkers || hasChangeLines;
-}
+    const unescapedReplace = replace
+      .replace(/\\n/g, '\n')
+      .replace(/\\t/g, '\t')
+      .replace(/\\r/g, '\r')
+      .replace(/\\\\/g, '\\');
 
-/**
- * Applies a unified diff patch to the original content.
- * Returns the patched content or null if patch failed.
- */
-export function applyUnifiedDiff(originalContent: string, diffPatch: string): string | null {
-  try {
-    // Normalize line endings
-    const normalizedOriginal = originalContent.replace(/\r\n/g, '\n');
-
-    // Unescape JSON-escaped characters (AI often returns \\n instead of \n)
-    let normalizedPatch = unescapeDiffContent(diffPatch);
-    normalizedPatch = normalizedPatch.replace(/\r\n/g, '\n');
-
-    console.log('[applyUnifiedDiff] Checking diff format:', {
-      hasHunkMarkers: normalizedPatch.includes('@@'),
-      hasFileMarkers: normalizedPatch.includes('---') || normalizedPatch.includes('+++'),
-      firstLines: normalizedPatch.split('\n').slice(0, 5).join(' | ')
-    });
-
-    // Check if this looks like a unified diff
-    if (!isUnifiedDiffFormat(normalizedPatch)) {
-      console.log('[applyUnifiedDiff] Content is not unified diff format, returning as full content');
-      return normalizedPatch;
-    }
-
-    console.log('[applyUnifiedDiff] Applying unified diff patch...');
-
-    // Apply the patch using the diff library
-    const result = applyPatch(normalizedOriginal, normalizedPatch);
-
-    if (result === false) {
-      console.warn('[applyUnifiedDiff] Patch application failed - diff library returned false');
-      // Try with fuzzFactor for more lenient matching
-      const fuzzyResult = applyPatch(normalizedOriginal, normalizedPatch, { fuzzFactor: 3 });
-      if (fuzzyResult !== false) {
-        console.log('[applyUnifiedDiff] Patch applied with fuzz factor');
-        return fuzzyResult;
-      }
-      return null;
-    }
-
-    console.log('[applyUnifiedDiff] Patch applied successfully');
-    return result;
-  } catch (e) {
-    console.error('[applyUnifiedDiff] Error applying patch:', e);
-    return null;
-  }
-}
-
-/**
- * Merges diff changes with the current file system.
- * Returns the new file system or throws an error if merge fails.
- */
-export function mergeDiffChanges(
-  currentFiles: FileSystem,
-  changes: Record<string, DiffFileChange>,
-  deletedFiles: string[] = []
-): FileSystem {
-  const newFiles: FileSystem = { ...currentFiles };
-  const errors: string[] = [];
-
-  // Process deletions first
-  for (const filePath of deletedFiles) {
-    if (newFiles[filePath]) {
-      delete newFiles[filePath];
-      console.log(`[mergeDiffChanges] Deleted: ${filePath}`);
-    }
-  }
-
-  // Process changes
-  for (const [filePath, change] of Object.entries(changes)) {
-    // Skip ignored paths
-    if (isIgnoredFilePath(filePath)) {
-      console.log(`[mergeDiffChanges] Skipping ignored path: ${filePath}`);
-      continue;
-    }
-
-    // Handle deleted files
-    if (change.isDeleted) {
-      delete newFiles[filePath];
-      console.log(`[mergeDiffChanges] Deleted: ${filePath}`);
-      continue;
-    }
-
-    // Handle new files
-    if (change.isNew || !currentFiles[filePath]) {
-      // Clean the content
-      const cleanedContent = cleanGeneratedCode(change.diff);
-      if (cleanedContent && cleanedContent.length >= 10) {
-        newFiles[filePath] = cleanedContent;
-        console.log(`[mergeDiffChanges] Created new file: ${filePath} (${cleanedContent.length} chars)`);
-      } else {
-        errors.push(`New file ${filePath} has invalid content`);
-      }
-      continue;
-    }
-
-    // Handle modifications - apply diff
-    const originalContent = currentFiles[filePath];
-    const patchedContent = applyUnifiedDiff(originalContent, change.diff);
-
-    if (patchedContent === null) {
-      errors.push(`Failed to apply diff to ${filePath}`);
-      // Keep original content on failure
-      continue;
-    }
-
-    // Clean and validate the patched content
-    const cleanedPatched = cleanGeneratedCode(patchedContent);
-    if (cleanedPatched && cleanedPatched.length >= 10) {
-      newFiles[filePath] = cleanedPatched;
-      console.log(`[mergeDiffChanges] Updated: ${filePath} (${cleanedPatched.length} chars)`);
+    // Check if the search string exists in content
+    if (content.includes(unescapedSearch)) {
+      // Replace first occurrence only (to allow multiple targeted replacements)
+      content = content.replace(unescapedSearch, unescapedReplace);
+      appliedCount++;
+      console.log(`[applySearchReplace] Applied replacement: "${unescapedSearch.substring(0, 50)}..." -> "${unescapedReplace.substring(0, 50)}..."`);
     } else {
-      errors.push(`Patched content for ${filePath} is invalid`);
+      // Try with normalized whitespace
+      const normalizedContent = content.replace(/\r\n/g, '\n');
+      const normalizedSearch = unescapedSearch.replace(/\r\n/g, '\n');
+
+      if (normalizedContent.includes(normalizedSearch)) {
+        content = normalizedContent.replace(normalizedSearch, unescapedReplace);
+        appliedCount++;
+        console.log(`[applySearchReplace] Applied replacement (normalized): "${normalizedSearch.substring(0, 50)}..."`);
+      } else {
+        failedSearches.push(unescapedSearch.substring(0, 100));
+        console.warn(`[applySearchReplace] Search string not found: "${unescapedSearch.substring(0, 100)}..."`);
+      }
     }
   }
 
-  // Log summary
-  console.log(`[mergeDiffChanges] Summary: ${Object.keys(changes).length} changes, ${deletedFiles.length} deletions`);
-
-  if (errors.length > 0) {
-    console.warn('[mergeDiffChanges] Errors encountered:', errors);
-    // Don't throw - return partial results and let the UI handle it
-  }
-
-  return newFiles;
+  return { content, appliedCount, failedSearches };
 }
 
 /**
- * Result type for diff mode merge operation
+ * Result type for search/replace mode merge operation
  */
-export interface DiffMergeResult {
+export interface SearchReplaceMergeResult {
   success: boolean;
   files: FileSystem;
   errors: string[];
@@ -1024,112 +947,112 @@ export interface DiffMergeResult {
     updated: number;
     deleted: number;
     failed: number;
+    replacementsApplied: number;
+    replacementsFailed: number;
   };
 }
 
 /**
- * Safely merges diff changes with detailed result reporting.
- * Use this for better error handling and user feedback.
+ * Merges search/replace changes with the current file system.
+ * Returns detailed result with stats and errors.
  */
-export function safeMergeDiffChanges(
+export function mergeSearchReplaceChanges(
   currentFiles: FileSystem,
-  diffResponse: DiffModeResponse
-): DiffMergeResult {
-  const result: DiffMergeResult = {
+  response: SearchReplaceModeResponse
+): SearchReplaceMergeResult {
+  const result: SearchReplaceMergeResult = {
     success: true,
     files: { ...currentFiles },
     errors: [],
-    stats: { created: 0, updated: 0, deleted: 0, failed: 0 }
+    stats: {
+      created: 0,
+      updated: 0,
+      deleted: 0,
+      failed: 0,
+      replacementsApplied: 0,
+      replacementsFailed: 0
+    }
   };
 
-  // Process deletions
-  for (const filePath of diffResponse.deletedFiles || []) {
+  // Process deletions first
+  for (const filePath of response.deletedFiles || []) {
     if (result.files[filePath]) {
       delete result.files[filePath];
       result.stats.deleted++;
+      console.log(`[mergeSearchReplaceChanges] Deleted: ${filePath}`);
     }
   }
 
   // Process changes
-  for (const [filePath, change] of Object.entries(diffResponse.changes)) {
-    if (isIgnoredFilePath(filePath)) continue;
-
-    if (change.isDeleted) {
-      delete result.files[filePath];
-      result.stats.deleted++;
+  for (const [filePath, change] of Object.entries(response.changes)) {
+    // Skip ignored paths
+    if (isIgnoredFilePath(filePath)) {
+      console.log(`[mergeSearchReplaceChanges] Skipping ignored path: ${filePath}`);
       continue;
     }
 
-    // Unescape the diff content first (AI often returns \\n instead of \n)
-    const unescapedDiff = change.diff
-      .replace(/\\n/g, '\n')
-      .replace(/\\t/g, '\t')
-      .replace(/\\r/g, '\r')
-      .replace(/\\\\/g, '\\');
+    // Handle deleted files
+    if (change.isDeleted) {
+      delete result.files[filePath];
+      result.stats.deleted++;
+      console.log(`[mergeSearchReplaceChanges] Deleted: ${filePath}`);
+      continue;
+    }
 
-    // Check if content is actually a unified diff format
-    const looksLikeDiff = isUnifiedDiffFormat(unescapedDiff);
-    const fileExists = !!currentFiles[filePath];
+    // Handle new files
+    if (change.isNew || !currentFiles[filePath]) {
+      const content = change.content || '';
+      // Unescape content
+      const unescapedContent = content
+        .replace(/\\n/g, '\n')
+        .replace(/\\t/g, '\t')
+        .replace(/\\r/g, '\r')
+        .replace(/\\\\/g, '\\');
 
-    console.log(`[safeMergeDiffChanges] Processing ${filePath}:`, {
-      isNew: change.isNew,
-      fileExists,
-      looksLikeDiff,
-      diffPreview: unescapedDiff.substring(0, 100)
-    });
-
-    // Decision logic:
-    // 1. If file doesn't exist -> create new file (use content as-is)
-    // 2. If file exists AND content is diff format -> apply diff
-    // 3. If file exists AND content is NOT diff format AND isNew -> replace file
-    // 4. If file exists AND content is NOT diff format AND NOT isNew -> treat as full replacement
-
-    if (!fileExists) {
-      // New file - use content directly
-      const cleanedContent = cleanGeneratedCode(unescapedDiff);
+      const cleanedContent = cleanGeneratedCode(unescapedContent);
       if (cleanedContent && cleanedContent.length >= 10) {
         result.files[filePath] = cleanedContent;
         result.stats.created++;
-        console.log(`[safeMergeDiffChanges] Created new file: ${filePath}`);
+        console.log(`[mergeSearchReplaceChanges] Created new file: ${filePath} (${cleanedContent.length} chars)`);
       } else {
-        result.errors.push(`Invalid content for new file: ${filePath}`);
+        result.errors.push(`New file ${filePath} has invalid content`);
         result.stats.failed++;
       }
-    } else if (looksLikeDiff) {
-      // Existing file with diff content - apply the diff
-      console.log(`[safeMergeDiffChanges] Applying diff to existing file: ${filePath}`);
-      const patched = applyUnifiedDiff(currentFiles[filePath], unescapedDiff);
-      if (patched !== null) {
-        const cleanedPatched = cleanGeneratedCode(patched);
-        if (cleanedPatched && cleanedPatched.length >= 10) {
-          result.files[filePath] = cleanedPatched;
+      continue;
+    }
+
+    // Handle modifications with search/replace
+    if (change.replacements && change.replacements.length > 0) {
+      const originalContent = currentFiles[filePath];
+      const { content: modifiedContent, appliedCount, failedSearches } = applySearchReplace(
+        originalContent,
+        change.replacements
+      );
+
+      result.stats.replacementsApplied += appliedCount;
+      result.stats.replacementsFailed += failedSearches.length;
+
+      if (appliedCount > 0) {
+        const cleanedContent = cleanGeneratedCode(modifiedContent);
+        if (cleanedContent && cleanedContent.length >= 10) {
+          result.files[filePath] = cleanedContent;
           result.stats.updated++;
-          console.log(`[safeMergeDiffChanges] Successfully patched: ${filePath}`);
+          console.log(`[mergeSearchReplaceChanges] Updated: ${filePath} (${appliedCount} replacements applied)`);
         } else {
-          result.errors.push(`Invalid patched content for: ${filePath}`);
+          result.errors.push(`Modified content for ${filePath} is invalid`);
           result.stats.failed++;
         }
-      } else {
-        result.errors.push(`Diff apply failed for: ${filePath}`);
-        result.stats.failed++;
       }
-    } else {
-      // Existing file with full content (not diff) - replace the file
-      console.log(`[safeMergeDiffChanges] Replacing file with full content: ${filePath}`);
-      const cleanedContent = cleanGeneratedCode(unescapedDiff);
-      if (cleanedContent && cleanedContent.length >= 10) {
-        result.files[filePath] = cleanedContent;
-        result.stats.updated++;
-      } else {
-        result.errors.push(`Invalid replacement content for: ${filePath}`);
-        result.stats.failed++;
+
+      if (failedSearches.length > 0) {
+        result.errors.push(`${filePath}: ${failedSearches.length} search(es) not found`);
       }
     }
   }
 
-  result.success = result.stats.failed === 0;
+  result.success = result.stats.failed === 0 && result.stats.replacementsFailed === 0;
 
-  console.log('[safeMergeDiffChanges] Result:', {
+  console.log('[mergeSearchReplaceChanges] Result:', {
     success: result.success,
     stats: result.stats,
     errors: result.errors

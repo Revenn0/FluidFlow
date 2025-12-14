@@ -185,7 +185,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   </div>
                 )}
 
-                {/* Diff Mode (Beta) - Token-efficient updates */}
+                {/* Search/Replace Mode (Beta) - Token-efficient updates */}
                 {onDiffModeChange && (
                   <div className="flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors">
                     <div className="flex items-center gap-2.5">
@@ -194,7 +194,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       </div>
                       <div>
                         <span className="text-sm text-slate-200 font-medium block">
-                          Diff Mode
+                          Search/Replace
                           <span className="ml-1.5 text-[9px] px-1 py-0.5 bg-orange-500/20 text-orange-400 rounded font-medium">BETA</span>
                         </span>
                         <span className="text-[10px] text-slate-500">Token-efficient updates</span>
