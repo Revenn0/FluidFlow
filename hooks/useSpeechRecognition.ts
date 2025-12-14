@@ -126,16 +126,22 @@ export function useSpeechRecognition(
     }
   }, [isListening, startListening, stopListening]);
 
-  // BUG-002 fix: Cleanup effect to stop speech recognition when component unmounts
+  // BUG-002/BUG-017 fix: Cleanup effect to stop speech recognition when component unmounts
   // This prevents memory leaks and ensures microphone is released
   useEffect(() => {
     return () => {
       if (recognitionRef.current) {
         try {
+          // BUG-017 FIX: Clear event handlers before stopping to prevent callbacks during cleanup
+          recognitionRef.current.onstart = null;
+          recognitionRef.current.onresult = null;
+          recognitionRef.current.onerror = null;
+          recognitionRef.current.onend = null;
           recognitionRef.current.stop();
-          recognitionRef.current = null;
         } catch {
           // Ignore errors during cleanup (recognition may already be stopped)
+        } finally {
+          recognitionRef.current = null;
         }
       }
     };

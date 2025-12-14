@@ -15,9 +15,42 @@ interface State {
 
 export class ErrorBoundary extends React.Component<Props, State> {
   state: State = { hasError: false };
+  private unhandledRejectionHandler: ((event: PromiseRejectionEvent) => void) | null = null;
 
   constructor(props: Props) {
     super(props);
+  }
+
+  // BUG-018 FIX: Handle unhandled promise rejections
+  componentDidMount() {
+    this.unhandledRejectionHandler = (event: PromiseRejectionEvent) => {
+      const error = event.reason instanceof Error
+        ? event.reason
+        : new Error(String(event.reason || 'Unhandled promise rejection'));
+
+      log.error('Unhandled promise rejection', {
+        error: error.message,
+        stack: error.stack,
+        reason: String(event.reason),
+      });
+
+      // Call custom error handler if provided
+      if (this.props.onError) {
+        this.props.onError(error, { componentStack: 'Promise rejection (async error)' } as ErrorInfo);
+      }
+
+      // Optionally show error UI for critical rejections
+      // Only set hasError if we want to show the error boundary UI
+      // For most async errors, logging is sufficient
+    };
+
+    window.addEventListener('unhandledrejection', this.unhandledRejectionHandler);
+  }
+
+  componentWillUnmount() {
+    if (this.unhandledRejectionHandler) {
+      window.removeEventListener('unhandledrejection', this.unhandledRejectionHandler);
+    }
   }
 
   static getDerivedStateFromError(error: Error): State {

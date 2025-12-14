@@ -299,5 +299,23 @@ export class APICache {
 // Global cache instance
 export const apiCache = new APICache();
 
-// Clean up cache periodically
-setInterval(() => apiCache.cleanup(), 60 * 1000);
+// BUG-020 FIX: Store interval ID for cleanup
+let cacheCleanupInterval: ReturnType<typeof setInterval> | null = null;
+
+// Start periodic cache cleanup
+function startCacheCleanup() {
+  if (cacheCleanupInterval === null) {
+    cacheCleanupInterval = setInterval(() => apiCache.cleanup(), 60 * 1000);
+  }
+}
+
+// BUG-020 FIX: Export cleanup function to stop the interval
+export function stopCacheCleanup() {
+  if (cacheCleanupInterval !== null) {
+    clearInterval(cacheCleanupInterval);
+    cacheCleanupInterval = null;
+  }
+}
+
+// Start cleanup on module load
+startCacheCleanup();

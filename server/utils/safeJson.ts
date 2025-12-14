@@ -1,5 +1,8 @@
 import fs from 'fs/promises';
 
+// BUG-016 FIX: Maximum file size for JSON files (10MB)
+const MAX_JSON_FILE_SIZE = 10 * 1024 * 1024;
+
 /**
  * Safe JSON parsing helper to prevent crashes on corrupted/malformed JSON
  * @param jsonString - The JSON string to parse
@@ -18,12 +21,25 @@ export function safeJsonParse<T>(jsonString: string, fallback: T): T {
 /**
  * Safe file read + JSON parse helper
  * Reads a file and parses its JSON content, returning fallback on any error
+ * BUG-016 FIX: Now includes file size check to prevent DoS via large files
  * @param filePath - Path to the JSON file
  * @param fallback - Value to return if read or parse fails
+ * @param maxSize - Maximum file size in bytes (default 10MB)
  * @returns Parsed JSON content or fallback
  */
-export async function safeReadJson<T>(filePath: string, fallback: T): Promise<T> {
+export async function safeReadJson<T>(
+  filePath: string,
+  fallback: T,
+  maxSize: number = MAX_JSON_FILE_SIZE
+): Promise<T> {
   try {
+    // BUG-016 FIX: Check file size before reading to prevent memory exhaustion
+    const stats = await fs.stat(filePath);
+    if (stats.size > maxSize) {
+      console.error(`[SafeJson] File too large: ${filePath} (${stats.size} bytes, max ${maxSize})`);
+      return fallback;
+    }
+
     const content = await fs.readFile(filePath, 'utf-8');
     return safeJsonParse(content, fallback);
   } catch (error) {

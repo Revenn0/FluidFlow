@@ -18,6 +18,9 @@ interface ExtractionResult {
   summary: string;
 }
 
+// BUG-022 FIX: Maximum input length to prevent ReDoS attacks
+const MAX_RESPONSE_LENGTH = 5 * 1024 * 1024; // 5MB max
+
 export function extractFilesFromTruncatedResponse(
   response: string,
   _existingFiles: FileSystem = {}
@@ -28,10 +31,15 @@ export function extractFilesFromTruncatedResponse(
     summary: ''
   };
 
+  // BUG-022 FIX: Truncate overly long inputs to prevent ReDoS
+  const safeResponse = response.length > MAX_RESPONSE_LENGTH
+    ? response.slice(0, MAX_RESPONSE_LENGTH)
+    : response;
+
   // 1. Try to parse as JSON first
   try {
     // Remove PLAN comment if present (it has its own JSON that confuses parsing)
-    let cleanResponse = response.trimStart();
+    let cleanResponse = safeResponse.trimStart();
     // Strip BOM and other invisible characters
     cleanResponse = cleanResponse.replace(/^[\uFEFF\u200B-\u200D\u00A0]+/, '');
 
@@ -83,21 +91,22 @@ export function extractFilesFromTruncatedResponse(
   }
 
   // 2. Extract files using regex patterns
+  // BUG-022 FIX: Simplified patterns to avoid ReDoS (no nested quantifiers)
   // NOTE: Using non-capturing groups (?:...) for extensions to avoid offset issues
   const filePatterns = [
-    // Pattern for files in backticks - content is in group 2
-    /"([^"]+\.(?:tsx?|jsx?|css|json|md|sql|ts|js))":\s*`([^`]*(?:`(?!`)[^`]*)*)`/gs,
-    // Pattern for files in quotes - content is in group 2
-    /"([^"]+\.(?:tsx?|jsx?|css|json|md|sql|ts|js))":\s*"((?:[^"\\]|\\.)*)"/gs,
-    // Pattern for files without explicit key (last resort) - content is in group 2
-    /(?:^|\n)(src\/[^:\n]+\.(?:tsx?|jsx?|css|json|md|sql|ts|js)):\s*`([^`]*(?:`(?!`)[^`]*)*)`/gm,
-    // NEW: More aggressive pattern for truncated JSON with incomplete strings
-    /"([^"]+\.(?:tsx?|jsx?|css|json|md|sql|ts|js))":\s*"(.*)$/gm,
-    // NEW: Pattern for JSON that ends mid-value
+    // Pattern for files in backticks - simplified to avoid nested quantifiers
+    /"([^"]+\.(?:tsx?|jsx?|css|json|md|sql|ts|js))":\s*`([^`]*)`/gs,
+    // Pattern for files in quotes - simplified version
+    /"([^"]+\.(?:tsx?|jsx?|css|json|md|sql|ts|js))":\s*"([^"\\]*(?:\\.[^"\\]*)*)"/gs,
+    // Pattern for files without explicit key (last resort) - simplified
+    /(?:^|\n)(src\/[^:\n]+\.(?:tsx?|jsx?|css|json|md|sql|ts|js)):\s*`([^`]*)`/gm,
+    // Pattern for truncated JSON with incomplete strings (simplified)
+    /"([^"]+\.(?:tsx?|jsx?|css|json|md|sql|ts|js))":\s*"([^"]{0,100000})$/gm,
+    // Pattern for JSON that ends mid-value
     /"([^"]+\.(?:tsx?|jsx?|css|json|md|sql|ts|js))":\s*"([^"]*)$/gm
   ];
 
-  const explanationMatch = response.match(/"explanation":\s*"([^"]+)"/);
+  const explanationMatch = safeResponse.match(/"explanation":\s*"([^"]+)"/);
   if (explanationMatch) {
     result.summary = explanationMatch[1];
   }
@@ -105,7 +114,7 @@ export function extractFilesFromTruncatedResponse(
   // Try each pattern
   for (const pattern of filePatterns) {
     let match;
-    while ((match = pattern.exec(response)) !== null) {
+    while ((match = pattern.exec(safeResponse)) !== null) {
       const filePath = match[1];
       let content = match[2]; // Now correctly gets content, not extension
 

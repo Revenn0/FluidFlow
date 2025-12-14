@@ -321,6 +321,7 @@ export function useProject(onFilesChange?: (files: FileSystem) => void): UseProj
       isInitializedRef.current = true;
 
       // Refresh git status async - single source of truth
+      // BUG-032 FIX: Add error logging instead of silently swallowing errors
       gitApi.status(id).then(gitStatus => {
         // Only update if this project is still the current one
         if (openProjectIdRef.current === id) {
@@ -329,8 +330,12 @@ export function useProject(onFilesChange?: (files: FileSystem) => void): UseProj
             gitStatus,
           }));
         }
-      }).catch(() => {
+      }).catch((error) => {
         // Git might not be initialized - gitStatus stays null
+        // BUG-032 FIX: Log error for debugging instead of silently ignoring
+        if (openProjectIdRef.current === id) {
+          console.debug('[Project] Git status refresh skipped (not initialized or error):', error?.message || error);
+        }
       });
 
       console.log('[Project] Opened project:', project.name, 'with', Object.keys(projectFiles).length, 'files');

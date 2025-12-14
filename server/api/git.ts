@@ -39,9 +39,31 @@ const isValidCommitHash = (hash: string): boolean => {
   return /^[a-fA-F0-9]{7,40}$/.test(hash);
 };
 
-// Validate git branch name (no shell metacharacters, follows git naming rules)
+// BUG-012 FIX: Validate git branch name with comprehensive checks
 const isValidBranchName = (name: string): boolean => {
   if (!name || typeof name !== 'string') return false;
+
+  // Block git-internal ref names that could cause issues
+  const reservedRefs = [
+    'HEAD', 'FETCH_HEAD', 'ORIG_HEAD', 'MERGE_HEAD', 'CHERRY_PICK_HEAD',
+    'REVERT_HEAD', 'BISECT_HEAD', 'AUTO_MERGE', 'NOTES_MERGE_PARTIAL',
+    'NOTES_MERGE_REF', 'NOTES_MERGE_WORKTREE'
+  ];
+  const upperName = name.toUpperCase();
+  if (reservedRefs.includes(upperName) || reservedRefs.some(ref => upperName.startsWith(ref + '/'))) {
+    return false;
+  }
+
+  // Block names starting with dash (could be interpreted as git options)
+  if (name.startsWith('-')) {
+    return false;
+  }
+
+  // Block @{ which is used for reflog syntax
+  if (name.includes('@{')) {
+    return false;
+  }
+
   // Git branch naming rules: no spaces, no .., no special chars except -/_
   // Must not start with -, not end with .lock
   return /^[a-zA-Z0-9][a-zA-Z0-9/_-]*[a-zA-Z0-9]$|^[a-zA-Z0-9]$/.test(name) &&
