@@ -583,7 +583,7 @@ export function parseMultiFileResponse(response: string, noThrow: boolean = fals
       const explanation = parsed.explanation || parsed.description;
 
       // Get the files - could be in "files", "Changes", "fileChanges" key or at root level
-      let filesObj = parsed.files || parsed.fileChanges || parsed.Changes || parsed;
+      let filesObj = parsed.files || parsed.fileChanges || parsed.Changes || parsed.changes || parsed;
       if (filesObj.explanation) delete filesObj.explanation;
       if (filesObj.description) delete filesObj.description;
 
@@ -639,7 +639,7 @@ export function parseMultiFileResponse(response: string, noThrow: boolean = fals
         if (typeof content === 'string') {
           contentStr = content;
         } else if (typeof content === 'object' && content !== null) {
-          // AI might return { content: "...", type: "tsx" } format
+          // AI might return { content: "...", type: "tsx" } or { diff: "...", isNew: true } format
           const contentObj = content as Record<string, unknown>;
           if ('content' in contentObj && typeof contentObj.content === 'string') {
             contentStr = contentObj.content;
@@ -647,6 +647,10 @@ export function parseMultiFileResponse(response: string, noThrow: boolean = fals
           } else if ('code' in contentObj && typeof contentObj.code === 'string') {
             contentStr = contentObj.code;
             console.log('[parseMultiFileResponse] Extracted code from object for:', path);
+          } else if ('diff' in contentObj && typeof contentObj.diff === 'string') {
+            // Support diff mode format as fallback (for when isNew: true means full content)
+            contentStr = contentObj.diff;
+            console.log('[parseMultiFileResponse] Extracted diff from object for:', path);
           } else {
             console.warn('[parseMultiFileResponse] Object content without string content for:', path, '- keys:', Object.keys(content));
             skippedFiles.push({ path, reason: `object without content (keys: ${Object.keys(content).join(', ')})` });

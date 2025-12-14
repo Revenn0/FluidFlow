@@ -1819,10 +1819,20 @@ Write a clear markdown explanation including:
               }
 
               mergedFiles = mergeResult.files;
-              newFiles = {}; // For diff mode, changes are in mergedFiles
+
+              // For diff mode, newFiles should contain the changed files for proper tracking
+              // Calculate which files actually changed
+              newFiles = {};
+              for (const [path, content] of Object.entries(mergedFiles)) {
+                if (files[path] !== content) {
+                  newFiles[path] = content;
+                }
+              }
+              // Deleted files are tracked in deletedFiles array, not in newFiles
 
               // Log diff mode efficiency
               console.log(`🔥 [DiffMode] Efficient update: ${mergeResult.stats.created} created, ${mergeResult.stats.updated} updated, ${mergeResult.stats.deleted} deleted`);
+              console.log(`[DiffMode] Changed files: ${Object.keys(newFiles).join(', ')}`);
 
               debugLog.response('generation', {
                 id: genRequestId,
