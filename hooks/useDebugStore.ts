@@ -4,6 +4,19 @@ import type { DebugLogEntry, DebugState } from '@/types';
 const MAX_LOGS = 500;
 const DEBUG_ENABLED_KEY = 'fluidflow_debug_enabled';
 
+// BUG-034 FIX: Define valid categories as a const array for validation
+const VALID_CATEGORIES = ['generation', 'accessibility', 'quick-edit', 'auto-fix', 'other'] as const;
+type ValidCategory = typeof VALID_CATEGORIES[number];
+
+// BUG-034 FIX: Validate category and fallback to 'other' if invalid
+function validateCategory(category: DebugLogEntry['category']): ValidCategory {
+  if (VALID_CATEGORIES.includes(category as ValidCategory)) {
+    return category as ValidCategory;
+  }
+  console.warn(`[DebugStore] Invalid category "${category}", falling back to "other"`);
+  return 'other';
+}
+
 // Load initial enabled state from localStorage
 function getInitialEnabled(): boolean {
   if (typeof window === 'undefined') return false;
@@ -56,7 +69,7 @@ export const debugLog = {
       id,
       timestamp: Date.now(),
       type: 'request',
-      category,
+      category: validateCategory(category), // BUG-034 FIX
       ...data,
     });
     return id;
@@ -68,7 +81,7 @@ export const debugLog = {
       id: data.id || crypto.randomUUID(),
       timestamp: Date.now(),
       type: 'response',
-      category,
+      category: validateCategory(category), // BUG-034 FIX
       ...data,
     });
   },
@@ -79,7 +92,7 @@ export const debugLog = {
       id: data.id || crypto.randomUUID(),
       timestamp: Date.now(),
       type: 'stream',
-      category,
+      category: validateCategory(category), // BUG-034 FIX
       ...data,
     });
   },
@@ -100,7 +113,7 @@ export const debugLog = {
       id: data?.id || crypto.randomUUID(),
       timestamp: Date.now(),
       type: 'error',
-      category,
+      category: validateCategory(category), // BUG-034 FIX
       error,
       ...data,
     });
@@ -112,7 +125,7 @@ export const debugLog = {
       id: data?.id || crypto.randomUUID(),
       timestamp: Date.now(),
       type: 'info',
-      category,
+      category: validateCategory(category), // BUG-034 FIX
       response: message,
       ...data,
     });

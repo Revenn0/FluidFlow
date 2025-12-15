@@ -23,6 +23,8 @@ class Logger {
   private logLevel: LogLevel;
   private logBuffer: LogEntry[] = [];
   private maxBufferSize: number = 1000;
+  // BUG-043 FIX: Pre-compute lowercase sensitive keys for efficient matching
+  private readonly sensitiveKeys = ['apikey', 'password', 'token', 'secret', 'key', 'auth', 'bearer', 'credential'];
 
   constructor() {
     this.isProduction = process.env.NODE_ENV === 'production';
@@ -54,13 +56,14 @@ class Logger {
     }
 
     // Remove sensitive fields
-    const sensitiveKeys = ['apiKey', 'password', 'token', 'secret', 'key', 'auth', 'bearer', 'credential'];
     const sanitized: Record<string, unknown> = Array.isArray(data)
       ? [...data] as unknown as Record<string, unknown>
       : { ...(data as Record<string, unknown>) };
 
     for (const key in sanitized) {
-      if (sensitiveKeys.some(sk => key.toLowerCase().includes(sk.toLowerCase()))) {
+      // BUG-043 FIX: Use pre-computed lowercase keys, only lowercase the key once
+      const lowerKey = key.toLowerCase();
+      if (this.sensitiveKeys.some(sk => lowerKey.includes(sk))) {
         sanitized[key] = '[REDACTED]';
       } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
         sanitized[key] = this.sanitizeData(sanitized[key], depth + 1, maxDepth);

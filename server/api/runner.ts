@@ -323,6 +323,8 @@ router.post('/:id/start', async (req, res) => {
       runningProject.status = 'error';
       pushLog(runningProject.errorLogs,`Install error: ${err.message}`);
       console.error(`[Runner] Project ${id} install error:`, err);
+      // BUG-019 FIX: Clean up process reference on error
+      runningProject.process = null;
     });
 
     installProcess.on('exit', (code) => {
@@ -333,6 +335,8 @@ router.post('/:id/start', async (req, res) => {
         runningProject.status = 'error';
         pushLog(runningProject.errorLogs,`npm install failed with code ${code}`);
         console.error(`[Runner] Project ${id} npm install failed with code ${code}`);
+        // BUG-019 FIX: Clean up process reference on failed install
+        runningProject.process = null;
       }
     });
   } else {
