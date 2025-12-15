@@ -167,13 +167,44 @@ export class ProviderManager {
       if (providers && providers.length > 0) {
         // Build new providers map without clearing existing first
         const newProviders = new Map<string, ProviderConfig>();
-        (providers as unknown as ProviderConfig[]).forEach((c) => newProviders.set(c.id, c));
 
-        // Only clear instances for providers whose config changed
+        // BUG FIX: Backend returns masked API keys (e.g., "AIza****B848") for security.
+        // We need to preserve the real keys from localStorage/memory when backend sends masked ones.
+        (providers as unknown as ProviderConfig[]).forEach((backendConfig) => {
+          const existingConfig = this.providers.get(backendConfig.id);
+
+          // Check if backend key is masked (contains ****)
+          const isMaskedKey = backendConfig.apiKey && backendConfig.apiKey.includes('****');
+
+          // If key is masked and we have an existing real key, preserve it
+          if (isMaskedKey && existingConfig?.apiKey && !existingConfig.apiKey.includes('****')) {
+            newProviders.set(backendConfig.id, {
+              ...backendConfig,
+              apiKey: existingConfig.apiKey // Preserve real key from memory/localStorage
+            });
+          } else {
+            newProviders.set(backendConfig.id, backendConfig);
+          }
+        });
+
+        // Only clear instances for providers whose config changed (excluding masked key differences)
         for (const [id, oldConfig] of this.providers) {
           const newConfig = newProviders.get(id);
-          if (!newConfig || JSON.stringify(oldConfig) !== JSON.stringify(newConfig)) {
+          if (!newConfig) {
             this.instances.delete(id);
+          } else {
+            // Compare configs without apiKey to avoid clearing on masked key differences
+            const oldCompare = { ...oldConfig, apiKey: undefined };
+            const newCompare = { ...newConfig, apiKey: undefined };
+            if (JSON.stringify(oldCompare) !== JSON.stringify(newCompare)) {
+              this.instances.delete(id);
+            }
+            // Also clear if apiKey actually changed (not just masking)
+            if (oldConfig.apiKey !== newConfig.apiKey &&
+                !oldConfig.apiKey?.includes('****') &&
+                !newConfig.apiKey?.includes('****')) {
+              this.instances.delete(id);
+            }
           }
         }
 
@@ -188,8 +219,8 @@ export class ProviderManager {
         this.providers = newProviders;
         this.activeProviderId = activeId || this.activeProviderId;
 
-        // Sync to localStorage (also needs cast)
-        saveProvidersToLocalStorage(providers as unknown as ProviderConfig[]);
+        // Sync to localStorage with real keys preserved (also needs cast)
+        saveProvidersToLocalStorage(Array.from(newProviders.values()));
         setActiveProviderIdInLocalStorage(this.activeProviderId);
 
         console.log('[AI] Loaded providers from backend:', providers.length);
