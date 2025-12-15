@@ -698,8 +698,13 @@ router.put('/:id/context', async (req, res) => {
       const snapshots = limitedHistory.filter((h: HistoryEntry) => h.type === 'snapshot');
       const nonSnapshots = limitedHistory.filter((h: HistoryEntry) => h.type !== 'snapshot');
 
-      // Keep all snapshots + most recent non-snapshots
-      const keepNonSnapshots = nonSnapshots.slice(-Math.max(0, MAX_HISTORY - snapshots.length));
+      // BUG-046 FIX: Handle edge case where slice(-0) returns entire array
+      // Calculate how many non-snapshots we can keep
+      const nonSnapshotsToKeep = Math.max(0, MAX_HISTORY - snapshots.length);
+      // Only slice if we need to keep some non-snapshots (avoids slice(-0) bug)
+      const keepNonSnapshots = nonSnapshotsToKeep > 0
+        ? nonSnapshots.slice(-nonSnapshotsToKeep)
+        : [];
       limitedHistory = [...snapshots, ...keepNonSnapshots]
         .sort((a: HistoryEntry, b: HistoryEntry) => a.timestamp - b.timestamp);
     }
@@ -771,8 +776,13 @@ router.post('/:id/context', async (req, res) => {
       const snapshots = limitedHistory.filter((h: HistoryEntry) => h.type === 'snapshot');
       const nonSnapshots = limitedHistory.filter((h: HistoryEntry) => h.type !== 'snapshot');
 
-      // Keep all snapshots + most recent non-snapshots
-      const keepNonSnapshots = nonSnapshots.slice(-Math.max(0, MAX_HISTORY - snapshots.length));
+      // BUG-046 FIX: Handle edge case where slice(-0) returns entire array
+      // Calculate how many non-snapshots we can keep
+      const nonSnapshotsToKeep = Math.max(0, MAX_HISTORY - snapshots.length);
+      // Only slice if we need to keep some non-snapshots (avoids slice(-0) bug)
+      const keepNonSnapshots = nonSnapshotsToKeep > 0
+        ? nonSnapshots.slice(-nonSnapshotsToKeep)
+        : [];
       limitedHistory = [...snapshots, ...keepNonSnapshots]
         .sort((a: HistoryEntry, b: HistoryEntry) => a.timestamp - b.timestamp);
     }

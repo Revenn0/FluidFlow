@@ -43,6 +43,24 @@ export function isValidFilePath(filePath: unknown): boolean {
   // eslint-disable-next-line no-control-regex
   if (/[\x00-\x1f\x7f]/.test(normalized)) return false;
 
+  // BUG-013 FIX: Block dangerous file/folder prefixes that could affect git or system
+  // This catches .git, .git-test, .gitconfig at any path depth
+  const dangerousPrefixes = ['.git', '.svn', '.hg', '.env', '__pycache__'];
+  const pathParts = normalized.split('/');
+  for (const part of pathParts) {
+    const lowerPart = part.toLowerCase();
+    for (const prefix of dangerousPrefixes) {
+      // Block exact matches and prefix matches (e.g., .git, .git-test, .gitconfig)
+      if (lowerPart === prefix || lowerPart.startsWith(prefix + '-') || lowerPart.startsWith(prefix + '/')) {
+        return false;
+      }
+    }
+    // Also block node_modules to prevent dependency confusion attacks
+    if (lowerPart === 'node_modules') {
+      return false;
+    }
+  }
+
   return true;
 }
 

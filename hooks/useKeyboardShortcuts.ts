@@ -11,6 +11,18 @@ export interface KeyboardShortcut {
   category?: string;
 }
 
+// BUG-031 FIX: Check if element or any ancestor is contentEditable
+function isInContentEditable(element: HTMLElement | null): boolean {
+  let current: HTMLElement | null = element;
+  while (current) {
+    if (current.isContentEditable) {
+      return true;
+    }
+    current = current.parentElement;
+  }
+  return false;
+}
+
 // Default shortcuts configuration
 export const DEFAULT_SHORTCUTS: Omit<KeyboardShortcut, 'action'>[] = [
   { key: 'p', ctrl: true, description: 'Open Command Palette', category: 'General' },
@@ -33,7 +45,8 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     // Skip if user is typing in an input/textarea (unless it's a global shortcut)
     const target = event.target as HTMLElement;
-    const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+    // BUG-031 FIX: Check ancestors for contentEditable, not just the target
+    const isInput = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || isInContentEditable(target);
 
     // Platform detection for cross-platform shortcuts
     const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);

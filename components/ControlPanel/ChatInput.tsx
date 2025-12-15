@@ -74,12 +74,17 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const [showImproverModal, setShowImproverModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // BUG-028 FIX: Track last applied external prompt to avoid dependency loop
+  const lastExternalPromptRef = useRef<string | undefined>(undefined);
+
   // Handle external prompt from continuation
+  // BUG-028 FIX: Only depend on externalPrompt, use ref to avoid circular dependency
   useEffect(() => {
-    if (externalPrompt && externalPrompt !== prompt) {
+    if (externalPrompt && externalPrompt !== lastExternalPromptRef.current) {
+      lastExternalPromptRef.current = externalPrompt;
       setPrompt(externalPrompt);
     }
-  }, [externalPrompt, prompt]);
+  }, [externalPrompt]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);

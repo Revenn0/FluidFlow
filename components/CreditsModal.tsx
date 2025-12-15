@@ -18,6 +18,16 @@ interface CreditsModalProps {
   showOnFirstLaunch?: boolean;
 }
 
+// BUG-033 FIX: Proper Fisher-Yates shuffle for unbiased randomization
+function shuffleArray<T>(array: T[]): T[] {
+  const result = [...array];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 export const CreditsModal: React.FC<CreditsModalProps> = ({ isOpen, onClose, showOnFirstLaunch = false }) => {
   const [hasSeenCredits, setHasSeenCredits] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -36,10 +46,10 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ isOpen, onClose, sho
           'https://raw.githubusercontent.com/ersinkoc/ersinkoc/refs/heads/main/ads.json',
           { signal: abortController.signal }
         );
-        const data = await githubResponse.json();
+        const data: Project[] = await githubResponse.json();
         if (isMounted) {
-          // Randomly select 3 projects from the list
-          const shuffled = [...data].sort(() => 0.5 - Math.random());
+          // BUG-033 FIX: Use Fisher-Yates shuffle for unbiased selection
+          const shuffled = shuffleArray(data);
           const selectedProjects = shuffled.slice(0, 3);
           setProjects(selectedProjects);
         }
@@ -50,10 +60,10 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ isOpen, onClose, sho
         try {
           // Fallback to local ads.json
           const localResponse = await fetch('/ads.json', { signal: abortController.signal });
-          const data = await localResponse.json();
+          const data: Project[] = await localResponse.json();
           if (isMounted) {
-            // Randomly select 3 projects from local list
-            const shuffled = [...data].sort(() => 0.5 - Math.random());
+            // BUG-033 FIX: Use Fisher-Yates shuffle for unbiased selection
+            const shuffled = shuffleArray(data);
             const selectedProjects = shuffled.slice(0, 3);
             setProjects(selectedProjects);
           }
