@@ -30,3 +30,6 @@ BUG_*.*
 bug_*.*
 .enc
 .encryption_key
+
+# Test coverage
+coverage/

@@ -335,7 +335,7 @@ router.get('/:id/diff', async (req, res) => {
 router.post('/:id/checkout', async (req, res) => {
   try {
     const { id } = req.params;
-    const { commit } = req.body;
+    const { commit, force } = req.body;
 
     // Validate project ID to prevent path traversal
     if (!isValidProjectId(id)) {
@@ -359,13 +359,58 @@ router.post('/:id/checkout', async (req, res) => {
 
     const git: SimpleGit = simpleGit(filesDir);
 
-    // Checkout to specific commit
-    await git.checkout(commit);
+    // BUG-049 FIX: Check for uncommitted changes before checkout
+    const status = await git.status();
+    if (!status.isClean() && !force) {
+      const modifiedFiles = [...status.modified, ...status.not_added, ...status.deleted];
+      return res.status(409).json({
+        error: 'Uncommitted changes would be overwritten',
+        code: 'UNCOMMITTED_CHANGES',
+        modifiedFiles: modifiedFiles.slice(0, 10), // Limit to first 10 files
+        totalModified: modifiedFiles.length,
+        message: 'Please commit or discard your changes before switching versions.',
+        hint: 'Use force: true to discard local changes and checkout anyway.'
+      });
+    }
+
+    // Checkout to specific commit (force discards local changes)
+    if (force) {
+      await git.checkout([commit, '--force']);
+    } else {
+      await git.checkout(commit);
+    }
 
     res.json({ message: `Checked out to ${commit}` });
   } catch (error) {
     console.error('Git checkout error:', error);
-    res.status(500).json({ error: 'Failed to checkout' });
+
+    // BUG-049 FIX: Parse specific git errors for better user feedback
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (errorMessage.includes('would be overwritten')) {
+      // Extract file names from error message
+      const fileMatch = errorMessage.match(/overwritten by checkout:\s*([\s\S]*?)(?:Please|Aborting)/);
+      const files = fileMatch ? fileMatch[1].trim().split('\n').map(f => f.trim()).filter(Boolean) : [];
+
+      return res.status(409).json({
+        error: 'Uncommitted changes would be overwritten',
+        code: 'UNCOMMITTED_CHANGES',
+        modifiedFiles: files.slice(0, 10),
+        totalModified: files.length,
+        message: 'Please commit or discard your changes before switching versions.',
+        hint: 'Use force: true to discard local changes and checkout anyway.'
+      });
+    }
+
+    if (errorMessage.includes('did not match any')) {
+      return res.status(404).json({
+        error: 'Commit not found',
+        code: 'COMMIT_NOT_FOUND',
+        message: 'The specified commit was not found in the repository.'
+      });
+    }
+
+    res.status(500).json({ error: 'Failed to checkout', message: errorMessage });
   }
 });
 
