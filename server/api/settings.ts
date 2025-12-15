@@ -42,6 +42,13 @@ function maskProviderConfig(provider: ProviderConfig): ProviderConfig {
   };
 }
 
+// BUG-004 FIX: Detect if an API key is masked (contains ****)
+// This prevents saving masked values as actual keys
+function isMaskedApiKey(key: string | undefined): boolean {
+  if (!key) return false;
+  return key.includes('****');
+}
+
 // BUG-011 FIX: Validate baseUrl to prevent SSRF attacks
 function isValidBaseUrl(url: string | undefined): boolean {
   if (!url) return true; // baseUrl is optional
@@ -367,7 +374,20 @@ router.put('/', async (req, res) => {
     const updatedAt = await withSettingsLock(async () => {
       const settings = await loadSettings();
 
-      if (aiProviders !== undefined) settings.aiProviders = aiProviders;
+      // BUG-004 FIX: Preserve original API keys when masked values are submitted
+      if (aiProviders !== undefined) {
+        settings.aiProviders = aiProviders.map((newProvider: ProviderConfig) => {
+          // If the API key is masked, find the original key from existing settings
+          if (isMaskedApiKey(newProvider.apiKey)) {
+            const existingProvider = settings.aiProviders.find(p => p.id === newProvider.id);
+            if (existingProvider && existingProvider.apiKey) {
+              // Preserve the original (decrypted) API key
+              return { ...newProvider, apiKey: existingProvider.apiKey };
+            }
+          }
+          return newProvider;
+        });
+      }
       if (activeProviderId !== undefined) settings.activeProviderId = activeProviderId;
       if (customSnippets !== undefined) settings.customSnippets = customSnippets;
 
@@ -429,7 +449,20 @@ router.put('/ai-providers', async (req, res) => {
     const updatedAt = await withSettingsLock(async () => {
       const settings = await loadSettings();
 
-      if (providers !== undefined) settings.aiProviders = providers;
+      // BUG-004 FIX: Preserve original API keys when masked values are submitted
+      if (providers !== undefined) {
+        settings.aiProviders = providers.map((newProvider: ProviderConfig) => {
+          // If the API key is masked, find the original key from existing settings
+          if (isMaskedApiKey(newProvider.apiKey)) {
+            const existingProvider = settings.aiProviders.find(p => p.id === newProvider.id);
+            if (existingProvider && existingProvider.apiKey) {
+              // Preserve the original (decrypted) API key
+              return { ...newProvider, apiKey: existingProvider.apiKey };
+            }
+          }
+          return newProvider;
+        });
+      }
       if (activeId !== undefined) settings.activeProviderId = activeId;
 
       await saveSettings(settings);
