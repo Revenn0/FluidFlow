@@ -132,8 +132,8 @@ const renderMarkdown = (text: string): React.ReactNode => {
   return <div className="space-y-0.5">{elements}</div>;
 };
 
-// File changes summary component
-const FileChangesSummary: React.FC<{ changes: FileChange[] }> = ({ changes }) => {
+// File changes summary component - memoized to prevent re-renders during streaming
+const FileChangesSummary = memo(function FileChangesSummary({ changes }: { changes: FileChange[] }) {
   if (!changes || changes.length === 0) return null;
 
   const totalAdditions = changes.reduce((sum, c) => sum + c.additions, 0);
@@ -176,7 +176,249 @@ const FileChangesSummary: React.FC<{ changes: FileChange[] }> = ({ changes }) =>
       </div>
     </div>
   );
-};
+});
+
+// Props for individual message item
+interface MessageItemProps {
+  message: ChatMessage;
+  index: number;
+  totalMessages: number;
+  isGenerating: boolean;
+  autoContinueCountdown: number;
+  onRevert: (messageId: string) => void;
+  onRetry: (messageId: string) => void;
+  onSetExternalPrompt?: (prompt: string) => void;
+}
+
+// Custom equality function for MessageItem memo
+function messageItemAreEqual(prev: MessageItemProps, next: MessageItemProps): boolean {
+  // Always re-render if message object changed
+  if (prev.message !== next.message) return false;
+
+  // Always re-render if this is the last message and generating state changed
+  const wasLastMessage = prev.index === prev.totalMessages - 1;
+  const isLastMessage = next.index === next.totalMessages - 1;
+  if (wasLastMessage !== isLastMessage) return false;
+  if (isLastMessage && prev.isGenerating !== next.isGenerating) return false;
+
+  // Re-render if countdown changed (only affects last message with continuation)
+  if (isLastMessage && prev.message.continuation && prev.autoContinueCountdown !== next.autoContinueCountdown) {
+    return false;
+  }
+
+  // Check if position relative to last message changed (affects revert button visibility)
+  if ((prev.index < prev.totalMessages - 1) !== (next.index < next.totalMessages - 1)) return false;
+
+  return true;
+}
+
+// Memoized individual message component - prevents re-renders during streaming
+const MessageItem = memo(function MessageItem({
+  message,
+  index,
+  totalMessages,
+  isGenerating,
+  autoContinueCountdown,
+  onRevert,
+  onRetry,
+  onSetExternalPrompt,
+}: MessageItemProps) {
+  return (
+    <div className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
+      {/* Avatar */}
+      <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
+        message.role === 'user'
+          ? 'bg-blue-600/20 text-blue-400'
+          : 'bg-purple-600/20 text-purple-400'
+      }`}>
+        {message.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+      </div>
+
+      {/* Message Content */}
+      <div className={`flex-1 min-w-0 ${message.role === 'user' ? 'text-right' : ''}`}>
+        {/* User Message */}
+        {message.role === 'user' && (
+          <div className="inline-block max-w-full text-left">
+            {/* Attachments */}
+            {message.attachments && message.attachments.length > 0 && (
+              <div className="flex gap-2 mb-2 justify-end">
+                {message.attachments.map((att, idx) => (
+                  <div key={idx} className="relative group">
+                    {att.preview && att.preview.trim() ? (
+                      <img
+                        src={att.preview}
+                        alt={att.type}
+                        className="w-16 h-16 object-cover rounded-lg border border-white/10"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-slate-800 rounded-lg border border-white/10 flex items-center justify-center">
+                        {att.type === 'sketch' ? <Image className="w-6 h-6 text-blue-400" /> : <Palette className="w-6 h-6 text-purple-400" />}
+                      </div>
+                    )}
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[9px] text-center py-0.5 rounded-b-lg flex items-center justify-center gap-1">
+                      {att.type === 'sketch' ? <Image className="w-2.5 h-2.5" /> : <Palette className="w-2.5 h-2.5" />}
+                      {att.type}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {/* Prompt */}
+            {message.prompt && (
+              <div className="bg-blue-600/20 border border-blue-500/20 rounded-xl rounded-tr-sm px-3 py-2 inline-block">
+                <p className="text-sm text-slate-200">{message.prompt}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Assistant Message */}
+        {message.role === 'assistant' && (
+          <div className="bg-slate-800/50 border border-white/5 rounded-xl rounded-tl-sm p-3">
+            {/* Loading State */}
+            {message.isGenerating && (
+              <div className="flex items-center gap-2 text-blue-400">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span className="text-sm">Generating...</span>
+              </div>
+            )}
+
+            {/* Error State */}
+            {message.error && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-red-400">
+                  <AlertCircle className="w-4 h-4" />
+                  <span className="text-sm">{message.error}</span>
+                </div>
+                {!isGenerating && (
+                  <button
+                    onClick={() => onRetry(message.id)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Retry
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Explanation */}
+            {message.explanation && (
+              <div className="prose prose-invert prose-sm max-w-none">
+                {renderMarkdown(message.explanation)}
+              </div>
+            )}
+
+            {/* Token Usage */}
+            {message.tokenUsage && (
+              <div className="mt-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-yellow-400" />
+                    Token Usage
+                  </h4>
+                  {message.generationTime && (
+                    <div className="flex items-center gap-1 text-xs text-slate-400">
+                      <Clock className="w-3 h-3" />
+                      {(message.generationTime / 1000).toFixed(1)}s
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div className="flex flex-col">
+                    <span className="text-slate-500">Input</span>
+                    <span className="text-blue-400 font-medium">{message.tokenUsage.inputTokens.toLocaleString()}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-slate-500">Output</span>
+                    <span className="text-green-400 font-medium">{message.tokenUsage.outputTokens.toLocaleString()}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-slate-500">Total</span>
+                    <span className="text-purple-400 font-medium">{message.tokenUsage.totalTokens.toLocaleString()}</span>
+                  </div>
+                </div>
+                {message.model && message.provider && (
+                  <div className="mt-2 pt-2 border-t border-slate-700 flex items-center justify-between">
+                    <span className="text-xs text-slate-500">Model</span>
+                    <span className="text-xs text-slate-400">{message.provider} • {message.model}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* File Changes */}
+            {message.fileChanges && <FileChangesSummary changes={message.fileChanges} />}
+
+            {/* Continuation Prompt */}
+            {message.continuation && !message.isGenerating && (
+              <div className="mt-3 pt-3 border-t border-white/5">
+                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+                  <div className="flex items-start gap-2">
+                    <div className="p-1.5 bg-green-500/20 rounded-lg flex-shrink-0">
+                      <svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-green-300 mb-2">
+                        Batch {message.continuation.currentBatch} of {message.continuation.totalBatches} complete.
+                        {message.continuation.remainingFiles.length} files remaining.
+                      </p>
+                      <button
+                        onClick={() => {
+                          if (onSetExternalPrompt && message.continuation) {
+                            onSetExternalPrompt(message.continuation.prompt);
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs rounded-md transition-colors w-full justify-center"
+                      >
+                        <Clock className="w-3 h-3" />
+                        {autoContinueCountdown > 0 && index === totalMessages - 1 ? (
+                          `Auto-continue in ${autoContinueCountdown}s`
+                        ) : (
+                          'Continue to Next Batch'
+                        )}
+                      </button>
+                      <details className="mt-2">
+                        <summary className="text-xs text-slate-400 cursor-pointer hover:text-slate-300">
+                          View remaining files
+                        </summary>
+                        <div className="mt-1 space-y-1">
+                          {message.continuation.remainingFiles.map((file) => (
+                            <div key={`remaining-${file}`} className="text-xs font-mono text-slate-500 pl-2">
+                              {file}
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Revert Button */}
+            {message.snapshotFiles && !message.isGenerating && index < totalMessages - 1 && (
+              <button
+                onClick={() => onRevert(message.id)}
+                className="mt-3 flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+              >
+                <RotateCcw className="w-3 h-3" />
+                Revert to this state
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Timestamp */}
+        <div className={`text-[10px] text-slate-600 mt-1 ${message.role === 'user' ? 'text-right' : ''}`}>
+          {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+        </div>
+      </div>
+    </div>
+  );
+}, messageItemAreEqual);
 
 export const ChatPanel = memo(function ChatPanel({
   messages,
@@ -299,200 +541,17 @@ export const ChatPanel = memo(function ChatPanel({
       </div>
       <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-4">
       {messages.map((message, index) => (
-        <div key={message.id} className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : ''}`}>
-          {/* Avatar */}
-          <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
-            message.role === 'user'
-              ? 'bg-blue-600/20 text-blue-400'
-              : 'bg-purple-600/20 text-purple-400'
-          }`}>
-            {message.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-          </div>
-
-          {/* Message Content */}
-          <div className={`flex-1 min-w-0 ${message.role === 'user' ? 'text-right' : ''}`}>
-            {/* User Message */}
-            {message.role === 'user' && (
-              <div className="inline-block max-w-full text-left">
-                {/* Attachments */}
-                {message.attachments && message.attachments.length > 0 && (
-                  <div className="flex gap-2 mb-2 justify-end">
-                    {message.attachments.map((att, idx) => (
-                      <div key={idx} className="relative group">
-                        {att.preview && att.preview.trim() ? (
-                          <img
-                            src={att.preview}
-                            alt={att.type}
-                            className="w-16 h-16 object-cover rounded-lg border border-white/10"
-                          />
-                        ) : (
-                          <div className="w-16 h-16 bg-slate-800 rounded-lg border border-white/10 flex items-center justify-center">
-                            {att.type === 'sketch' ? <Image className="w-6 h-6 text-blue-400" /> : <Palette className="w-6 h-6 text-purple-400" />}
-                          </div>
-                        )}
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[9px] text-center py-0.5 rounded-b-lg flex items-center justify-center gap-1">
-                          {att.type === 'sketch' ? <Image className="w-2.5 h-2.5" /> : <Palette className="w-2.5 h-2.5" />}
-                          {att.type}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {/* Prompt */}
-                {message.prompt && (
-                  <div className="bg-blue-600/20 border border-blue-500/20 rounded-xl rounded-tr-sm px-3 py-2 inline-block">
-                    <p className="text-sm text-slate-200">{message.prompt}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Assistant Message */}
-            {message.role === 'assistant' && (
-              <div className="bg-slate-800/50 border border-white/5 rounded-xl rounded-tl-sm p-3">
-                {/* Loading State */}
-                {message.isGenerating && (
-                  <div className="flex items-center gap-2 text-blue-400">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm">Generating...</span>
-                  </div>
-                )}
-
-                {/* Error State */}
-                {message.error && (
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2 text-red-400">
-                      <AlertCircle className="w-4 h-4" />
-                      <span className="text-sm">{message.error}</span>
-                    </div>
-                    {!isGenerating && (
-                      <button
-                        onClick={() => onRetry(message.id)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors"
-                      >
-                        <RefreshCw className="w-3 h-3" />
-                        Retry
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Explanation */}
-                {message.explanation && (
-                  <div className="prose prose-invert prose-sm max-w-none">
-                    {renderMarkdown(message.explanation)}
-                  </div>
-                )}
-
-                {/* Token Usage */}
-                {message.tokenUsage && (
-                  <div className="mt-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-yellow-400" />
-                        Token Usage
-                      </h4>
-                      {message.generationTime && (
-                        <div className="flex items-center gap-1 text-xs text-slate-400">
-                          <Clock className="w-3 h-3" />
-                          {(message.generationTime / 1000).toFixed(1)}s
-                        </div>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="flex flex-col">
-                        <span className="text-slate-500">Input</span>
-                        <span className="text-blue-400 font-medium">{message.tokenUsage.inputTokens.toLocaleString()}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-slate-500">Output</span>
-                        <span className="text-green-400 font-medium">{message.tokenUsage.outputTokens.toLocaleString()}</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-slate-500">Total</span>
-                        <span className="text-purple-400 font-medium">{message.tokenUsage.totalTokens.toLocaleString()}</span>
-                      </div>
-                    </div>
-                    {message.model && message.provider && (
-                      <div className="mt-2 pt-2 border-t border-slate-700 flex items-center justify-between">
-                        <span className="text-xs text-slate-500">Model</span>
-                        <span className="text-xs text-slate-400">{message.provider} • {message.model}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* File Changes */}
-                {message.fileChanges && <FileChangesSummary changes={message.fileChanges} />}
-
-                {/* Continuation Prompt */}
-                {message.continuation && !message.isGenerating && (
-                  <div className="mt-3 pt-3 border-t border-white/5">
-                    <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
-                      <div className="flex items-start gap-2">
-                        <div className="p-1.5 bg-green-500/20 rounded-lg flex-shrink-0">
-                          <svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs text-green-300 mb-2">
-                            Batch {message.continuation.currentBatch} of {message.continuation.totalBatches} complete.
-                            {message.continuation.remainingFiles.length} files remaining.
-                          </p>
-                          <button
-                            onClick={() => {
-                              // Auto-fill the chat input with the continuation prompt
-                              if (onSetExternalPrompt) {
-                                onSetExternalPrompt(message.continuation.prompt);
-                              }
-                            }}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs rounded-md transition-colors w-full justify-center"
-                          >
-                            <Clock className="w-3 h-3" />
-                            {autoContinueCountdown > 0 && index === messages.length - 1 ? (
-                              `Auto-continue in ${autoContinueCountdown}s`
-                            ) : (
-                              'Continue to Next Batch'
-                            )}
-                          </button>
-                          <details className="mt-2">
-                            <summary className="text-xs text-slate-400 cursor-pointer hover:text-slate-300">
-                              View remaining files
-                            </summary>
-                            <div className="mt-1 space-y-1">
-                              {message.continuation.remainingFiles.map((file) => (
-                                <div key={`remaining-${file}`} className="text-xs font-mono text-slate-500 pl-2">
-                                  {file}
-                                </div>
-                              ))}
-                            </div>
-                          </details>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Revert Button */}
-                {message.snapshotFiles && !message.isGenerating && index < messages.length - 1 && (
-                  <button
-                    onClick={() => onRevert(message.id)}
-                    className="mt-3 flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    Revert to this state
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Timestamp */}
-            <div className={`text-[10px] text-slate-600 mt-1 ${message.role === 'user' ? 'text-right' : ''}`}>
-              {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </div>
-          </div>
-        </div>
+        <MessageItem
+          key={message.id}
+          message={message}
+          index={index}
+          totalMessages={messages.length}
+          isGenerating={isGenerating}
+          autoContinueCountdown={autoContinueCountdown}
+          onRevert={onRevert}
+          onRetry={onRetry}
+          onSetExternalPrompt={onSetExternalPrompt}
+        />
       ))}
 
       {/* Generating indicator at bottom with streaming status */}

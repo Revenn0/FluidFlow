@@ -148,8 +148,8 @@ function buildTree(files: FileSystem): TreeNode[] {
   return sortNodes(root);
 }
 
-// Tree Node Component
-const TreeNodeComponent: React.FC<{
+// Tree Node Component Props
+interface TreeNodeProps {
   node: TreeNode;
   depth: number;
   activeFile: string;
@@ -159,7 +159,45 @@ const TreeNodeComponent: React.FC<{
   onDelete?: (path: string) => void;
   onRename?: (oldPath: string, newPath: string) => void;
   onCreateInFolder?: (folderPath: string) => void;
-}> = ({ node, depth, activeFile, onFileSelect, expandedFolders, toggleFolder, onDelete, onRename, onCreateInFolder }) => {
+}
+
+// Custom equality function for TreeNode memo
+function treeNodeAreEqual(prev: TreeNodeProps, next: TreeNodeProps): boolean {
+  // Re-render if node changed
+  if (prev.node !== next.node) return false;
+
+  // Re-render if depth changed (shouldn't happen, but safety)
+  if (prev.depth !== next.depth) return false;
+
+  // For files: only re-render if this file's active state changed
+  if (prev.node.type === 'file') {
+    const wasActive = prev.activeFile === prev.node.path;
+    const isActive = next.activeFile === next.node.path;
+    if (wasActive !== isActive) return false;
+  }
+
+  // For folders: re-render if expansion state changed
+  if (prev.node.type === 'folder') {
+    const wasExpanded = prev.expandedFolders.has(prev.node.path);
+    const isExpanded = next.expandedFolders.has(next.node.path);
+    if (wasExpanded !== isExpanded) return false;
+
+    // Also check if any descendant's active state changed (for children re-render)
+    if (isExpanded && prev.activeFile !== next.activeFile) {
+      // Only re-render if the active file is within this folder
+      const isDescendant = next.activeFile.startsWith(next.node.path + '/') ||
+                          prev.activeFile.startsWith(prev.node.path + '/');
+      if (isDescendant) return false;
+    }
+  }
+
+  return true;
+}
+
+// Memoized Tree Node Component - prevents re-renders during navigation
+const TreeNodeComponent = memo(function TreeNodeComponent({
+  node, depth, activeFile, onFileSelect, expandedFolders, toggleFolder, onDelete, onRename, onCreateInFolder
+}: TreeNodeProps) {
   const isExpanded = expandedFolders.has(node.path);
   const isActive = activeFile === node.path;
   const paddingLeft = 8 + depth * 12;
@@ -323,7 +361,7 @@ const TreeNodeComponent: React.FC<{
       </div>
     </div>
   );
-};
+}, treeNodeAreEqual);
 
 export const FileExplorer = memo(function FileExplorer({
   files,

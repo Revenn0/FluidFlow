@@ -141,9 +141,28 @@ This document outlines a comprehensive analysis of the FluidFlow codebase, ident
 - Legacy exports (`TIMEOUT_GENERATE`, etc.) preserved for backwards compatibility
 - Single source of truth: `constants/timing.ts`
 
-### 8.9. Remaining Items
+### 8.9. ChatMessage Memoization (Performance)
+- **Extracted `MessageItem`** as memoized component with custom equality function
+- **Memoized `FileChangesSummary`** to prevent re-renders during streaming
+- **Custom `messageItemAreEqual` function** optimizes re-render decisions:
+  - Only re-renders when message object changes
+  - Only re-renders last message when generating state changes
+  - Only re-renders when countdown changes (for auto-continue)
+  - Only re-renders when position relative to last message changes
+- **Impact**: Prevents N-1 message re-renders during streaming (N = total messages)
+
+### 8.10. FileExplorer TreeNode Memoization (Performance)
+- **Memoized `TreeNodeComponent`** with custom equality function `treeNodeAreEqual`
+- **Smart re-render logic**:
+  - Files only re-render when their active state changes
+  - Folders only re-render when expansion state changes
+  - Folders re-render when descendant becomes active (for children update)
+- **Impact**: File navigation now only re-renders 2 nodes (old active + new active) instead of all nodes
+
+### 8.11. Remaining Items
 | Item | Status | Notes |
 |------|--------|-------|
 | AppContext Splitting (Phase 2) | Optional | Further split into GitContext, ProjectContext if needed |
+| FileExplorer virtualization | Deferred | Memoization approach preferred, virtualization only if needed for 200+ files |
 | Zod Validation | Deferred | Existing manual validation is comprehensive |
 | Playwright E2E | Not Started | New infrastructure needed |
