@@ -3,10 +3,16 @@
  * BUG-010 fix: Prevents indefinite hanging on unresponsive API endpoints.
  */
 
-// Default timeouts in milliseconds
-export const TIMEOUT_TEST_CONNECTION = 30_000;  // 30 seconds for connection tests
-export const TIMEOUT_GENERATE = 300_000;         // 5 minutes for generation (can be long)
-export const TIMEOUT_LIST_MODELS = 30_000;       // 30 seconds for listing models
+import {
+  GENERATION_TIMEOUT_MS,
+  TEST_CONNECTION_TIMEOUT_MS,
+  LIST_MODELS_TIMEOUT_MS,
+} from '@/constants/timing';
+
+// Re-export with legacy names for backwards compatibility
+export const TIMEOUT_TEST_CONNECTION = TEST_CONNECTION_TIMEOUT_MS;
+export const TIMEOUT_GENERATE = GENERATION_TIMEOUT_MS;
+export const TIMEOUT_LIST_MODELS = LIST_MODELS_TIMEOUT_MS;
 
 export interface FetchWithTimeoutOptions extends RequestInit {
   timeout?: number;

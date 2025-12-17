@@ -1,18 +1,9 @@
-// Paths that should never be included in virtual file system
-const IGNORED_PATHS = ['.git', 'node_modules', '.next', '.nuxt', 'dist', 'build', '.cache', '.DS_Store', 'Thumbs.db'];
+// Import and re-export isIgnoredPath as isIgnoredFilePath for backwards compatibility
+import { isIgnoredPath } from './filePathUtils';
+export { isIgnoredPath as isIgnoredFilePath };
 
-/**
- * Checks if a file path should be ignored (e.g., .git, node_modules)
- */
-export function isIgnoredFilePath(filePath: string): boolean {
-  const normalizedPath = filePath.replace(/\\/g, '/');
-  // BUG-040 FIX: Removed redundant check - includes('/' + ignored) already covers includes('/' + ignored + '/')
-  return IGNORED_PATHS.some(ignored =>
-    normalizedPath === ignored ||
-    normalizedPath.startsWith(ignored + '/') ||
-    normalizedPath.includes('/' + ignored)
-  );
-}
+// Local alias for internal use
+const isIgnoredFilePath = isIgnoredPath;
 
 /**
  * Cleans AI-generated code by removing markdown artifacts and code block markers

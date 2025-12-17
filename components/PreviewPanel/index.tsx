@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, memo } from 'react';
 import {
   Monitor, Smartphone, Tablet, RefreshCw, Eye, Code2, Copy, Check, Download, Database,
   ShieldCheck, FileText, Wrench, Package, Loader2,
@@ -65,12 +65,12 @@ interface PreviewPanelProps {
   onRevertToCommit?: (commitHash: string) => Promise<boolean>;
 }
 
-export const PreviewPanel: React.FC<PreviewPanelProps> = ({
+export const PreviewPanel = memo(function PreviewPanel({
   files, setFiles, activeFile, setActiveFile, suggestions, setSuggestions, isGenerating, reviewChange, selectedModel,
   activeTab: externalActiveTab, setActiveTab: externalSetActiveTab, onInspectEdit, onSendErrorToChat,
   projectId, gitStatus, onInitGit, onCommit, onRefreshGitStatus,
   hasUncommittedChanges, localChanges, onDiscardChanges, onRevertToCommit
-}) => {
+}: PreviewPanelProps) {
   // State
   const [iframeSrc, setIframeSrc] = useState<string>('');
   const [key, setKey] = useState(0);
@@ -738,4 +738,4 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
       </div>
     </section>
   );
-};
+});

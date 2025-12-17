@@ -47,11 +47,6 @@ export default defineConfig(({ mode }) => {
     },
     optimizeDeps: {
       exclude: [
-        '@typescript-eslint/typescript-estree',
-        '@typescript-eslint/parser',
-        'acorn',
-        'acorn-walk',
-        'glob',
         'fs',
         'path',
         'os'
@@ -60,15 +55,20 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         external: [
-          '@typescript-eslint/typescript-estree',
-          '@typescript-eslint/parser',
-          'acorn',
-          'acorn-walk',
-          'glob',
           'fs',
           'path',
           'os'
-        ]
+        ],
+        output: {
+          manualChunks: {
+            // Split vendor chunks for better caching
+            'vendor-react': ['react', 'react-dom'],
+            'vendor-monaco': ['@monaco-editor/react'],
+            'vendor-icons': ['lucide-react'],
+            'vendor-ai': ['@google/genai'],
+            'vendor-flow': ['@xyflow/react'],
+          }
+        }
       }
     }
   };

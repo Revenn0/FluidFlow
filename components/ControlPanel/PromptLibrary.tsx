@@ -4,7 +4,8 @@ import {
   FileText, Wrench, ChevronRight, Search, BookOpen
 } from 'lucide-react';
 import { promptLibrary, quickPrompts, PromptItem, PromptLevel } from '../../data/promptLibrary';
-import { PromptLevelModal, QuickLevelToggle, usePromptLevel } from './PromptLevelModal';
+import { PromptLevelModal, QuickLevelToggle } from './PromptLevelModal';
+import { usePromptLevel } from './hooks';
 
 interface PromptLibraryProps {
   isOpen: boolean;

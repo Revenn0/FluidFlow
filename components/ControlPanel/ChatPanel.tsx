@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
 import { User, Bot, Image, Palette, RotateCcw, FileCode, Plus, Minus, Loader2, AlertCircle, RefreshCw, Zap, Clock, Layers, Bookmark } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { ChatMessage, FileChange } from '../../types';
@@ -178,7 +178,7 @@ const FileChangesSummary: React.FC<{ changes: FileChange[] }> = ({ changes }) =>
   );
 };
 
-export const ChatPanel: React.FC<ChatPanelProps> = ({
+export const ChatPanel = memo(function ChatPanel({
   messages,
   onRevert,
   onRetry,
@@ -196,7 +196,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   onContinueGeneration,
   filePlan,
   onSaveCheckpoint
-}) => {
+}: ChatPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [autoContinueCountdown, setAutoContinueCountdown] = useState<number>(0);
   const wasAtBottomRef = useRef(true);
@@ -711,7 +711,6 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       </div>
     </div>
   );
-};
-
+});
 
 export default ChatPanel;

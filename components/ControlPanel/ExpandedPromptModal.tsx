@@ -26,7 +26,8 @@ import {
 import { ChatAttachment, FileSystem } from '../../types';
 import { promptLibrary, quickPrompts, PromptItem, PromptLevel } from '../../data/promptLibrary';
 import { PromptImproverModal } from './PromptImproverModal';
-import { PromptLevelModal, QuickLevelToggle, usePromptLevel } from './PromptLevelModal';
+import { PromptLevelModal, QuickLevelToggle } from './PromptLevelModal';
+import { usePromptLevel } from './hooks';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 
 interface ExpandedPromptModalProps {

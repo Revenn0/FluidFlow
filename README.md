@@ -212,7 +212,6 @@ fluidflow/
 │   │   └── ComponentInspector.tsx  # Element inspection
 │   │
 │   ├── ContextIndicator.tsx   # Token usage & context management
-│   ├── CompactionConfirmModal.tsx  # Context compaction UI
 │   └── ...                    # Other modals and utilities
 │
 ├── hooks/

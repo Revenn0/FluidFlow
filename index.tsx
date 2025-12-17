@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { AppProvider } from './contexts/AppContext';
+import { UIProvider } from './contexts/UIContext';
 import { DEFAULT_FILES } from './constants/defaultFiles';
 import './style.css';
 
@@ -20,9 +21,11 @@ root.render(
         // Here you could send the error to a service like Sentry
       }}
     >
-      <AppProvider defaultFiles={DEFAULT_FILES}>
-        <App />
-      </AppProvider>
+      <UIProvider>
+        <AppProvider defaultFiles={DEFAULT_FILES}>
+          <App />
+        </AppProvider>
+      </UIProvider>
     </ErrorBoundary>
   </React.StrictMode>
 );

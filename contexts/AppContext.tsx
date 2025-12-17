@@ -5,7 +5,11 @@
  * - Files state (files, activeFile, setters)
  * - Project state (currentProject, projects, operations)
  * - Git state (status, operations, uncommitted changes)
- * - UI state (tabs, generating, suggestions, models)
+ * - History/undo-redo
+ * - Diff/Review state
+ *
+ * UI state (tabs, generating, suggestions, models) is now managed by UIContext.
+ * AppContext consumes UIContext internally for backwards compatibility.
  */
 import React, { createContext, useContext, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { FileSystem, TabType } from '../types';
@@ -14,6 +18,9 @@ import { useProject, PendingSyncConfirmation } from '../hooks/useProject';
 import { useVersionHistory, HistoryEntry } from '../hooks/useVersionHistory';
 import { safeJsonParse } from '../utils/safeJson';
 import { gitApi, projectApi } from '../services/projectApi';
+import { getWIP, saveWIP, clearWIP, WIPData } from '../services/wipStorage';
+import { isIgnoredPath } from '../utils/filePathUtils';
+import { useUI } from './UIContext';
 
 // ============ Types ============
 
@@ -116,87 +123,23 @@ interface AppProviderProps {
   defaultFiles: FileSystem;
 }
 
-// ============ IndexedDB WIP Storage ============
-
-const WIP_DB_NAME = 'fluidflow-wip';
-const WIP_DB_VERSION = 1;
-
-interface WIPData {
-  id: string;
-  files: FileSystem;
-  activeFile: string;
-  activeTab: string;
-  savedAt: number;
-}
-
-function openWIPDatabase(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(WIP_DB_NAME, WIP_DB_VERSION);
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains('wip')) {
-        db.createObjectStore('wip', { keyPath: 'id' });
-      }
-    };
-  });
-}
-
-async function getWIP(projectId: string): Promise<WIPData | null> {
-  try {
-    const db = await openWIPDatabase();
-    const tx = db.transaction('wip', 'readonly');
-    const store = tx.objectStore('wip');
-    return new Promise((resolve, reject) => {
-      const request = store.get(projectId);
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve(request.result || null);
-    });
-  } catch {
-    return null;
-  }
-}
-
-async function saveWIPData(data: WIPData): Promise<void> {
-  try {
-    const db = await openWIPDatabase();
-    const tx = db.transaction('wip', 'readwrite');
-    const store = tx.objectStore('wip');
-    await store.put(data);
-  } catch (err) {
-    console.warn('[WIP] Failed to save:', err);
-  }
-}
-
-async function clearWIP(projectId: string): Promise<void> {
-  try {
-    const db = await openWIPDatabase();
-    const tx = db.transaction('wip', 'readwrite');
-    const store = tx.objectStore('wip');
-    await store.delete(projectId);
-  } catch (err) {
-    console.warn('[WIP] Failed to clear:', err);
-  }
-}
-
-// Files/folders to ignore
-const IGNORED_PATTERNS = ['.git', '.git/', 'node_modules', 'node_modules/'];
-const isIgnoredPath = (filePath: string): boolean => {
-  return IGNORED_PATTERNS.some(pattern =>
-    filePath === pattern ||
-    filePath.startsWith(pattern) ||
-    filePath.startsWith('.git/') ||
-    filePath.includes('/.git/') ||
-    filePath.includes('/node_modules/')
-  );
-};
-
 // ============ Provider ============
 
 export function AppProvider({ children, defaultFiles }: AppProviderProps) {
   // Backend project management
   const project = useProject();
+
+  // UI state from UIContext (for backwards compatibility)
+  const ui = useUI();
+  const {
+    activeTab, setActiveTab,
+    isGenerating, setIsGenerating,
+    suggestions, setSuggestions,
+    selectedModel, setSelectedModel,
+    autoAcceptChanges, setAutoAcceptChanges,
+    diffModeEnabled, setDiffModeEnabled,
+    resetUIState,
+  } = ui;
 
   // Local version history
   const {
@@ -205,21 +148,8 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
     exportHistory, restoreHistory
   } = useVersionHistory(project.currentProject ? project.files : defaultFiles);
 
-  // UI State
+  // Files state - activeFile is local since it's file-related
   const [activeFile, setActiveFile] = useState<string>('src/App.tsx');
-  const [activeTab, setActiveTab] = useState<TabType>('preview');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[] | null>(null);
-  const [selectedModel, setSelectedModel] = useState('models/gemini-2.5-flash');
-  const [autoAcceptChanges, setAutoAcceptChanges] = useState(false);
-  const [diffModeEnabled, setDiffModeEnabled] = useState(() => {
-    return localStorage.getItem('diffModeEnabled') === 'true';
-  });
-
-  // Persist diffModeEnabled to localStorage
-  useEffect(() => {
-    localStorage.setItem('diffModeEnabled', String(diffModeEnabled));
-  }, [diffModeEnabled]);
 
   // Track uncommitted changes (WIP)
   const [hasUncommittedChanges, setHasUncommittedChanges] = useState(false);
@@ -330,13 +260,14 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
     setHasUncommittedChanges(hasChanges);
 
     const timeout = setTimeout(() => {
-      saveWIPData({
+      const wipData: WIPData = {
         id: currentProjectId,
         files,
         activeFile,
         activeTab,
         savedAt: Date.now()
-      });
+      };
+      saveWIP(wipData);
     }, 1000);
 
     return () => clearTimeout(timeout);
@@ -513,15 +444,14 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
     } finally {
       isSwitchingProjectRef.current = false;
     }
-  }, [project, activeFile, activeTab, exportHistory, restoreHistory, resetFiles]);
+  }, [project, activeFile, activeTab, exportHistory, restoreHistory, resetFiles, setActiveTab, setSuggestions]);
 
   // Reset app
   const resetApp = useCallback(() => {
     resetFiles(defaultFiles);
     setActiveFile('src/App.tsx');
-    setSuggestions(null);
-    setIsGenerating(false);
-  }, [defaultFiles, resetFiles]);
+    resetUIState();
+  }, [defaultFiles, resetFiles, resetUIState]);
 
   // Context value
   const value = useMemo<AppContextValue>(() => ({
@@ -609,7 +539,10 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
     resetFiles, exportHistory, restoreHistory,
     project, createProject, openProject, initGit, commit, discardChanges, revertToCommit,
     hasUncommittedChanges, localChanges,
-    activeTab, isGenerating, suggestions, selectedModel, autoAcceptChanges, diffModeEnabled,
+    // UI state from UIContext
+    activeTab, setActiveTab, isGenerating, setIsGenerating,
+    suggestions, setSuggestions, selectedModel, setSelectedModel,
+    autoAcceptChanges, setAutoAcceptChanges, diffModeEnabled, setDiffModeEnabled,
     pendingReview, reviewChange, confirmChange, cancelReview, resetApp
   ]);
 

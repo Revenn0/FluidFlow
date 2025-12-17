@@ -5,34 +5,9 @@
  * Provides a single import point for hook consumers.
  */
 
-// Project management hooks (extracted from useProject)
-export { useServerHealth } from './useServerHealth';
-export type { ServerHealthState, UseServerHealthReturn } from './useServerHealth';
-
-export { useContextPersistence } from './useContextPersistence';
-export type { UseContextPersistenceReturn } from './useContextPersistence';
-
-export { useGitOperations } from './useGitOperations';
-export type { GitOperationsState, UseGitOperationsReturn } from './useGitOperations';
-
-export { useSyncOperations } from './useSyncOperations';
-export type {
-  PendingSyncConfirmation,
-  SyncOperationsState,
-  UseSyncOperationsReturn,
-} from './useSyncOperations';
-
-export { useProjectManagement, projectStorage } from './useProjectManagement';
-export type {
-  ProjectManagementState,
-  UseProjectManagementReturn,
-  ProjectContext,
-  HistoryEntry,
-} from './useProjectManagement';
-
-// Main composite hook (uses the above hooks)
+// Main project hook (includes CRUD, sync, git operations)
 export { useProject } from './useProject';
-export type { ProjectState, UseProjectReturn } from './useProject';
+export type { ProjectState, UseProjectReturn, PendingSyncConfirmation } from './useProject';
 
 // UI state hooks
 export { useModalManager, createModalProps, LEGACY_STATE_MAPPING } from './useModalManager';

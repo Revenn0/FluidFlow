@@ -5,6 +5,15 @@
  * - No project is open
  * - Creating a new project without initial files
  * - Resetting the app
+ *
+ * TECHNOLOGY STACK (Keep in sync with prompts):
+ * - React 19
+ * - TypeScript 5.9+
+ * - Vite 7
+ * - Tailwind CSS 4
+ * - lucide-react (latest)
+ * - motion/react (latest) - NOT framer-motion!
+ * - react-router v7 - NOT react-router-dom!
  */
 
 import type { FileSystem } from '@/types';
@@ -21,28 +30,33 @@ export const DEFAULT_FILES: FileSystem = {
       preview: "vite preview"
     },
     dependencies: {
-      "react": "^18.3.0",
-      "react-dom": "^18.3.0",
-      "lucide-react": "^0.400.0"
+      "react": "^19.2.0",
+      "react-dom": "^19.2.0",
+      "lucide-react": "^0.561.0",
+      "motion": "^12.0.0",
+      "react-router": "^7.1.0"
     },
     devDependencies: {
-      "@vitejs/plugin-react": "^4.3.0",
-      "vite": "^5.4.0",
-      "typescript": "^5.5.0",
-      "@types/react": "^18.3.0",
-      "@types/react-dom": "^18.3.0",
-      "@types/node": "^20.0.0",
-      "tailwindcss": "^3.4.0",
-      "postcss": "^8.4.0",
-      "autoprefixer": "^10.4.0"
+      "@vitejs/plugin-react": "^5.1.0",
+      "vite": "^7.2.0",
+      "@tailwindcss/vite": "^4.1.0",
+      "tailwindcss": "^4.1.0",
+      "typescript": "^5.9.0",
+      "@types/react": "^19.2.0",
+      "@types/react-dom": "^19.2.0",
+      "@types/node": "^25.0.0"
     }
   }, null, 2),
   'vite.config.ts': `import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    tailwindcss()
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -52,9 +66,9 @@ export default defineConfig({
 })`,
   'tsconfig.json': JSON.stringify({
     compilerOptions: {
-      target: "ES2020",
+      target: "ES2022",
       useDefineForClassFields: true,
-      lib: ["ES2020", "DOM", "DOM.Iterable"],
+      lib: ["ES2022", "DOM", "DOM.Iterable"],
       module: "ESNext",
       skipLibCheck: true,
       moduleResolution: "bundler",
@@ -64,6 +78,9 @@ export default defineConfig({
       noEmit: true,
       jsx: "react-jsx",
       strict: true,
+      noUnusedLocals: true,
+      noUnusedParameters: true,
+      noFallthroughCasesInSwitch: true,
       baseUrl: ".",
       paths: {
         "@/*": ["src/*"],
@@ -72,17 +89,6 @@ export default defineConfig({
     },
     include: ["src"]
   }, null, 2),
-  'tailwind.config.js': `export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
-  theme: { extend: {} },
-  plugins: []
-}`,
-  'postcss.config.js': `export default {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {}
-  }
-}`,
   'index.html': `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -95,25 +101,28 @@ export default defineConfig({
   <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>`,
-  'src/main.tsx': `import React from 'react'
-import ReactDOM from 'react-dom/client'
+  'src/main.tsx': `import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
 import App from './App'
 import './index.css'
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
     <App />
-  </React.StrictMode>
+  </StrictMode>
 )`,
-  'src/index.css': `@tailwind base;
-@tailwind components;
-@tailwind utilities;`,
-  'src/App.tsx': `export default function App() {
+  'src/index.css': `@import "tailwindcss";`,
+  'src/App.tsx': `import { Sparkles } from 'lucide-react'
+
+export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 flex items-center justify-center">
       <div className="text-center">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 mb-6">
+          <Sparkles className="w-8 h-8 text-white" />
+        </div>
         <h1 className="text-4xl font-bold text-white mb-4">Welcome to FluidFlow</h1>
-        <p className="text-slate-400">Upload a sketch to get started</p>
+        <p className="text-slate-400 text-lg">Upload a sketch or describe your app to get started</p>
       </div>
     </div>
   )

@@ -65,5 +65,3 @@ export const LazyTailwindPalette = withLazyModal(TailwindPaletteLazy, 'TailwindP
 export const LazyComponentTree = withLazyModal(ComponentTreeLazy, 'ComponentTree');
 export const LazyCreditsModal = withLazyModal(CreditsModalLazy, 'CreditsModal');
 export const LazyCodebaseSyncModal = withLazyModal(CodebaseSyncModalLazy, 'CodebaseSyncModal');
-
-// Preload utilities moved to ./lazyModalUtils.ts to avoid react-refresh warnings

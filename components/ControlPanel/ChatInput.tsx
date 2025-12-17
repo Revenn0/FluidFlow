@@ -5,7 +5,8 @@ import { PromptLibrary, PromptDropdown } from './PromptLibrary';
 import { UploadCards } from './UploadCards';
 import { ExpandedPromptModal } from './ExpandedPromptModal';
 import { PromptImproverModal } from './PromptImproverModal';
-import { QuickLevelToggle, usePromptLevel } from './PromptLevelModal';
+import { QuickLevelToggle } from './PromptLevelModal';
+import { usePromptLevel } from './hooks';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 
 interface ChatInputProps {

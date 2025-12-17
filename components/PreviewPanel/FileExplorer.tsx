@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, memo } from 'react';
 import {
   ChevronRight, ChevronDown, Folder, FolderOpen,
   FileCode, FileJson, FileText, Database, FlaskConical,
@@ -325,14 +325,14 @@ const TreeNodeComponent: React.FC<{
   );
 };
 
-export const FileExplorer: React.FC<FileExplorerProps> = ({
+export const FileExplorer = memo(function FileExplorer({
   files,
   activeFile,
   onFileSelect,
   onCreateFile,
   onDeleteFile,
   onRenameFile
-}) => {
+}: FileExplorerProps) {
   // Build tree structure
   const tree = useMemo(() => buildTree(files), [files]);
 
@@ -584,4 +584,4 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       </div>
     </div>
   );
-};
+});

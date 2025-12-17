@@ -13,7 +13,7 @@ import { useCodeGeneration } from '../../hooks/useCodeGeneration';
 import { getProviderManager, GenerationRequest } from '../../services/ai';
 import { InspectedElement, EditScope } from '../PreviewPanel/ComponentInspector';
 import { useAIHistory } from '../../hooks/useAIHistory';
-import { AIHistoryModal } from '../AIHistoryModal';
+import { LazyAIHistoryModal } from '../LazyModals';
 import { TechStackModal } from './TechStackModal';
 import { PromptEngineerModal } from './PromptEngineerModal';
 import { BatchGenerationModal } from './BatchGenerationModal';
@@ -23,7 +23,7 @@ import { getFluidFlowConfig } from '../../services/fluidflowConfig';
 // Sub-components
 import { ChatPanel } from './ChatPanel';
 import { ChatInput } from './ChatInput';
-import { CodebaseSyncModal } from '../CodebaseSyncModal';
+import { LazyCodebaseSyncModal } from '../LazyModals';
 import { SettingsPanel } from './SettingsPanel';
 import { ModeToggle } from './ModeToggle';
 import { ProjectPanel } from './ProjectPanel';
@@ -680,7 +680,7 @@ Fix the error in src/App.tsx.`;
       />
 
       {/* AI History Modal */}
-      <AIHistoryModal
+      <LazyAIHistoryModal
         isOpen={modals.showAIHistory}
         onClose={modals.closeAIHistory}
         history={aiHistory.history}
@@ -754,7 +754,7 @@ Fix the error in src/App.tsx.`;
       )}
 
       {/* Codebase Sync Modal */}
-      <CodebaseSyncModal
+      <LazyCodebaseSyncModal
         isOpen={modals.showCodebaseSync}
         onClose={modals.closeCodebaseSync}
         files={files}

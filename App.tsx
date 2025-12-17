@@ -17,23 +17,27 @@ import { ControlPanel, ControlPanelRef } from './components/ControlPanel';
 import { PreviewPanel } from './components/PreviewPanel';
 import { CommandPalette } from './components/CommandPalette';
 import { SnippetsPanel } from './components/SnippetsPanel';
-import { TailwindPalette } from './components/TailwindPalette';
-import { ComponentTree } from './components/ComponentTree';
 import { DeployModal } from './components/DeployModal';
 import { ShareModal, loadProjectFromUrl } from './components/ShareModal';
-import { AISettingsModal } from './components/AISettingsModal';
-import { MegaSettingsModal } from './components/MegaSettingsModal';
 import { HistoryPanel } from './components/HistoryPanel';
 import { ProjectManager } from './components/ProjectManager';
 import { SyncConfirmationDialog } from './components/SyncConfirmationDialog';
-import { CreditsModal } from './components/CreditsModal';
-import { CodeMapModal } from './components/ControlPanel/CodeMapModal';
 import { DiffModal } from './components/DiffModal';
 import { useModalManager } from './hooks/useModalManager';
 import { useAppContext } from './contexts/AppContext';
 import { Undo2, Redo2, History, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { InspectedElement, EditScope } from './components/PreviewPanel/ComponentInspector';
 import { getContextManager } from './services/conversationContext';
+
+// Lazy-loaded modals for better initial bundle size (~80KB savings)
+import {
+  LazyAISettingsModal,
+  LazyMegaSettingsModal,
+  LazyCreditsModal,
+  LazyCodeMapModal,
+  LazyTailwindPalette,
+  LazyComponentTree,
+} from './components/LazyModals';
 
 // Re-export types for backwards compatibility
 export type { FileSystem } from './types';
@@ -290,8 +294,8 @@ export default function App() {
         }}
       />
 
-      {/* Tailwind Palette */}
-      <TailwindPalette
+      {/* Tailwind Palette (lazy-loaded) */}
+      <LazyTailwindPalette
         isOpen={modals.state.tailwindPalette}
         onClose={() => modals.close('tailwindPalette')}
         onInsert={(className: string) => {
@@ -299,8 +303,8 @@ export default function App() {
         }}
       />
 
-      {/* Component Tree */}
-      <ComponentTree
+      {/* Component Tree (lazy-loaded) */}
+      <LazyComponentTree
         isOpen={modals.state.componentTree}
         onClose={() => modals.close('componentTree')}
         files={ctx.files}
@@ -324,15 +328,15 @@ export default function App() {
         files={ctx.files}
       />
 
-      {/* AI Settings Modal */}
-      <AISettingsModal
+      {/* AI Settings Modal (lazy-loaded) */}
+      <LazyAISettingsModal
         isOpen={modals.state.aiSettings}
         onClose={() => modals.close('aiSettings')}
         onProviderChange={(_providerId, modelId) => handleModelChange(modelId)}
       />
 
-      {/* Mega Settings Modal */}
-      <MegaSettingsModal
+      {/* Mega Settings Modal (lazy-loaded) */}
+      <LazyMegaSettingsModal
         isOpen={modals.state.megaSettings}
         onClose={() => modals.close('megaSettings')}
         initialCategory={megaSettingsInitialCategory}
@@ -448,15 +452,15 @@ export default function App() {
         onRefresh={ctx.refreshProjects}
       />
 
-      {/* Credits Modal */}
-      <CreditsModal
+      {/* Credits Modal (lazy-loaded) */}
+      <LazyCreditsModal
         isOpen={modals.state.credits}
         onClose={() => modals.close('credits')}
         showOnFirstLaunch={true}
       />
 
-      {/* CodeMap Modal */}
-      <CodeMapModal
+      {/* CodeMap Modal (lazy-loaded) */}
+      <LazyCodeMapModal
         isOpen={modals.state.codeMap}
         onClose={() => modals.close('codeMap')}
         files={ctx.files}
