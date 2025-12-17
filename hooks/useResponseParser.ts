@@ -135,21 +135,23 @@ export function useResponseParser(options: UseResponseParserOptions): UseRespons
         throw new Error('No src/App.tsx in response');
       }
 
-      // Merge files efficiently
+      // Merge files efficiently - ALWAYS preserve existing files
       let mergedFiles: FileSystem;
-      if (existingApp) {
+      const hasExistingFiles = Object.keys(files).length > 0;
+
+      if (hasExistingFiles) {
         // Start with existing files and apply updates
         mergedFiles = { ...files };
 
         // Apply new/modified files
         Object.assign(mergedFiles, newFiles);
 
-        // Remove deleted files
+        // Remove deleted files (only if explicitly marked for deletion)
         for (const deletedPath of deletedFiles) {
           delete mergedFiles[deletedPath];
         }
       } else {
-        // New project - just use generated files
+        // Truly new project with no files - use generated files
         mergedFiles = newFiles;
       }
 

@@ -163,10 +163,16 @@ interface TreeNodeProps {
 
 // Custom equality function for TreeNode memo
 function treeNodeAreEqual(prev: TreeNodeProps, next: TreeNodeProps): boolean {
+  // Re-render ALL folders when expandedFolders changes (toggle happened somewhere)
+  // This ensures children of expanded folders can toggle properly
+  if (prev.expandedFolders !== next.expandedFolders && prev.node.type === 'folder') {
+    return false;
+  }
+
   // Re-render if node changed
   if (prev.node !== next.node) return false;
 
-  // Re-render if depth changed (shouldn't happen, but safety)
+  // Re-render if depth changed
   if (prev.depth !== next.depth) return false;
 
   // For files: only re-render if this file's active state changed
@@ -176,25 +182,10 @@ function treeNodeAreEqual(prev: TreeNodeProps, next: TreeNodeProps): boolean {
     if (wasActive !== isActive) return false;
   }
 
-  // For folders: re-render if expansion state changed
-  if (prev.node.type === 'folder') {
-    const wasExpanded = prev.expandedFolders.has(prev.node.path);
-    const isExpanded = next.expandedFolders.has(next.node.path);
-    if (wasExpanded !== isExpanded) return false;
-
-    // Also check if any descendant's active state changed (for children re-render)
-    if (isExpanded && prev.activeFile !== next.activeFile) {
-      // Only re-render if the active file is within this folder
-      const isDescendant = next.activeFile.startsWith(next.node.path + '/') ||
-                          prev.activeFile.startsWith(prev.node.path + '/');
-      if (isDescendant) return false;
-    }
-  }
-
   return true;
 }
 
-// Memoized Tree Node Component - prevents re-renders during navigation
+// Tree Node Component - using simpler memo for folder toggle reliability
 const TreeNodeComponent = memo(function TreeNodeComponent({
   node, depth, activeFile, onFileSelect, expandedFolders, toggleFolder, onDelete, onRename, onCreateInFolder
 }: TreeNodeProps) {
