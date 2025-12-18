@@ -14,9 +14,14 @@ import {
   Maximize2,
   Monitor,
   Tablet,
-  Smartphone
+  Smartphone,
+  Globe,
+  AlertCircle,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import { runnerApi, RunningProjectInfo } from '@/services/projectApi';
+import { useLogStream } from '@/hooks/useLogStream';
 
 // Valid status values for the runner
 type RunnerStatus = 'installing' | 'starting' | 'running' | 'error' | 'stopped';
@@ -29,11 +34,33 @@ const DEVICE_SIZES: Record<DeviceType, { width: number; height: number; label: s
   mobile: { width: 375, height: 667, label: 'Mobile' }
 };
 
+// Console log entry from iframe
+interface ConsoleLogEntry {
+  id: string;
+  type: 'log' | 'warn' | 'error' | 'info' | 'debug';
+  message: string;
+  timestamp: number;
+}
+
+// Network request entry from iframe
+interface NetworkEntry {
+  id: string;
+  method: string;
+  url: string;
+  status: number;
+  statusText: string;
+  duration: number;
+  timestamp: number;
+}
+
+// DevTools tab type
+type DevToolsTab = 'terminal' | 'console' | 'network';
+
 interface RunnerPanelProps {
   projectId: string | null;
   projectName?: string;
-  hasCommittedFiles?: boolean; // Optional - if false, will run from VFS files directly
-  files?: Record<string, string>; // VFS files to run (used when hasCommittedFiles is false)
+  hasCommittedFiles?: boolean;
+  files?: Record<string, string>;
 }
 
 export const RunnerPanel: React.FC<RunnerPanelProps> = ({
@@ -45,44 +72,83 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
   const [status, setStatus] = useState<RunningProjectInfo | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showLogs, setShowLogs] = useState(false);
-  const [logs, setLogs] = useState<string[]>([]);
   const [iframeKey, setIframeKey] = useState(0);
   const [deviceType, setDeviceType] = useState<DeviceType>('desktop');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const pollRef = useRef<NodeJS.Timeout | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
+  // DevTools state
+  const [devToolsTab, setDevToolsTab] = useState<DevToolsTab>('terminal');
+  const [devToolsExpanded, setDevToolsExpanded] = useState(true);
+  const [consoleLogs, setConsoleLogs] = useState<ConsoleLogEntry[]>([]);
+  const [networkLogs, setNetworkLogs] = useState<NetworkEntry[]>([]);
+
   // Determine effective project ID (use '_temp' for VFS-only runs)
   const effectiveProjectId = projectId || (files && Object.keys(files).length > 0 ? '_temp' : null);
 
-  // Fetch status
+  const isRunning = status?.running || status?.status === 'installing' || status?.status === 'starting';
+  const isServerReady = status?.status === 'running' && status?.url;
+
+  // SSE-based log streaming
+  const { logs: terminalLogs, connected: sseConnected, clearLogs: clearTerminalLogs } = useLogStream({
+    projectId: effectiveProjectId,
+    enabled: isRunning,
+    onStatusChange: (newStatus) => {
+      if (newStatus === 'stopped') {
+        setStatus({ status: 'stopped', running: false } as RunningProjectInfo);
+      }
+    }
+  });
+
+  // Listen for postMessage from iframe (console/network)
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (!event.data || typeof event.data !== 'object') return;
+
+      if (event.data.type === 'RUNNER_CONSOLE') {
+        setConsoleLogs(prev => [...prev.slice(-499), {
+          id: crypto.randomUUID(),
+          type: event.data.logType || 'log',
+          message: event.data.message || '',
+          timestamp: event.data.timestamp || Date.now()
+        }]);
+      } else if (event.data.type === 'RUNNER_NETWORK') {
+        setNetworkLogs(prev => [...prev.slice(-499), {
+          id: crypto.randomUUID(),
+          method: event.data.method || 'GET',
+          url: event.data.url || '',
+          status: event.data.status || 0,
+          statusText: event.data.statusText || '',
+          duration: event.data.duration || 0,
+          timestamp: event.data.timestamp || Date.now()
+        }]);
+      }
+    };
+
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
+  // Fetch status (for initial load and fallback)
   const fetchStatus = useCallback(async () => {
     if (!effectiveProjectId) return;
 
     try {
       const result = await runnerApi.status(effectiveProjectId);
       setStatus(result);
-
-      // If running, also fetch logs
-      if (result.running && showLogs) {
-        const logsResult = await runnerApi.logs(effectiveProjectId);
-        setLogs(logsResult.logs);
-      }
     } catch (_err) {
-      // Not running is not an error
       setStatus({ status: 'stopped', running: false } as RunningProjectInfo);
     }
-  }, [effectiveProjectId, showLogs]);
+  }, [effectiveProjectId]);
 
-  // Poll for status when running
+  // Poll for status (less frequent since we have SSE)
   useEffect(() => {
     fetchStatus();
 
-    // Start polling if potentially running
     pollRef.current = setInterval(() => {
       fetchStatus();
-    }, 3000);
+    }, 5000);
 
     return () => {
       if (pollRef.current) {
@@ -91,44 +157,13 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
     };
   }, [fetchStatus]);
 
-  // Auto-scroll logs - scroll container, not page
-  const logsContainerRef = useRef<HTMLDivElement>(null);
-
+  // Auto-scroll terminal logs
+  const terminalRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (showLogs && logsContainerRef.current) {
-      // Scroll the container to bottom, not the page
-      logsContainerRef.current.scrollTop = logsContainerRef.current.scrollHeight;
+    if (terminalRef.current && devToolsTab === 'terminal') {
+      terminalRef.current.scrollTop = terminalRef.current.scrollHeight;
     }
-  }, [logs, showLogs]);
-
-  // Lock body scroll when modal is open - preserve scroll position
-  useEffect(() => {
-    if (showLogs || isFullscreen) {
-      const scrollY = window.scrollY;
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.left = '0';
-      document.body.style.right = '0';
-      document.body.style.overflow = 'hidden';
-    } else {
-      const scrollY = document.body.style.top;
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      document.body.style.overflow = '';
-      if (scrollY) {
-        window.scrollTo(0, parseInt(scrollY || '0', 10) * -1);
-      }
-    }
-    return () => {
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      document.body.style.overflow = '';
-    };
-  }, [showLogs, isFullscreen]);
+  }, [terminalLogs, devToolsTab]);
 
   // Start project
   const handleStart = async () => {
@@ -136,9 +171,10 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
 
     setIsLoading(true);
     setError(null);
+    setConsoleLogs([]);
+    setNetworkLogs([]);
 
     try {
-      // Pass VFS files if not using committed files
       const shouldSyncFiles = !hasCommittedFiles && files && Object.keys(files).length > 0;
       const result = await runnerApi.start(effectiveProjectId, shouldSyncFiles ? files : undefined);
       setStatus({
@@ -149,17 +185,6 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
         startedAt: Date.now(),
         running: true
       });
-
-      // Increase poll frequency during startup
-      if (pollRef.current) clearInterval(pollRef.current);
-      pollRef.current = setInterval(fetchStatus, 1000);
-
-      // Return to normal after 30s
-      setTimeout(() => {
-        if (pollRef.current) clearInterval(pollRef.current);
-        pollRef.current = setInterval(fetchStatus, 3000);
-      }, 30000);
-
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start project');
     } finally {
@@ -177,7 +202,6 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
     try {
       await runnerApi.stop(effectiveProjectId);
       setStatus({ status: 'stopped', running: false } as RunningProjectInfo);
-      setLogs([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to stop project');
     } finally {
@@ -187,7 +211,13 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
 
   // Clear logs
   const handleClearLogs = () => {
-    setLogs([]);
+    if (devToolsTab === 'terminal') {
+      clearTerminalLogs();
+    } else if (devToolsTab === 'console') {
+      setConsoleLogs([]);
+    } else if (devToolsTab === 'network') {
+      setNetworkLogs([]);
+    }
   };
 
   // Stop all servers
@@ -197,7 +227,6 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
     try {
       await runnerApi.stopAll();
       setStatus({ status: 'stopped', running: false } as RunningProjectInfo);
-      setLogs([]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to stop servers');
     } finally {
@@ -253,7 +282,11 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
     }
   };
 
-  // Check if we have something to run (either a project or VFS files)
+  // Get log counts for tabs
+  const errorCount = consoleLogs.filter(l => l.type === 'error').length;
+  const warnCount = consoleLogs.filter(l => l.type === 'warn').length;
+
+  // Check if we have something to run
   const hasFilesToRun = files && Object.keys(files).length > 0;
 
   if (!effectiveProjectId && !hasFilesToRun) {
@@ -266,16 +299,12 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
     );
   }
 
-  const isRunning = status?.running || status?.status === 'installing' || status?.status === 'starting';
-  const isServerReady = status?.status === 'running' && status?.url;
-
   // Fullscreen Preview Modal
   const FullscreenPreview = () => (
     <div
       className="fixed inset-0 z-50 flex flex-col bg-slate-950"
       onClick={() => setIsFullscreen(false)}
     >
-      {/* Header */}
       <div
         className="flex-none flex items-center justify-between p-3 border-b border-white/10 bg-slate-900"
         onClick={(e) => e.stopPropagation()}
@@ -289,61 +318,30 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {/* Device selector */}
           <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
-            <button
-              onClick={() => setDeviceType('desktop')}
-              className={`p-1.5 rounded ${deviceType === 'desktop' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`}
-              title="Desktop"
-            >
+            <button onClick={() => setDeviceType('desktop')} className={`p-1.5 rounded ${deviceType === 'desktop' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`} title="Desktop">
               <Monitor size={14} />
             </button>
-            <button
-              onClick={() => setDeviceType('tablet')}
-              className={`p-1.5 rounded ${deviceType === 'tablet' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`}
-              title="Tablet"
-            >
+            <button onClick={() => setDeviceType('tablet')} className={`p-1.5 rounded ${deviceType === 'tablet' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`} title="Tablet">
               <Tablet size={14} />
             </button>
-            <button
-              onClick={() => setDeviceType('mobile')}
-              className={`p-1.5 rounded ${deviceType === 'mobile' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`}
-              title="Mobile"
-            >
+            <button onClick={() => setDeviceType('mobile')} className={`p-1.5 rounded ${deviceType === 'mobile' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'}`} title="Mobile">
               <Smartphone size={14} />
             </button>
           </div>
-          <button
-            onClick={handleRefreshIframe}
-            className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white"
-            title="Refresh"
-          >
+          <button onClick={handleRefreshIframe} className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white" title="Refresh">
             <RefreshCw size={14} />
           </button>
-          <a
-            href={status?.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white"
-            title="Open in new tab"
-          >
+          <a href={status?.url} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white" title="Open in new tab">
             <ExternalLink size={14} />
           </a>
-          <button
-            onClick={() => setIsFullscreen(false)}
-            className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white"
-            title="Close fullscreen"
-          >
+          <button onClick={() => setIsFullscreen(false)} className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white" title="Close">
             <X size={18} />
           </button>
         </div>
       </div>
 
-      {/* Iframe Container */}
-      <div
-        className="flex-1 flex items-center justify-center bg-[#1a1a2e] p-4 overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="flex-1 flex items-center justify-center bg-[#1a1a2e] p-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
         <div
           className="bg-white rounded-lg shadow-2xl overflow-hidden transition-all duration-300"
           style={{
@@ -368,39 +366,156 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
     </div>
   );
 
+  // DevTools Panel Component
+  const DevToolsPanel = () => (
+    <div className={`flex-none border-t border-white/10 bg-slate-900/80 ${devToolsExpanded ? 'h-48' : 'h-8'} transition-all`}>
+      {/* Tabs */}
+      <div className="flex items-center justify-between h-8 px-2 border-b border-white/5">
+        <div className="flex items-center gap-1">
+          {/* Tab buttons */}
+          <button
+            onClick={() => { setDevToolsTab('terminal'); setDevToolsExpanded(true); }}
+            className={`flex items-center gap-1.5 px-2 py-1 text-[10px] rounded ${devToolsTab === 'terminal' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          >
+            <Terminal size={10} />
+            Terminal
+            {terminalLogs.length > 0 && <span className="px-1 bg-slate-700 rounded text-[9px]">{terminalLogs.length}</span>}
+            {sseConnected && <Wifi size={8} className="text-green-400" />}
+            {!sseConnected && isRunning && <WifiOff size={8} className="text-red-400" />}
+          </button>
+          <button
+            onClick={() => { setDevToolsTab('console'); setDevToolsExpanded(true); }}
+            className={`flex items-center gap-1.5 px-2 py-1 text-[10px] rounded ${devToolsTab === 'console' ? 'bg-blue-500/20 text-blue-400' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          >
+            <AlertCircle size={10} />
+            Console
+            {consoleLogs.length > 0 && (
+              <span className={`px-1 rounded text-[9px] ${errorCount > 0 ? 'bg-red-500/30 text-red-400' : warnCount > 0 ? 'bg-yellow-500/30 text-yellow-400' : 'bg-slate-700'}`}>
+                {consoleLogs.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => { setDevToolsTab('network'); setDevToolsExpanded(true); }}
+            className={`flex items-center gap-1.5 px-2 py-1 text-[10px] rounded ${devToolsTab === 'network' ? 'bg-purple-500/20 text-purple-400' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+          >
+            <Globe size={10} />
+            Network
+            {networkLogs.length > 0 && <span className="px-1 bg-slate-700 rounded text-[9px]">{networkLogs.length}</span>}
+          </button>
+        </div>
+        <div className="flex items-center gap-1">
+          <button onClick={handleClearLogs} className="p-1 text-slate-500 hover:text-white hover:bg-white/5 rounded" title="Clear">
+            <Trash2 size={10} />
+          </button>
+          <button onClick={() => setDevToolsExpanded(!devToolsExpanded)} className="p-1 text-slate-500 hover:text-white hover:bg-white/5 rounded" title={devToolsExpanded ? 'Collapse' : 'Expand'}>
+            <X size={10} className={`transition-transform ${devToolsExpanded ? '' : 'rotate-45'}`} />
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      {devToolsExpanded && (
+        <div ref={terminalRef} className="flex-1 h-[calc(100%-2rem)] overflow-auto p-2 font-mono text-[10px]">
+          {devToolsTab === 'terminal' && (
+            terminalLogs.length === 0 ? (
+              <div className="text-slate-600 text-center py-4">No terminal output yet</div>
+            ) : (
+              <div className="space-y-0.5">
+                {terminalLogs.map((log, i) => (
+                  <div
+                    key={i}
+                    className={`whitespace-pre-wrap break-all ${
+                      log.toLowerCase().includes('error') ? 'text-red-400' :
+                      log.toLowerCase().includes('warn') ? 'text-yellow-400' :
+                      log.includes('ready') || log.includes('Local:') ? 'text-green-400' :
+                      'text-slate-400'
+                    }`}
+                  >
+                    {log}
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+          {devToolsTab === 'console' && (
+            consoleLogs.length === 0 ? (
+              <div className="text-slate-600 text-center py-4">No console output yet</div>
+            ) : (
+              <div className="space-y-0.5">
+                {consoleLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className={`flex items-start gap-2 py-0.5 ${
+                      log.type === 'error' ? 'text-red-400 bg-red-500/5' :
+                      log.type === 'warn' ? 'text-yellow-400 bg-yellow-500/5' :
+                      log.type === 'info' ? 'text-blue-400' :
+                      log.type === 'debug' ? 'text-purple-400' :
+                      'text-slate-400'
+                    }`}
+                  >
+                    <span className="text-slate-600 shrink-0">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                    <span className="break-all">{log.message}</span>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+          {devToolsTab === 'network' && (
+            networkLogs.length === 0 ? (
+              <div className="text-slate-600 text-center py-4">No network requests yet</div>
+            ) : (
+              <table className="w-full text-left">
+                <thead className="text-slate-500 border-b border-white/5">
+                  <tr>
+                    <th className="py-1 pr-2">Status</th>
+                    <th className="py-1 pr-2">Method</th>
+                    <th className="py-1 pr-2">URL</th>
+                    <th className="py-1 pr-2 text-right">Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {networkLogs.map((req) => (
+                    <tr key={req.id} className="border-b border-white/5 hover:bg-white/5">
+                      <td className={`py-1 pr-2 ${req.status >= 400 ? 'text-red-400' : req.status >= 300 ? 'text-yellow-400' : 'text-green-400'}`}>
+                        {req.status || 'ERR'}
+                      </td>
+                      <td className="py-1 pr-2 text-blue-400">{req.method}</td>
+                      <td className="py-1 pr-2 text-slate-400 truncate max-w-[200px]" title={req.url}>{req.url}</td>
+                      <td className="py-1 text-right text-slate-500">{req.duration}ms</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )
+          )}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      {/* Header - Compact */}
+      {/* Header */}
       <div className="flex-none p-2 border-b border-white/10 bg-slate-900/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Terminal size={14} className="text-emerald-400" />
-            <span className="font-medium text-xs">Run Mode (Beta)</span>
+            <span className="font-medium text-xs">Run Mode</span>
             {getStatusBadge()}
           </div>
           <div className="flex items-center gap-1">
-            <button
-              onClick={() => setShowLogs(true)}
-              className="p-1.5 hover:bg-white/5 rounded text-slate-400 hover:text-white transition-colors"
-              title="View logs"
-            >
-              <Terminal size={14} />
-            </button>
-            <button
-              onClick={fetchStatus}
-              className="p-1.5 hover:bg-white/5 rounded text-slate-400 hover:text-white transition-colors"
-              title="Refresh status"
-            >
+            <button onClick={fetchStatus} className="p-1.5 hover:bg-white/5 rounded text-slate-400 hover:text-white transition-colors" title="Refresh status">
               <RefreshCw size={14} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content */}
       <div className="flex-1 min-h-0 flex flex-col">
         {!isRunning ? (
-          /* Not Running - Show Start UI */
+          /* Not Running */
           <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
             <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4">
               <Play size={32} className="text-emerald-400" />
@@ -414,11 +529,7 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
               disabled={isLoading}
               className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg text-sm font-medium transition-colors"
             >
-              {isLoading ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Play size={16} />
-              )}
+              {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
               Start Dev Server
             </button>
             {error && (
@@ -428,7 +539,7 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
             )}
           </div>
         ) : isServerReady ? (
-          /* Server Running - Show Embedded Preview */
+          /* Server Running */
           <div className="flex-1 min-h-0 flex flex-col">
             {/* Preview Toolbar */}
             <div className="flex-none flex items-center justify-between px-2 py-1.5 border-b border-white/5 bg-slate-900/30">
@@ -436,51 +547,24 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
                 <span className="text-[10px] text-slate-500 font-mono">{status.url}</span>
               </div>
               <div className="flex items-center gap-1">
-                {/* Device selector */}
                 <div className="flex items-center gap-0.5 bg-slate-800/50 rounded p-0.5">
-                  <button
-                    onClick={() => setDeviceType('desktop')}
-                    className={`p-1 rounded ${deviceType === 'desktop' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-white'}`}
-                    title="Desktop"
-                  >
+                  <button onClick={() => setDeviceType('desktop')} className={`p-1 rounded ${deviceType === 'desktop' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-white'}`} title="Desktop">
                     <Monitor size={12} />
                   </button>
-                  <button
-                    onClick={() => setDeviceType('tablet')}
-                    className={`p-1 rounded ${deviceType === 'tablet' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-white'}`}
-                    title="Tablet"
-                  >
+                  <button onClick={() => setDeviceType('tablet')} className={`p-1 rounded ${deviceType === 'tablet' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-white'}`} title="Tablet">
                     <Tablet size={12} />
                   </button>
-                  <button
-                    onClick={() => setDeviceType('mobile')}
-                    className={`p-1 rounded ${deviceType === 'mobile' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-white'}`}
-                    title="Mobile"
-                  >
+                  <button onClick={() => setDeviceType('mobile')} className={`p-1 rounded ${deviceType === 'mobile' ? 'bg-slate-700 text-white' : 'text-slate-500 hover:text-white'}`} title="Mobile">
                     <Smartphone size={12} />
                   </button>
                 </div>
-                <button
-                  onClick={handleRefreshIframe}
-                  className="p-1 hover:bg-white/5 rounded text-slate-500 hover:text-white"
-                  title="Refresh"
-                >
+                <button onClick={handleRefreshIframe} className="p-1 hover:bg-white/5 rounded text-slate-500 hover:text-white" title="Refresh">
                   <RefreshCw size={12} />
                 </button>
-                <button
-                  onClick={() => setIsFullscreen(true)}
-                  className="p-1 hover:bg-white/5 rounded text-slate-500 hover:text-white"
-                  title="Fullscreen"
-                >
+                <button onClick={() => setIsFullscreen(true)} className="p-1 hover:bg-white/5 rounded text-slate-500 hover:text-white" title="Fullscreen">
                   <Maximize2 size={12} />
                 </button>
-                <a
-                  href={status.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-1 hover:bg-white/5 rounded text-slate-500 hover:text-white"
-                  title="Open in new tab"
-                >
+                <a href={status.url} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-white/5 rounded text-slate-500 hover:text-white" title="Open in new tab">
                   <ExternalLink size={12} />
                 </a>
               </div>
@@ -508,6 +592,9 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
               </div>
             </div>
 
+            {/* DevTools Panel */}
+            <DevToolsPanel />
+
             {/* Controls Footer */}
             <div className="flex-none flex items-center justify-between px-2 py-1.5 border-t border-white/5 bg-slate-900/30">
               <button
@@ -522,34 +609,36 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
             </div>
           </div>
         ) : (
-          /* Installing/Starting - Show Progress */
-          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-4">
-              <Loader2 size={32} className="text-blue-400 animate-spin" />
+          /* Installing/Starting */
+          <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-4">
+                <Loader2 size={32} className="text-blue-400 animate-spin" />
+              </div>
+              <h3 className="text-sm font-medium text-white mb-2">
+                {status?.status === 'installing' ? 'Installing Dependencies...' : 'Starting Server...'}
+              </h3>
+              <p className="text-xs text-slate-500 mb-4">
+                {status?.status === 'installing' ? 'Running npm install' : 'Starting vite dev server...'}
+              </p>
+              {status?.url && (
+                <span className="px-2 py-1 bg-slate-800 rounded text-xs font-mono text-slate-400">{status.url}</span>
+              )}
+              <button
+                onClick={handleStop}
+                disabled={isLoading}
+                className="mt-4 flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded text-xs font-medium transition-colors"
+              >
+                <Square size={12} />
+                Cancel
+              </button>
             </div>
-            <h3 className="text-sm font-medium text-white mb-2">
-              {status?.status === 'installing' ? 'Installing Dependencies...' : 'Starting Server...'}
-            </h3>
-            <p className="text-xs text-slate-500 mb-4">
-              {status?.status === 'installing'
-                ? 'Running npm install - this may take a moment'
-                : 'Starting vite dev server...'}
-            </p>
-            {status?.url && (
-              <span className="px-2 py-1 bg-slate-800 rounded text-xs font-mono text-slate-400">
-                {status.url}
-              </span>
-            )}
-            <button
-              onClick={handleStop}
-              disabled={isLoading}
-              className="mt-4 flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded text-xs font-medium transition-colors"
-            >
-              <Square size={12} />
-              Cancel
-            </button>
+
+            {/* DevTools during install/start */}
+            <DevToolsPanel />
+
             {error && (
-              <div className="mt-4 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-400">
+              <div className="px-4 py-2 bg-red-500/10 border-t border-red-500/20 text-xs text-red-400">
                 {error}
               </div>
             )}
@@ -569,82 +658,6 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
           Stop All Servers
         </button>
       </div>
-
-      {/* Logs Modal */}
-      {showLogs && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm overflow-hidden"
-          onClick={() => setShowLogs(false)}
-        >
-          <div
-            className="w-full max-w-3xl max-h-[80vh] bg-slate-900 border border-white/10 rounded-xl shadow-2xl flex flex-col overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header */}
-            <div className="flex-none flex items-center justify-between p-4 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <Terminal size={18} className="text-emerald-400" />
-                <span className="font-medium">Dev Server Logs</span>
-                {logs.length > 0 && (
-                  <span className="px-2 py-0.5 bg-slate-700 rounded text-xs text-slate-400">
-                    {logs.length} entries
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                {logs.length > 0 && (
-                  <button
-                    onClick={handleClearLogs}
-                    className="flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
-                  >
-                    <Trash2 size={12} />
-                    Clear
-                  </button>
-                )}
-                <button
-                  onClick={() => setShowLogs(false)}
-                  className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Content */}
-            <div
-              ref={logsContainerRef}
-              className="flex-1 overflow-auto p-4 bg-slate-950/50 font-mono text-xs"
-            >
-              {logs.length === 0 ? (
-                <div className="text-slate-600 text-center py-8">
-                  <Terminal size={32} className="mx-auto mb-2 opacity-50" />
-                  <p>No logs yet</p>
-                  <p className="text-slate-700 mt-1">Logs will appear here when the dev server runs</p>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  {logs.map((log, i) => (
-                    <div
-                      key={i}
-                      className={`whitespace-pre-wrap break-all py-0.5 ${
-                        log.includes('error') || log.includes('Error')
-                          ? 'text-red-400'
-                          : log.includes('warn') || log.includes('Warning')
-                          ? 'text-yellow-400'
-                          : log.includes('ready') || log.includes('Local:')
-                          ? 'text-green-400'
-                          : 'text-slate-400'
-                      }`}
-                    >
-                      {log}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Fullscreen Preview Modal */}
       {isFullscreen && isServerReady && <FullscreenPreview />}

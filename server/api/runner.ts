@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { spawn, spawnSync, ChildProcess } from 'child_process';
+import { EventEmitter } from 'events';
 import path from 'path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync } from 'fs';
 import { isValidProjectId, isValidInteger } from '../utils/validation';
@@ -110,6 +111,8 @@ interface RunningProject {
   errorLogs: string[];
   startedAt: number;
   url: string;
+  // EventEmitter for SSE log streaming
+  logEmitter: EventEmitter;
 }
 
 const runningProjects: Map<string, RunningProject> = new Map();
@@ -118,13 +121,21 @@ const runningProjects: Map<string, RunningProject> = new Map();
 // Ports are reserved when a start request begins and released when fully registered or on error
 const reservedPorts: Set<number> = new Set();
 
-// Helper to push logs with size limit (prevents memory leak)
-function pushLog(logs: string[], entry: string): void {
-  logs.push(entry);
-  // Remove oldest entries if over limit
-  while (logs.length > MAX_LOG_ENTRIES) {
-    logs.shift();
+// Helper to push logs with size limit and emit to SSE clients
+function pushLog(project: RunningProject, entry: string, isError: boolean = false): void {
+  project.logs.push(entry);
+  if (isError) {
+    project.errorLogs.push(entry);
   }
+  // Remove oldest entries if over limit
+  while (project.logs.length > MAX_LOG_ENTRIES) {
+    project.logs.shift();
+  }
+  while (project.errorLogs.length > MAX_LOG_ENTRIES) {
+    project.errorLogs.shift();
+  }
+  // Emit to SSE clients
+  project.logEmitter.emit('log', { entry, isError, timestamp: Date.now() });
 }
 
 // Find an available port and reserve it atomically
@@ -203,54 +214,193 @@ const COEP_HEADERS_CONFIG = `
     }
   }`;
 
+// DevTools script for console/network interception (injected into running apps)
+const DEVTOOLS_SCRIPT = `
+(function() {
+  if (window.__FLUIDFLOW_DEVTOOLS__) return;
+  window.__FLUIDFLOW_DEVTOOLS__ = true;
+
+  // Console interception
+  const originalConsole = {
+    log: console.log.bind(console),
+    warn: console.warn.bind(console),
+    error: console.error.bind(console),
+    info: console.info.bind(console),
+    debug: console.debug.bind(console)
+  };
+
+  const notify = (type, args) => {
+    try {
+      window.parent.postMessage({
+        type: 'RUNNER_CONSOLE',
+        logType: type,
+        message: args.map(a => {
+          if (a === null) return 'null';
+          if (a === undefined) return 'undefined';
+          if (typeof a === 'object') {
+            try { return JSON.stringify(a); } catch { return String(a); }
+          }
+          return String(a);
+        }).join(' '),
+        timestamp: Date.now()
+      }, '*');
+    } catch {}
+  };
+
+  console.log = (...args) => { originalConsole.log(...args); notify('log', args); };
+  console.warn = (...args) => { originalConsole.warn(...args); notify('warn', args); };
+  console.error = (...args) => { originalConsole.error(...args); notify('error', args); };
+  console.info = (...args) => { originalConsole.info(...args); notify('info', args); };
+  console.debug = (...args) => { originalConsole.debug(...args); notify('debug', args); };
+
+  // Fetch interception
+  const originalFetch = window.fetch;
+  window.fetch = async function(...args) {
+    const start = Date.now();
+    const url = typeof args[0] === 'string' ? args[0] : (args[0]?.url || String(args[0]));
+    const method = args[1]?.method || 'GET';
+
+    try {
+      const response = await originalFetch.apply(this, args);
+      window.parent.postMessage({
+        type: 'RUNNER_NETWORK',
+        method,
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        duration: Date.now() - start,
+        timestamp: Date.now()
+      }, '*');
+      return response;
+    } catch (err) {
+      window.parent.postMessage({
+        type: 'RUNNER_NETWORK',
+        method,
+        url,
+        status: 0,
+        statusText: err.message || 'Network Error',
+        duration: Date.now() - start,
+        timestamp: Date.now()
+      }, '*');
+      throw err;
+    }
+  };
+
+  // XMLHttpRequest interception
+  const originalXHROpen = XMLHttpRequest.prototype.open;
+  const originalXHRSend = XMLHttpRequest.prototype.send;
+
+  XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+    this._ffMethod = method;
+    this._ffUrl = url;
+    this._ffStart = Date.now();
+    return originalXHROpen.apply(this, [method, url, ...rest]);
+  };
+
+  XMLHttpRequest.prototype.send = function(...args) {
+    this.addEventListener('loadend', () => {
+      window.parent.postMessage({
+        type: 'RUNNER_NETWORK',
+        method: this._ffMethod || 'GET',
+        url: this._ffUrl || '',
+        status: this.status,
+        statusText: this.statusText,
+        duration: Date.now() - (this._ffStart || Date.now()),
+        timestamp: Date.now()
+      }, '*');
+    });
+    return originalXHRSend.apply(this, args);
+  };
+
+  // Global error handler
+  window.addEventListener('error', (e) => {
+    notify('error', [e.message + (e.filename ? ' at ' + e.filename + ':' + e.lineno : '')]);
+  });
+
+  // Unhandled promise rejection
+  window.addEventListener('unhandledrejection', (e) => {
+    notify('error', ['Unhandled Promise Rejection: ' + (e.reason?.message || e.reason || 'Unknown')]);
+  });
+})();
+`;
+
+// Vite plugin to inject devtools script
+const DEVTOOLS_PLUGIN = `
+    {
+      name: 'fluidflow-devtools',
+      transformIndexHtml(html) {
+        return html.replace(
+          '</head>',
+          '<script src="/__fluidflow_devtools__.js"><\\/script></head>'
+        );
+      },
+      configureServer(server) {
+        server.middlewares.use('/__fluidflow_devtools__.js', (_req, res) => {
+          res.setHeader('Content-Type', 'application/javascript');
+          res.end(\`${DEVTOOLS_SCRIPT.replace(/`/g, '\\`').replace(/\$/g, '\\$')}\`);
+        });
+      }
+    }`;
+
 /**
- * Ensure vite.config.ts has COEP headers for iframe embedding
+ * Ensure vite.config.ts has COEP headers and devtools plugin for iframe embedding
  * This allows the running app to be displayed in FluidFlow's RunnerPanel iframe
+ * and enables console/network interception
  */
-function ensureViteCoepHeaders(filesDir: string): void {
+function ensureViteDevtoolsConfig(filesDir: string): void {
   const viteConfigPath = path.join(filesDir, 'vite.config.ts');
 
   if (!existsSync(viteConfigPath)) {
-    console.log('[Runner] No vite.config.ts found, skipping COEP injection');
+    console.log('[Runner] No vite.config.ts found, skipping config injection');
     return;
   }
 
   try {
     let content = readFileSync(viteConfigPath, 'utf-8');
+    let modified = false;
 
-    // Check if COEP headers are already present
-    if (content.includes('Cross-Origin-Embedder-Policy')) {
-      console.log('[Runner] vite.config.ts already has COEP headers');
+    // Check if devtools plugin is already present
+    const hasDevtools = content.includes('fluidflow-devtools');
+    const hasCoep = content.includes('Cross-Origin-Embedder-Policy');
+
+    if (hasDevtools && hasCoep) {
+      console.log('[Runner] vite.config.ts already has FluidFlow config');
       return;
     }
 
-    // Find the closing of defineConfig and inject server config before it
-    // Handle both `defineConfig({...})` and `export default {...}`
-
-    // Pattern 1: defineConfig({ ... })
-    // We need to find the last closing bracket before the final )
-    const defineConfigMatch = content.match(/defineConfig\s*\(\s*\{/);
-    if (defineConfigMatch) {
-      // Find position to insert - look for the last } before the closing )
-      // Simple approach: find the last }) and insert before the }
-      const lastBracketIndex = content.lastIndexOf('})');
-      if (lastBracketIndex > 0) {
-        // Check if there's already a comma before the closing brace
-        const beforeBracket = content.substring(0, lastBracketIndex).trimEnd();
-        const needsComma = !beforeBracket.endsWith(',') && !beforeBracket.endsWith('{');
-
-        const insertion = (needsComma ? ',' : '') + COEP_HEADERS_CONFIG;
-        content = content.substring(0, lastBracketIndex) + insertion + '\n' + content.substring(lastBracketIndex);
-
-        writeFileSync(viteConfigPath, content, 'utf-8');
-        console.log('[Runner] Injected COEP headers into vite.config.ts');
-        return;
+    // Inject devtools plugin into plugins array
+    if (!hasDevtools) {
+      // Find plugins array - look for plugins: [ or plugins:[
+      const pluginsMatch = content.match(/plugins\s*:\s*\[/);
+      if (pluginsMatch && pluginsMatch.index !== undefined) {
+        const insertPos = pluginsMatch.index + pluginsMatch[0].length;
+        content = content.substring(0, insertPos) + DEVTOOLS_PLUGIN + ',' + content.substring(insertPos);
+        modified = true;
+        console.log('[Runner] Injected devtools plugin into vite.config.ts');
       }
     }
 
-    console.log('[Runner] Could not find insertion point for COEP headers in vite.config.ts');
+    // Inject COEP headers into server config
+    if (!hasCoep) {
+      const defineConfigMatch = content.match(/defineConfig\s*\(\s*\{/);
+      if (defineConfigMatch) {
+        const lastBracketIndex = content.lastIndexOf('})');
+        if (lastBracketIndex > 0) {
+          const beforeBracket = content.substring(0, lastBracketIndex).trimEnd();
+          const needsComma = !beforeBracket.endsWith(',') && !beforeBracket.endsWith('{');
+          const insertion = (needsComma ? ',' : '') + COEP_HEADERS_CONFIG;
+          content = content.substring(0, lastBracketIndex) + insertion + '\n' + content.substring(lastBracketIndex);
+          modified = true;
+          console.log('[Runner] Injected COEP headers into vite.config.ts');
+        }
+      }
+    }
+
+    if (modified) {
+      writeFileSync(viteConfigPath, content, 'utf-8');
+    }
   } catch (err) {
-    console.error('[Runner] Failed to inject COEP headers:', err);
+    console.error('[Runner] Failed to inject config:', err);
   }
 }
 
@@ -361,7 +511,8 @@ router.post('/:id/start', async (req, res) => {
     logs: [],
     errorLogs: [],
     startedAt: Date.now(),
-    url: `http://localhost:${port}`
+    url: `http://localhost:${port}`,
+    logEmitter: new EventEmitter()
   };
 
   runningProjects.set(id, runningProject);
@@ -370,7 +521,7 @@ router.post('/:id/start', async (req, res) => {
   releasePort(port);
 
   // Ensure vite.config.ts has COEP headers for iframe embedding
-  ensureViteCoepHeaders(filesDir);
+  ensureViteDevtoolsConfig(filesDir);
 
   // Check if node_modules exists
   const nodeModulesPath = path.join(filesDir, 'node_modules');
@@ -381,7 +532,7 @@ router.post('/:id/start', async (req, res) => {
   // Function to start the dev server
   const startDevServer = () => {
     runningProject.status = 'starting';
-    pushLog(runningProject.logs,`[${new Date().toISOString()}] Starting dev server on port ${port}...`);
+    pushLog(runningProject, `[${new Date().toISOString()}] Starting dev server on port ${port}...`);
 
     // Spawn vite dev server with specific port
     // Note: shell: false (default) is safer - prevents command injection
@@ -395,7 +546,7 @@ router.post('/:id/start', async (req, res) => {
 
     devProcess.stdout?.on('data', (data) => {
       const output = data.toString();
-      pushLog(runningProject.logs,output);
+      pushLog(runningProject, output);
 
       // Detect when server is ready
       if (output.includes('Local:') || output.includes('ready in')) {
@@ -406,27 +557,26 @@ router.post('/:id/start', async (req, res) => {
 
     devProcess.stderr?.on('data', (data) => {
       const output = data.toString();
-      pushLog(runningProject.errorLogs,output);
       // Vite outputs to stderr sometimes even for non-errors
-      pushLog(runningProject.logs,output);
+      pushLog(runningProject, output, true);
     });
 
     devProcess.on('error', (err) => {
       runningProject.status = 'error';
-      pushLog(runningProject.errorLogs,`Process error: ${err.message}`);
+      pushLog(runningProject, `Process error: ${err.message}`, true);
       console.error(`[Runner] Project ${id} error:`, err);
     });
 
     devProcess.on('exit', (code) => {
       runningProject.status = 'stopped';
-      pushLog(runningProject.logs,`[${new Date().toISOString()}] Process exited with code ${code}`);
+      pushLog(runningProject, `[${new Date().toISOString()}] Process exited with code ${code}`);
       console.log(`[Runner] Project ${id} stopped (exit code: ${code})`);
     });
   };
 
   // Install dependencies if needed
   if (needsInstall) {
-    pushLog(runningProject.logs,`[${new Date().toISOString()}] Installing dependencies...`);
+    pushLog(runningProject, `[${new Date().toISOString()}] Installing dependencies...`);
 
     const installProcess = spawn('npm', ['install'], {
       cwd: filesDir,
@@ -437,17 +587,17 @@ router.post('/:id/start', async (req, res) => {
     runningProject.process = installProcess;
 
     installProcess.stdout?.on('data', (data) => {
-      pushLog(runningProject.logs,data.toString());
+      pushLog(runningProject, data.toString());
     });
 
     installProcess.stderr?.on('data', (data) => {
       // npm install outputs a lot to stderr even on success
-      pushLog(runningProject.logs,data.toString());
+      pushLog(runningProject, data.toString());
     });
 
     installProcess.on('error', (err) => {
       runningProject.status = 'error';
-      pushLog(runningProject.errorLogs,`Install error: ${err.message}`);
+      pushLog(runningProject, `Install error: ${err.message}`, true);
       console.error(`[Runner] Project ${id} install error:`, err);
       // BUG-019 FIX: Clean up process reference on error
       runningProject.process = null;
@@ -455,11 +605,11 @@ router.post('/:id/start', async (req, res) => {
 
     installProcess.on('exit', (code) => {
       if (code === 0) {
-        pushLog(runningProject.logs,`[${new Date().toISOString()}] Dependencies installed successfully`);
+        pushLog(runningProject, `[${new Date().toISOString()}] Dependencies installed successfully`);
         startDevServer();
       } else {
         runningProject.status = 'error';
-        pushLog(runningProject.errorLogs,`npm install failed with code ${code}`);
+        pushLog(runningProject, `npm install failed with code ${code}`, true);
         console.error(`[Runner] Project ${id} npm install failed with code ${code}`);
         // BUG-019 FIX: Clean up process reference on failed install
         runningProject.process = null;
@@ -501,7 +651,7 @@ router.post('/:id/stop', (req, res) => {
   }
 
   running.status = 'stopped';
-  pushLog(running.logs,`[${new Date().toISOString()}] Stopped by user`);
+  pushLog(running, `[${new Date().toISOString()}] Stopped by user`);
 
   // BUG-FIX (MED-S04): Store startedAt to prevent deleting a restarted project entry
   // If user restarts the project within 5 seconds, this closure's startedAt won't match
@@ -538,6 +688,58 @@ router.get('/:id/logs', (req, res) => {
     status: running.status,
     totalLogs: running.logs.length
   });
+});
+
+// SSE endpoint for real-time log streaming
+router.get('/:id/logs/stream', (req, res) => {
+  const { id } = req.params;
+  const running = runningProjects.get(id);
+
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
+  res.flushHeaders();
+
+  if (!running) {
+    // Send stopped status and close
+    res.write(`data: ${JSON.stringify({ type: 'status', status: 'stopped' })}\n\n`);
+    res.end();
+    return;
+  }
+
+  // Send initial logs (catch-up)
+  res.write(`data: ${JSON.stringify({ type: 'init', logs: running.logs, status: running.status })}\n\n`);
+
+  // Listen for new logs
+  const onLog = (data: { entry: string; isError: boolean; timestamp: number }) => {
+    res.write(`data: ${JSON.stringify({ type: 'log', ...data })}\n\n`);
+  };
+
+  // Listen for status changes
+  const originalStatus = running.status;
+  const statusCheckInterval = setInterval(() => {
+    const current = runningProjects.get(id);
+    if (!current) {
+      res.write(`data: ${JSON.stringify({ type: 'status', status: 'stopped' })}\n\n`);
+      cleanup();
+      res.end();
+    } else if (current.status !== originalStatus) {
+      res.write(`data: ${JSON.stringify({ type: 'status', status: current.status })}\n\n`);
+    }
+  }, 1000);
+
+  running.logEmitter.on('log', onLog);
+
+  // Cleanup on client disconnect
+  const cleanup = () => {
+    running.logEmitter.off('log', onLog);
+    clearInterval(statusCheckInterval);
+  };
+
+  req.on('close', cleanup);
+  req.on('error', cleanup);
 });
 
 // Stop all running projects (cleanup endpoint)
