@@ -9,7 +9,9 @@ import {
   stripPlanComment,
   safeParseAIResponse,
   cleanGeneratedCode,
-  parseMultiFileResponse
+  parseMultiFileResponse,
+  fixJsxTextContent,
+  fixBareSpecifierImports
 } from '../../utils/cleanCode';
 
 describe('cleanCode', () => {
@@ -227,6 +229,139 @@ describe('cleanCode', () => {
       const cleaned = cleanGeneratedCode(codeWithMarkers);
       expect(cleaned).toBe('const App = () => null;');
       expect(cleaned).not.toContain('```');
+    });
+  });
+
+  describe('fixJsxTextContent', () => {
+    it('should escape > in arrow patterns like A -> B', () => {
+      const input = '<div>A -> B</div>';
+      const result = fixJsxTextContent(input);
+      expect(result).toContain("{'>'}");
+      // The text content "A -> B" has one > that gets escaped
+      expect(result).toBe("<div>A -{'>'} B</div>");
+    });
+
+    it('should escape < in comparison patterns like x < 5', () => {
+      const input = '<p>x < 5</p>';
+      const result = fixJsxTextContent(input);
+      expect(result).toContain("{'<'}");
+    });
+
+    it('should escape > in comparison patterns like x > 10', () => {
+      const input = '<span>x > 10</span>';
+      const result = fixJsxTextContent(input);
+      expect(result).toContain("{'>'}");
+    });
+
+    it('should not modify already escaped characters', () => {
+      const input = "<div>{'>'}</div>";
+      const result = fixJsxTextContent(input);
+      // Should still have exactly one {'>'}, not doubled
+      expect((result.match(/\{'>'\}/g) || []).length).toBe(1);
+    });
+
+    it('should not modify JSX attributes', () => {
+      const input = '<div className="test">Hello</div>';
+      const result = fixJsxTextContent(input);
+      expect(result).toBe(input);
+    });
+
+    it('should handle multiple problematic characters', () => {
+      const input = '<p>1 < x < 10 and y > 5</p>';
+      const result = fixJsxTextContent(input);
+      expect((result.match(/\{'<'\}/g) || []).length).toBe(2);
+      expect((result.match(/\{'>'\}/g) || []).length).toBe(1);
+    });
+
+    it('should preserve normal text without < or >', () => {
+      const input = '<div>Hello World</div>';
+      const result = fixJsxTextContent(input);
+      expect(result).toBe(input);
+    });
+
+    it('should return unchanged if no JSX elements present', () => {
+      const input = 'const x = a > b ? 1 : 2;';
+      const result = fixJsxTextContent(input);
+      expect(result).toBe(input);
+    });
+
+    it('should handle nested JSX elements', () => {
+      const input = '<div><span>A -> B</span></div>';
+      const result = fixJsxTextContent(input);
+      expect(result).toContain("{'>'}");
+    });
+
+    it('should handle JSX expressions in attributes', () => {
+      const input = '<div onClick={() => console.log("test")}>Click</div>';
+      const result = fixJsxTextContent(input);
+      // The arrow function in attribute should NOT be escaped
+      expect(result).toContain('() => console.log');
+    });
+  });
+
+  describe('fixBareSpecifierImports', () => {
+    it('should fix src/ bare specifier imports', () => {
+      const input = 'import App from "src/App.tsx";';
+      const result = fixBareSpecifierImports(input);
+      expect(result).toBe('import App from "/src/App.tsx";');
+    });
+
+    it('should fix components/ bare specifier imports', () => {
+      const input = "import Button from 'components/Button';";
+      const result = fixBareSpecifierImports(input);
+      expect(result).toBe("import Button from '/components/Button';");
+    });
+
+    it('should fix hooks/ bare specifier imports', () => {
+      const input = 'import { useAuth } from "hooks/useAuth";';
+      const result = fixBareSpecifierImports(input);
+      expect(result).toBe('import { useAuth } from "/hooks/useAuth";');
+    });
+
+    it('should fix utils/ bare specifier imports', () => {
+      const input = 'import { formatDate } from "utils/date";';
+      const result = fixBareSpecifierImports(input);
+      expect(result).toBe('import { formatDate } from "/utils/date";');
+    });
+
+    it('should not modify already valid relative imports', () => {
+      const input = 'import App from "./App";';
+      const result = fixBareSpecifierImports(input);
+      expect(result).toBe(input);
+    });
+
+    it('should not modify already valid absolute imports', () => {
+      const input = 'import App from "/src/App";';
+      const result = fixBareSpecifierImports(input);
+      expect(result).toBe(input);
+    });
+
+    it('should not modify npm package imports', () => {
+      const input = 'import React from "react";';
+      const result = fixBareSpecifierImports(input);
+      expect(result).toBe(input);
+    });
+
+    it('should handle multiple imports in same file', () => {
+      const input = `import App from "src/App";
+import Button from "components/Button";
+import React from "react";`;
+      const result = fixBareSpecifierImports(input);
+      expect(result).toContain('from "/src/App"');
+      expect(result).toContain('from "/components/Button"');
+      expect(result).toContain('from "react"');
+    });
+
+    it('should fix dynamic imports', () => {
+      const input = 'const App = lazy(() => import("src/App"));';
+      const result = fixBareSpecifierImports(input);
+      expect(result).toBe('const App = lazy(() => import("/src/App"));');
+    });
+
+    it('should fix export from statements', () => {
+      const input = 'export { Button } from "components/Button";';
+      const result = fixBareSpecifierImports(input);
+      expect(result).toBe('export { Button } from "/components/Button";');
     });
   });
 });

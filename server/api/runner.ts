@@ -214,6 +214,30 @@ const COEP_HEADERS_CONFIG = `
     }
   }`;
 
+// Resolve aliases to fix bare specifier imports that AI often generates
+// Uses fileURLToPath to get proper absolute paths that work with Vite
+// Note: This requires adding the import at the top of the generated config
+const RESOLVE_ALIAS_IMPORT = `import { fileURLToPath, URL } from 'node:url';`;
+const RESOLVE_ALIAS_CONFIG = `
+  resolve: {
+    alias: {
+      'src': fileURLToPath(new URL('./src', import.meta.url)),
+      'components': fileURLToPath(new URL('./src/components', import.meta.url)),
+      'hooks': fileURLToPath(new URL('./src/hooks', import.meta.url)),
+      'utils': fileURLToPath(new URL('./src/utils', import.meta.url)),
+      'services': fileURLToPath(new URL('./src/services', import.meta.url)),
+      'contexts': fileURLToPath(new URL('./src/contexts', import.meta.url)),
+      'types': fileURLToPath(new URL('./src/types', import.meta.url)),
+      'lib': fileURLToPath(new URL('./src/lib', import.meta.url)),
+      'pages': fileURLToPath(new URL('./src/pages', import.meta.url)),
+      'features': fileURLToPath(new URL('./src/features', import.meta.url)),
+      'modules': fileURLToPath(new URL('./src/modules', import.meta.url)),
+      'assets': fileURLToPath(new URL('./src/assets', import.meta.url)),
+      'styles': fileURLToPath(new URL('./src/styles', import.meta.url)),
+      'api': fileURLToPath(new URL('./src/api', import.meta.url))
+    }
+  }`;
+
 // DevTools script for console/network interception (injected into running apps)
 const DEVTOOLS_SCRIPT = `
 (function() {
@@ -343,9 +367,9 @@ const DEVTOOLS_PLUGIN = `
     }`;
 
 /**
- * Ensure vite.config.ts has COEP headers and devtools plugin for iframe embedding
- * This allows the running app to be displayed in FluidFlow's RunnerPanel iframe
- * and enables console/network interception
+ * Ensure vite.config.ts has COEP headers, devtools plugin, and resolve aliases
+ * This allows the running app to be displayed in FluidFlow's RunnerPanel iframe,
+ * enables console/network interception, and fixes bare specifier imports
  */
 function ensureViteDevtoolsConfig(filesDir: string): void {
   const viteConfigPath = path.join(filesDir, 'vite.config.ts');
@@ -359,11 +383,12 @@ function ensureViteDevtoolsConfig(filesDir: string): void {
     let content = readFileSync(viteConfigPath, 'utf-8');
     let modified = false;
 
-    // Check if devtools plugin is already present
+    // Check if features are already present
     const hasDevtools = content.includes('fluidflow-devtools');
     const hasCoep = content.includes('Cross-Origin-Embedder-Policy');
+    const hasResolveAlias = content.includes("'src': '/src'") || content.includes('"src": "/src"');
 
-    if (hasDevtools && hasCoep) {
+    if (hasDevtools && hasCoep && hasResolveAlias) {
       console.log('[Runner] vite.config.ts already has FluidFlow config');
       return;
     }
@@ -380,18 +405,45 @@ function ensureViteDevtoolsConfig(filesDir: string): void {
       }
     }
 
-    // Inject COEP headers into server config
-    if (!hasCoep) {
-      const defineConfigMatch = content.match(/defineConfig\s*\(\s*\{/);
-      if (defineConfigMatch) {
-        const lastBracketIndex = content.lastIndexOf('})');
-        if (lastBracketIndex > 0) {
-          const beforeBracket = content.substring(0, lastBracketIndex).trimEnd();
-          const needsComma = !beforeBracket.endsWith(',') && !beforeBracket.endsWith('{');
-          const insertion = (needsComma ? ',' : '') + COEP_HEADERS_CONFIG;
-          content = content.substring(0, lastBracketIndex) + insertion + '\n' + content.substring(lastBracketIndex);
-          modified = true;
+    // Inject COEP headers and resolve aliases into config
+    const defineConfigMatch = content.match(/defineConfig\s*\(\s*\{/);
+    if (defineConfigMatch) {
+      const lastBracketIndex = content.lastIndexOf('})');
+      if (lastBracketIndex > 0) {
+        let insertions = '';
+        const beforeBracket = content.substring(0, lastBracketIndex).trimEnd();
+        const needsComma = !beforeBracket.endsWith(',') && !beforeBracket.endsWith('{');
+
+        // Add COEP headers if missing
+        if (!hasCoep) {
+          insertions += (needsComma || insertions ? ',' : '') + COEP_HEADERS_CONFIG;
           console.log('[Runner] Injected COEP headers into vite.config.ts');
+        }
+
+        // Add resolve aliases if missing (fixes bare specifier imports)
+        if (!hasResolveAlias) {
+          insertions += (needsComma || insertions ? ',' : '') + RESOLVE_ALIAS_CONFIG;
+
+          // Also add the required import at the top of the file if not present
+          if (!content.includes('fileURLToPath')) {
+            // Find the first import statement or the start of the file
+            const firstImportMatch = content.match(/^(import\s+)/m);
+            if (firstImportMatch && firstImportMatch.index !== undefined) {
+              content = content.substring(0, firstImportMatch.index) +
+                RESOLVE_ALIAS_IMPORT + '\n' +
+                content.substring(firstImportMatch.index);
+            } else {
+              // No imports found, add at the very beginning
+              content = RESOLVE_ALIAS_IMPORT + '\n' + content;
+            }
+          }
+
+          console.log('[Runner] Injected resolve aliases into vite.config.ts');
+        }
+
+        if (insertions) {
+          content = content.substring(0, lastBracketIndex) + insertions + '\n' + content.substring(lastBracketIndex);
+          modified = true;
         }
       }
     }
@@ -503,6 +555,11 @@ router.post('/:id/start', async (req, res) => {
 
   // Create running project entry
   // BUG-F01 FIX: Process is initially null and will be set when installation/start begins
+  // Create EventEmitter with higher max listeners limit for SSE streaming
+  // (default is 10, but multiple browser tabs/reconnections can exceed this)
+  const logEmitter = new EventEmitter();
+  logEmitter.setMaxListeners(50);
+
   const runningProject: RunningProject = {
     projectId: id,
     port,
@@ -512,7 +569,7 @@ router.post('/:id/start', async (req, res) => {
     errorLogs: [],
     startedAt: Date.now(),
     url: `http://localhost:${port}`,
-    logEmitter: new EventEmitter()
+    logEmitter
   };
 
   runningProjects.set(id, runningProject);

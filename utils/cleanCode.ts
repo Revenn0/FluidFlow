@@ -6,9 +6,148 @@ export { isIgnoredPath as isIgnoredFilePath };
 const isIgnoredFilePath = isIgnoredPath;
 
 /**
+ * Checks if position i in code starts a JSX tag (not a comparison operator)
+ * JSX tags: <div, </div, <Component, <>, </>
+ */
+function isJsxTagStart(code: string, i: number): boolean {
+  if (code[i] !== '<') return false;
+  const nextChar = code[i + 1];
+  // JSX tags start with <letter, </, or <>
+  return /[A-Za-z\/!>]/.test(nextChar || '');
+}
+
+/**
+ * Fixes unescaped < and > characters in JSX text content.
+ * AI often generates code like <div>A -> B</div> which causes JSX parse errors.
+ * This function escapes these characters in text content only.
+ */
+export function fixJsxTextContent(code: string): string {
+  if (!code) return '';
+
+  // Only process if it looks like JSX/TSX (has JSX elements)
+  if (!/<\w+[^>]*>/.test(code)) {
+    return code;
+  }
+
+  let result = '';
+  let i = 0;
+  const len = code.length;
+
+  while (i < len) {
+    // Check if we're at a JSX tag opening
+    if (isJsxTagStart(code, i)) {
+      // Find the end of this tag
+      let tagEnd = i + 1;
+      let inString = false;
+      let stringChar = '';
+      let braceDepth = 0;
+
+      while (tagEnd < len) {
+        const ch = code[tagEnd];
+
+        // Track JSX expression braces
+        if (!inString && ch === '{') {
+          braceDepth++;
+        } else if (!inString && ch === '}') {
+          braceDepth--;
+        }
+
+        // Track strings
+        if ((ch === '"' || ch === "'" || ch === '`') && code[tagEnd - 1] !== '\\') {
+          if (!inString) {
+            inString = true;
+            stringChar = ch;
+          } else if (ch === stringChar) {
+            inString = false;
+          }
+        }
+
+        // End of tag (only if not in string or brace expression)
+        if (ch === '>' && !inString && braceDepth === 0) {
+          break;
+        }
+
+        tagEnd++;
+      }
+
+      // Copy the tag including the closing >
+      result += code.slice(i, tagEnd + 1);
+      i = tagEnd + 1;
+
+      // Now collect text content until next JSX tag (not comparison operators)
+      let textContent = '';
+      while (i < len && !isJsxTagStart(code, i)) {
+        textContent += code[i];
+        i++;
+      }
+
+      // If we have text content with non-whitespace, escape problematic chars
+      if (textContent.length > 0 && textContent.trim().length > 0) {
+        // Escape > and < that appear in text content
+        // But NOT if they're already in a JSX expression like {'>'}
+        textContent = textContent
+          .replace(/(?<!\{['"]?)>(?!['"]?\})/g, "{'>'}")
+          .replace(/(?<!\{['"]?)<(?!['"]?\})/g, "{'<'}");
+      }
+
+      result += textContent;
+      continue;
+    }
+
+    // Default: copy character as-is (non-JSX code)
+    result += code[i];
+    i++;
+  }
+
+  return result;
+}
+
+/**
+ * Fixes bare specifier imports that AI often generates incorrectly.
+ * Converts: import X from "src/..." to import X from "/src/..."
+ * Also handles: import X from "components/..." etc.
+ *
+ * Browser ES modules require paths to start with "/", "./", or "../"
+ */
+export function fixBareSpecifierImports(code: string): string {
+  if (!code) return '';
+
+  // Common directory patterns that AI incorrectly uses as bare specifiers
+  // These should be converted to absolute paths (prefixed with /)
+  const bareSpecifierDirs = [
+    'src',
+    'components',
+    'hooks',
+    'utils',
+    'services',
+    'contexts',
+    'types',
+    'lib',
+    'pages',
+    'features',
+    'modules',
+    'assets',
+    'styles',
+    'api',
+  ];
+
+  // Build regex pattern: matches import/export from "dir/..." or 'dir/...'
+  // Captures: full match, quote char, path
+  const pattern = new RegExp(
+    `(import\\s+[^;]+?from\\s*|export\\s+[^;]*?from\\s*|import\\s*\\()(['"\`])(${bareSpecifierDirs.join('|')})/`,
+    'g'
+  );
+
+  // Replace bare specifiers with absolute paths
+  return code.replace(pattern, (match, prefix, quote, dir) => {
+    return `${prefix}${quote}/${dir}/`;
+  });
+}
+
+/**
  * Cleans AI-generated code by removing markdown artifacts and code block markers
  */
-export function cleanGeneratedCode(code: string): string {
+export function cleanGeneratedCode(code: string, filePath?: string): string {
   if (!code) return '';
 
   let cleaned = code;
@@ -29,6 +168,26 @@ export function cleanGeneratedCode(code: string): string {
 
   // Remove any remaining triple backticks
   cleaned = cleaned.replace(/```/g, '');
+
+  // Check if this is a JS/TS file
+  const isJsFile = filePath
+    ? /\.(tsx?|jsx?|mjs|cjs)$/.test(filePath)
+    : /import\s+.*from\s+['"]|export\s+/.test(cleaned);
+
+  // Fix bare specifier imports (src/... -> /src/...)
+  if (isJsFile) {
+    cleaned = fixBareSpecifierImports(cleaned);
+  }
+
+  // Fix JSX text content with unescaped < and > characters
+  // Only for JSX/TSX files (determined by content or file extension)
+  const isJsxContent = filePath
+    ? /\.(tsx|jsx)$/.test(filePath)
+    : /<\w+[^>]*>[\s\S]*<\/\w+>/.test(cleaned); // Has JSX-like structure
+
+  if (isJsxContent) {
+    cleaned = fixJsxTextContent(cleaned);
+  }
 
   // Trim whitespace
   cleaned = cleaned.trim();
@@ -758,8 +917,8 @@ export function parseMultiFileResponse(response: string, noThrow: boolean = fals
           continue;
         }
 
-        // Clean the content
-        const cleanedContent = cleanGeneratedCode(contentStr);
+        // Clean the content (pass file path for JSX detection)
+        const cleanedContent = cleanGeneratedCode(contentStr, path);
 
         // Validate cleaned content
         if (!cleanedContent || cleanedContent.length < 10) {
