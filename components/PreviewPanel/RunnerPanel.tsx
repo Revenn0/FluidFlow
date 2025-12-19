@@ -90,15 +90,18 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
   const isRunning = status?.running || status?.status === 'installing' || status?.status === 'starting';
   const isServerReady = status?.status === 'running' && status?.url;
 
+  // SSE status change handler - memoized to prevent hook re-runs
+  const handleStatusChange = useCallback((newStatus: string) => {
+    if (newStatus === 'stopped') {
+      setStatus({ status: 'stopped', running: false } as RunningProjectInfo);
+    }
+  }, [setStatus]);
+
   // SSE-based log streaming
   const { logs: terminalLogs, connected: sseConnected, clearLogs: clearTerminalLogs } = useLogStream({
     projectId: effectiveProjectId,
     enabled: isRunning,
-    onStatusChange: (newStatus) => {
-      if (newStatus === 'stopped') {
-        setStatus({ status: 'stopped', running: false } as RunningProjectInfo);
-      }
-    }
+    onStatusChange: handleStatusChange
   });
 
   // Listen for postMessage from iframe (console/network)

@@ -556,9 +556,9 @@ router.post('/:id/start', async (req, res) => {
   // Create running project entry
   // BUG-F01 FIX: Process is initially null and will be set when installation/start begins
   // Create EventEmitter with higher max listeners limit for SSE streaming
-  // (default is 10, but multiple browser tabs/reconnections can exceed this)
+  // Set to 0 (unlimited) to prevent memory leak warnings from reconnection loops
   const logEmitter = new EventEmitter();
-  logEmitter.setMaxListeners(50);
+  logEmitter.setMaxListeners(0);
 
   const runningProject: RunningProject = {
     projectId: id,

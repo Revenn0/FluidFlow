@@ -8,7 +8,7 @@
  */
 
 import { ChatMessage, FileSystem } from '@/types';
-import { cleanGeneratedCode, parseMultiFileResponse } from '@/utils/cleanCode';
+import { cleanGeneratedCode, parseMultiFileResponse, parseUnifiedResponse } from '@/utils/cleanCode';
 import { calculateFileChanges } from '@/utils/generationUtils';
 import { AIHistoryEntry } from '@/services/projectApi';
 
@@ -30,9 +30,15 @@ export function restoreFromHistoryEntries(entries: AIHistoryEntry[]): RestoreRes
     let previousFiles: FileSystem = {};
 
     for (const historyEntry of entries) {
-      // Parse files from this entry
-      const parsed = parseMultiFileResponse(historyEntry.rawResponse);
-      if (!parsed?.files) continue;
+      // Parse files from this entry - try unified parser first (supports both JSON and marker formats)
+      const unifiedResult = parseUnifiedResponse(historyEntry.rawResponse);
+      const parsed = unifiedResult ? {
+        files: unifiedResult.files,
+        explanation: unifiedResult.explanation,
+        deletedFiles: unifiedResult.deletedFiles,
+      } : parseMultiFileResponse(historyEntry.rawResponse); // Fallback to JSON-only parser
+
+      if (!parsed?.files || Object.keys(parsed.files).length === 0) continue;
 
       // Clean the generated code
       const cleanedFiles: FileSystem = {};

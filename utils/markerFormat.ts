@@ -222,14 +222,23 @@ function buildFilePattern(): RegExp {
  * <!-- FILE:src/App.tsx -->
  * content here
  * <!-- /FILE:src/App.tsx -->
+ *
+ * Also handles missing closing tags when AI opens a new file without closing the previous one:
+ * <!-- FILE:src/App.tsx -->
+ * content...
+ * <!-- FILE:src/Other.tsx -->  <- Missing <!-- /FILE:src/App.tsx --> here
+ * content...
+ * <!-- /FILE:src/Other.tsx -->
  */
 export function parseMarkerFiles(response: string): Record<string, string> {
   const files: Record<string, string> = {};
 
-  // Match all FILE blocks
+  // First, try to match properly closed FILE blocks
   const filePattern = buildFilePattern();
 
   let match;
+  const processedPaths = new Set<string>();
+
   while ((match = filePattern.exec(response)) !== null) {
     const filePath = match[1].trim();
     let content = match[2];
@@ -242,6 +251,58 @@ export function parseMarkerFiles(response: string): Record<string, string> {
 
     if (cleaned && cleaned.length > 0) {
       files[filePath] = cleaned;
+      processedPaths.add(filePath);
+    }
+  }
+
+  // Now handle files that were opened but not properly closed
+  // Find all FILE opening markers
+  const openPattern = /<!--\s*FILE:([\w./-]+\.[a-zA-Z]+)\s*-->/g;
+  const openings: { path: string; index: number; endIndex: number }[] = [];
+
+  while ((match = openPattern.exec(response)) !== null) {
+    const path = match[1].trim();
+    // Skip if already processed with proper closing tag
+    if (!processedPaths.has(path)) {
+      openings.push({
+        path,
+        index: match.index,
+        endIndex: match.index + match[0].length
+      });
+    }
+  }
+
+  // For each unclosed file, extract content until the next FILE marker or end
+  for (let i = 0; i < openings.length; i++) {
+    const current = openings[i];
+    const contentStart = current.endIndex;
+
+    // Find the end: either the next FILE opening marker, or a matching close tag, or end of string
+    let contentEnd = response.length;
+
+    // Check for next FILE opening marker
+    const nextOpening = openings[i + 1];
+    if (nextOpening) {
+      contentEnd = nextOpening.index;
+    }
+
+    // Also check if there's any <!-- FILE: or <!-- /FILE: marker before the next opening
+    const remainingText = response.slice(contentStart, contentEnd);
+    const nextMarkerMatch = remainingText.match(/<!--\s*(?:\/)?FILE:/);
+    if (nextMarkerMatch && nextMarkerMatch.index !== undefined) {
+      contentEnd = contentStart + nextMarkerMatch.index;
+    }
+
+    // Extract and clean content
+    let content = response.slice(contentStart, contentEnd);
+    content = content.replace(/^\n+/, '').replace(/\n+$/, '');
+
+    // Clean generated code
+    const cleaned = cleanGeneratedCode(content, current.path);
+
+    if (cleaned && cleaned.length > 0) {
+      files[current.path] = cleaned;
+      console.warn(`[parseMarkerFiles] File "${current.path}" had missing closing tag - recovered content`);
     }
   }
 
@@ -251,6 +312,10 @@ export function parseMarkerFiles(response: string): Record<string, string> {
 /**
  * Parse incomplete/streaming FILE blocks
  * Returns partial files that are still being streamed
+ *
+ * Also handles cases where AI opens a new file without closing the previous one:
+ * - The "implicitly closed" file (content up to next FILE marker) goes to complete
+ * - Only the truly incomplete last file goes to streaming
  */
 export function parseStreamingMarkerFiles(response: string): {
   complete: Record<string, string>;
@@ -261,7 +326,7 @@ export function parseStreamingMarkerFiles(response: string): {
   const streaming: Record<string, string> = {};
   let currentFile: string | null = null;
 
-  // First, extract all complete files
+  // First, extract all properly closed files
   const completePattern = buildFilePattern();
   const completedPaths = new Set<string>();
 
@@ -274,21 +339,52 @@ export function parseStreamingMarkerFiles(response: string): {
     completedPaths.add(filePath);
   }
 
-  // Then, find any incomplete FILE blocks (opened but not closed)
-  const openPattern = new RegExp(
-    '<!--\\s*FILE:(' + FILE_PATH_PATTERN.source + ')\\s*-->([\\s\\S]*)$'
-  );
-  const openMatch = response.match(openPattern);
+  // Find all FILE opening markers
+  const openPattern = /<!--\s*FILE:([\w./-]+\.[a-zA-Z]+)\s*-->/g;
+  const openings: { path: string; index: number; endIndex: number }[] = [];
 
-  if (openMatch) {
-    const filePath = openMatch[1].trim();
+  while ((match = openPattern.exec(response)) !== null) {
+    const path = match[1].trim();
+    // Skip if already processed with proper closing tag
+    if (!completedPaths.has(path)) {
+      openings.push({
+        path,
+        index: match.index,
+        endIndex: match.index + match[0].length
+      });
+    }
+  }
 
-    // Check if this file is already complete (has a closing tag)
-    if (!completedPaths.has(filePath)) {
-      let content = openMatch[2];
+  // Process unclosed files
+  for (let i = 0; i < openings.length; i++) {
+    const current = openings[i];
+    const contentStart = current.endIndex;
+    const isLast = i === openings.length - 1;
+
+    if (isLast) {
+      // Last unclosed file - this is truly streaming/incomplete
+      let content = response.slice(contentStart);
       content = content.replace(/^\n+/, '');
-      streaming[filePath] = content;
-      currentFile = filePath;
+
+      // Check if there's any marker after this (like GENERATION_META)
+      const nextMarkerMatch = content.match(/<!--\s*(?:\/FILE:|GENERATION_META|PLAN|EXPLANATION)/);
+      if (nextMarkerMatch && nextMarkerMatch.index !== undefined) {
+        content = content.slice(0, nextMarkerMatch.index).replace(/\n+$/, '');
+      }
+
+      streaming[current.path] = content;
+      currentFile = current.path;
+    } else {
+      // Not the last file - it was implicitly closed when next file started
+      // Treat this as complete (recovered from missing closing tag)
+      const nextOpening = openings[i + 1];
+      let content = response.slice(contentStart, nextOpening.index);
+      content = content.replace(/^\n+/, '').replace(/\n+$/, '');
+
+      const cleaned = cleanGeneratedCode(content, current.path);
+      if (cleaned && cleaned.length > 0) {
+        complete[current.path] = cleaned;
+      }
     }
   }
 

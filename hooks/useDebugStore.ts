@@ -133,10 +133,24 @@ export const debugLog = {
 };
 
 function addLog(entry: DebugLogEntry) {
-  globalDebugState = {
-    ...globalDebugState,
-    logs: [entry, ...globalDebugState.logs].slice(0, globalDebugState.maxLogs),
-  };
+  // Check if log with same ID already exists - prevent duplicates
+  const existingIndex = globalDebugState.logs.findIndex(log => log.id === entry.id);
+
+  if (existingIndex !== -1) {
+    // Update existing log instead of adding duplicate
+    const updatedLogs = [...globalDebugState.logs];
+    updatedLogs[existingIndex] = { ...updatedLogs[existingIndex], ...entry };
+    globalDebugState = {
+      ...globalDebugState,
+      logs: updatedLogs,
+    };
+  } else {
+    // Add new log
+    globalDebugState = {
+      ...globalDebugState,
+      logs: [entry, ...globalDebugState.logs].slice(0, globalDebugState.maxLogs),
+    };
+  }
   globalListeners.forEach(listener => listener());
 }
 

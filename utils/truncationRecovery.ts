@@ -232,12 +232,12 @@ export function emergencyCodeBlockExtraction(
 
       // End position is either next file path or end of text
       const nextMatch = filePathMatches[i + 1];
-      let endPos = nextMatch ? nextMatch.index! : fullText.length;
+      const endPos = nextMatch?.index ?? fullText.length;
 
       // Also check for end-of-code patterns (explanation text, etc.)
       const codeSection = fullText.slice(startPos, endPos);
       const endPatterns = [
-        /\n\n[A-Z][^{}\[\]()]*:\s*$/m,        // "Section Name:" at end of line
+        /\n\n[A-Z][^{}[\]()]*:\s*$/m,        // "Section Name:" at end of line
         /\n\n[-*•]\s+[A-Z]/m,                  // "- Bullet point"
         /\n\n\d+\.\s+[A-Z]/m,                  // "1. Numbered list"
         /\n\n(?:Created|Updated|Added|Fixed|Implemented)\s/m,  // Common intro words

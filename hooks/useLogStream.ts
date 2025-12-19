@@ -45,6 +45,10 @@ export function useLogStream({
   const eventSourceRef = useRef<EventSource | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Store callback in ref to avoid re-creating connection when callback changes
+  const onStatusChangeRef = useRef(onStatusChange);
+  onStatusChangeRef.current = onStatusChange;
+
   // Batch buffer for incoming logs
   const logBufferRef = useRef<string[]>([]);
   const batchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -116,7 +120,7 @@ export function useLogStream({
               setLogs((data.logs || []).slice(-MAX_LOGS));
               if (data.status) {
                 setStatus(data.status);
-                onStatusChange?.(data.status);
+                onStatusChangeRef.current?.(data.status);
               }
               break;
 
@@ -128,7 +132,7 @@ export function useLogStream({
             case 'status':
               // Status change
               setStatus(data.status);
-              onStatusChange?.(data.status);
+              onStatusChangeRef.current?.(data.status);
 
               // If stopped, close connection
               if (data.status === 'stopped') {
@@ -170,7 +174,8 @@ export function useLogStream({
       }
       setConnected(false);
     };
-  }, [projectId, enabled, onStatusChange, addLog]);
+  // Note: onStatusChange is stored in ref to avoid re-creating connection on callback change
+  }, [projectId, enabled, addLog]);
 
   return {
     logs,
