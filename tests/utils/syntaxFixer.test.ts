@@ -85,6 +85,26 @@ describe('fixArrowFunctions', () => {
     const result = fixArrowFunctions(input);
     expect(result).toBe(input);
   });
+
+  it('should fix hybrid function/arrow syntax: function Name() => {', () => {
+    const input = 'export function GridOverlay() => {';
+    const result = fixArrowFunctions(input);
+    expect(result).toBe('export function GridOverlay() {');
+  });
+
+  it('should fix hybrid function/arrow with params: function Name(props) => {', () => {
+    const input = 'function GlowCard({ children, className }: Props) => {';
+    const result = fixArrowFunctions(input);
+    expect(result).toBe('function GlowCard({ children, className }: Props) {');
+  });
+
+  it('should fix hybrid function/arrow with complex TS params', () => {
+    const input = "export function GlitchText({ text, className = '', colors = 'cyan-400,pink-500' }: GlitchTextProps) => {";
+    const result = fixArrowFunctions(input);
+    expect(result).toContain('function GlitchText(');
+    expect(result).toContain(') {');
+    expect(result).not.toContain('=>');
+  });
 });
 
 // ============================================================================

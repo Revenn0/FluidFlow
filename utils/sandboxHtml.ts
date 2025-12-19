@@ -990,6 +990,10 @@ function getBootstrapScript(files: FileSystem): string {
         // PHASE 1: Arrow function fixes
         // ═══════════════════════════════════════════════════════════
 
+        // CRITICAL: Fix hybrid function/arrow syntax - "function Name() => {" → "function Name() {"
+        // AI commonly generates this invalid mix of function declaration and arrow function
+        fixed = fixed.replace(/\\bfunction\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*(?::\\s*[\\w<>\\[\\],\\s|]+)?\\s*=>\\s*\\{/g, 'function $1($2) {');
+
         // = > → =>
         fixed = fixed.replace(/=\\s+>/g, '=>');
 

@@ -238,10 +238,17 @@ export function fixCommonSyntaxErrors(code: string): string {
   // PHASE 3: Fix arrow function syntax
   // ══════════════════════════════════════════════════════════════
 
-  // 3a: `() = > {` (space before >) → `() => {`
+  // 3a: CRITICAL - Fix hybrid function/arrow syntax: "function Name() => {" -> "function Name() {"
+  // AI commonly generates this invalid mix of function declaration and arrow function
+  fixed = fixed.replace(
+    /\bfunction\s+(\w+)\s*\(([^)]*)\)\s*(?::\s*[\w<>[\],\s|]+)?\s*=>\s*\{/g,
+    'function $1($2) {'
+  );
+
+  // 3b: `() = > {` (space before >) → `() => {`
   fixed = fixed.replace(/=\s+>/g, '=>');
 
-  // 3b: `= >{` (no space after =>) → `=> {`
+  // 3c: `= >{` (no space after =>) → `=> {`
   fixed = fixed.replace(/=>\s*\{/g, '=> {');
 
   // ══════════════════════════════════════════════════════════════

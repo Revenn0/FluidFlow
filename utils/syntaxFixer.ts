@@ -88,6 +88,19 @@ export function fixMalformedTernary(code: string): string {
 export function fixArrowFunctions(code: string): string {
   let result = code;
 
+  // CRITICAL: Fix hybrid function/arrow syntax: "function Name() => {" -> "function Name() {"
+  // AI commonly generates this invalid mix of function declaration and arrow function
+  result = result.replace(
+    /\bfunction\s+(\w+)\s*\(([^)]*)\)\s*(?::\s*[\w<>[\],\s|]+)?\s*=>\s*\{/g,
+    'function $1($2) {'
+  );
+
+  // Also fix with TypeScript return type: "function Name(): Type => {" -> "function Name(): Type {"
+  result = result.replace(
+    /\bfunction\s+(\w+)\s*\(([^)]*)\)\s*:\s*([\w<>[\],\s|]+)\s*=>\s*\{/g,
+    'function $1($2): $3 {'
+  );
+
   // = > should be =>
   result = result.replace(/=\s+>/g, '=>');
 
