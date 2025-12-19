@@ -386,7 +386,8 @@ function ensureViteDevtoolsConfig(filesDir: string): void {
     // Check if features are already present
     const hasDevtools = content.includes('fluidflow-devtools');
     const hasCoep = content.includes('Cross-Origin-Embedder-Policy');
-    const hasResolveAlias = content.includes("'src': '/src'") || content.includes('"src": "/src"');
+    // Check for any existing resolve.alias config (various formats)
+    const hasResolveAlias = /resolve\s*:\s*\{[\s\S]*?alias\s*:/m.test(content);
 
     if (hasDevtools && hasCoep && hasResolveAlias) {
       console.log('[Runner] vite.config.ts already has FluidFlow config');
@@ -453,6 +454,172 @@ function ensureViteDevtoolsConfig(filesDir: string): void {
     }
   } catch (err) {
     console.error('[Runner] Failed to inject config:', err);
+  }
+}
+
+// Node.js built-in modules (should not be added to package.json)
+const NODE_BUILTINS = new Set([
+  'assert', 'buffer', 'child_process', 'cluster', 'console', 'constants',
+  'crypto', 'dgram', 'dns', 'domain', 'events', 'fs', 'http', 'https',
+  'module', 'net', 'os', 'path', 'perf_hooks', 'process', 'punycode',
+  'querystring', 'readline', 'repl', 'stream', 'string_decoder', 'sys',
+  'timers', 'tls', 'tty', 'url', 'util', 'v8', 'vm', 'wasi', 'worker_threads', 'zlib',
+  // Node.js prefixed versions
+  'node:assert', 'node:buffer', 'node:child_process', 'node:cluster', 'node:console',
+  'node:crypto', 'node:dgram', 'node:dns', 'node:events', 'node:fs', 'node:http',
+  'node:https', 'node:module', 'node:net', 'node:os', 'node:path', 'node:perf_hooks',
+  'node:process', 'node:querystring', 'node:readline', 'node:stream', 'node:string_decoder',
+  'node:timers', 'node:tls', 'node:tty', 'node:url', 'node:util', 'node:v8', 'node:vm',
+  'node:wasi', 'node:worker_threads', 'node:zlib'
+]);
+
+// Common React/Vite packages that are typically devDependencies
+const DEV_DEPENDENCY_PATTERNS = [
+  /^@types\//,
+  /^@vitejs\//,
+  /^@tailwindcss\//,
+  /^vite$/,
+  /^typescript$/,
+  /^eslint/,
+  /^prettier/,
+  /^tailwindcss$/
+];
+
+/**
+ * Recursively find all source files in a directory
+ */
+function findSourceFiles(dir: string, files: string[] = []): string[] {
+  try {
+    const entries = readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        // Skip node_modules and hidden directories
+        if (entry.name !== 'node_modules' && !entry.name.startsWith('.')) {
+          findSourceFiles(fullPath, files);
+        }
+      } else if (/\.(ts|tsx|js|jsx|mjs)$/.test(entry.name)) {
+        files.push(fullPath);
+      }
+    }
+  } catch {
+    // Directory doesn't exist or not readable
+  }
+  return files;
+}
+
+/**
+ * Extract package names from import statements in source files
+ */
+function extractImportedPackages(filesDir: string): Set<string> {
+  const packages = new Set<string>();
+  const sourceFiles = findSourceFiles(filesDir);
+
+  // Regex patterns for import statements
+  // Matches: import X from "package", import "package", import("package"), require("package")
+  const importPatterns = [
+    /import\s+(?:[\w\s{},*]+\s+from\s+)?["']([^"'./][^"']*)["']/g,
+    /import\s*\(\s*["']([^"'./][^"']*)["']\s*\)/g,
+    /require\s*\(\s*["']([^"'./][^"']*)["']\s*\)/g
+  ];
+
+  for (const filePath of sourceFiles) {
+    try {
+      const content = readFileSync(filePath, 'utf-8');
+
+      for (const pattern of importPatterns) {
+        let match;
+        // Reset lastIndex for global regex
+        pattern.lastIndex = 0;
+        while ((match = pattern.exec(content)) !== null) {
+          let packageName = match[1];
+
+          // Handle scoped packages (@org/package)
+          if (packageName.startsWith('@')) {
+            const parts = packageName.split('/');
+            if (parts.length >= 2) {
+              packageName = `${parts[0]}/${parts[1]}`;
+            }
+          } else {
+            // Handle regular packages (get only the package name, not subpaths)
+            packageName = packageName.split('/')[0];
+          }
+
+          // Skip Node.js built-ins and relative imports
+          if (!NODE_BUILTINS.has(packageName) && !packageName.startsWith('.')) {
+            packages.add(packageName);
+          }
+        }
+      }
+    } catch {
+      // File not readable, skip
+    }
+  }
+
+  return packages;
+}
+
+/**
+ * Ensure all imported packages are in package.json
+ * This fixes the common issue where AI generates code using packages
+ * that aren't listed in package.json
+ */
+function ensureMissingDependencies(filesDir: string): string[] {
+  const packageJsonPath = path.join(filesDir, 'package.json');
+
+  if (!existsSync(packageJsonPath)) {
+    console.log('[Runner] No package.json found, skipping dependency check');
+    return [];
+  }
+
+  try {
+    const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+    const existingDeps = new Set([
+      ...Object.keys(packageJson.dependencies || {}),
+      ...Object.keys(packageJson.devDependencies || {}),
+      ...Object.keys(packageJson.peerDependencies || {})
+    ]);
+
+    const importedPackages = extractImportedPackages(filesDir);
+    const missingPackages: string[] = [];
+
+    for (const pkg of importedPackages) {
+      if (!existingDeps.has(pkg)) {
+        missingPackages.push(pkg);
+      }
+    }
+
+    if (missingPackages.length > 0) {
+      console.log(`[Runner] Found ${missingPackages.length} missing packages:`, missingPackages);
+
+      // Add missing packages to dependencies
+      if (!packageJson.dependencies) {
+        packageJson.dependencies = {};
+      }
+
+      for (const pkg of missingPackages) {
+        // Check if it should be a devDependency
+        const isDevDep = DEV_DEPENDENCY_PATTERNS.some(pattern => pattern.test(pkg));
+
+        if (isDevDep) {
+          if (!packageJson.devDependencies) {
+            packageJson.devDependencies = {};
+          }
+          packageJson.devDependencies[pkg] = '*';
+        } else {
+          packageJson.dependencies[pkg] = '*';
+        }
+      }
+
+      // Write updated package.json
+      writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2), 'utf-8');
+      console.log('[Runner] Updated package.json with missing dependencies');
+    }
+
+    return missingPackages;
+  } catch (err) {
+    console.error('[Runner] Failed to check dependencies:', err);
+    return [];
   }
 }
 
@@ -580,9 +747,12 @@ router.post('/:id/start', async (req, res) => {
   // Ensure vite.config.ts has COEP headers for iframe embedding
   ensureViteDevtoolsConfig(filesDir);
 
-  // Check if node_modules exists
+  // Check for missing dependencies and add them to package.json
+  const missingPackages = ensureMissingDependencies(filesDir);
+
+  // Check if node_modules exists or if we added new packages
   const nodeModulesPath = path.join(filesDir, 'node_modules');
-  const needsInstall = !existsSync(nodeModulesPath);
+  const needsInstall = !existsSync(nodeModulesPath) || missingPackages.length > 0;
 
   console.log(`[Runner] Starting project ${id} on port ${port}${needsInstall ? ' (installing dependencies first)' : ''}`);
 

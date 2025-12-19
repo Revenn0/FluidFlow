@@ -542,27 +542,32 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
       <div className="flex-1 min-h-0 flex flex-col">
         {!isRunning ? (
           /* Not Running */
-          <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4">
-              <Play size={32} className="text-emerald-400" />
-            </div>
-            <h3 className="text-sm font-medium text-white mb-2">Ready to Run</h3>
-            <p className="text-xs text-slate-500 mb-6 max-w-xs">
-              Start the dev server to see your app running with full npm dependencies and hot reload.
-            </p>
-            <button
-              onClick={handleStart}
-              disabled={isLoading}
-              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg text-sm font-medium transition-colors"
-            >
-              {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
-              Start Dev Server
-            </button>
-            {error && (
-              <div className="mt-4 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-400">
-                {error}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4">
+                <Play size={32} className="text-emerald-400" />
               </div>
-            )}
+              <h3 className="text-sm font-medium text-white mb-2">Ready to Run</h3>
+              <p className="text-xs text-slate-500 mb-6 max-w-xs">
+                Start the dev server to see your app running with full npm dependencies and hot reload.
+              </p>
+              <button
+                onClick={handleStart}
+                disabled={isLoading}
+                className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg text-sm font-medium transition-colors"
+              >
+                {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}
+                Start Dev Server
+              </button>
+              {error && (
+                <div className="mt-4 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-400">
+                  {error}
+                </div>
+              )}
+            </div>
+
+            {/* Show DevTools if there are logs from previous run (to see errors) */}
+            {(terminalLogs.length > 0 || consoleLogs.length > 0) && <DevToolsPanel />}
           </div>
         ) : isServerReady ? (
           /* Server Running */
