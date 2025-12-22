@@ -693,6 +693,146 @@ export const promptLibrary: PromptCategory[] = [
         simple: 'Create mission control aesthetic with multi-screen dashboards, alert systems, and operations monitoring.',
         detailed: 'Apply command center aesthetic with operations center feel. Multi-screen wall visualization. Real-time status panels. Alert and incident indicators. World map with location markers. Communication status displays. Timeline and event logging. Priority queue displays. Operator workstation styling. Mission-critical monitoring atmosphere.',
         advanced: 'Apply command center aesthetic with mission-critical operations center feel. Multi-screen layout: grid of panels simulating video wall, each panel a distinct view. Main display: large central visualization (world map, system topology, or live feed), smaller surrounding panels. Alert system: priority levels (P1 critical - red pulse, P2 high - orange, P3 medium - yellow, P4 low - blue), audible alert references, acknowledgment buttons. Incident ticker: scrolling recent incidents, time since occurrence, assigned operator. World map: dark theme map with location markers, animated pulses for events, connection lines between sites, regional status overlays. Time displays: multiple timezone clocks, UTC prominent, local times for key locations. Status matrices: grid of systems/services with RAG status, quick drill-down. Metrics: large single-number displays for key metrics, trend arrows, threshold lines. Communication panel: channel status (satellite, fiber, radio), link quality bars. Queue management: incident queue, SLA timers, escalation countdowns. Timeline: horizontal timeline of events, shift markers, incident duration bars. Operator identification: logged-in operator badge, role/permission indicators. Runbook: procedure panels, checklist tracking. Escalation: escalation path visualization, on-call roster. Audio levels: visual representation of communication channels. Video feeds: grid of camera/screen views, fullscreen toggle. Announcement bar: system-wide messages, maintenance notifications. Shift handover: status summary for shift change. Implementation: CSS Grid for panel layout, real-time updates via WebSocket-style. Accessibility: critical alerts must have non-visual indicators, all information accessible via keyboard. Performance: handle many real-time updates efficiently.'
+      },
+      {
+        id: 'd93',
+        label: 'Blockchain/Web3',
+        simple: 'Create blockchain-inspired design with wallet connections, transaction flows, and decentralized aesthetics.',
+        detailed: 'Apply Web3 aesthetic with blockchain visualization. Wallet connection buttons with address display. Transaction hash formatting. Block explorer style tables. Smart contract interaction forms. Gas fee estimators. NFT gallery grids. Token balance displays. Network switching selectors. Decentralized application patterns. Chain connection status indicators.',
+        advanced: 'Apply Web3 aesthetic with decentralized application patterns. Wallet connect buttons with ENS/address truncation (0x...1234). Transaction cards with hash, status, confirmations. Block explorer tables with mono fonts. Smart contract forms with ABI parameter inputs. Gas estimator with gwei display. NFT cards with metadata. Token balances with 18-decimal precision. Network selector with chain icons (ETH, Polygon, BSC). Connection status with block height. Pending transaction spinners. MetaMask-style confirmation dialogs.'
+      },
+      {
+        id: 'd94',
+        label: 'Machine Learning/AI',
+        simple: 'Create ML/AI interface with model training visualizations, neural network diagrams, and prediction displays.',
+        detailed: 'Apply machine learning aesthetic with AI research feel. Neural network layer visualizations. Training progress with loss curves. Confusion matrix displays. Feature importance charts. Model comparison tables. Hyperparameter tuning interfaces. Dataset preview cards. Prediction confidence bars. GPU utilization monitors. Experiment tracking layouts.',
+        advanced: 'Apply ML/AI aesthetic with research lab patterns. Neural network SVG with layer nodes and connections. Training charts with loss/accuracy curves (epochs on x-axis). Confusion matrix heatmaps with precision/recall. Feature importance horizontal bars. Model cards with architecture, params, performance. Hyperparameter sliders with value displays. Dataset samples in grid with labels. Prediction outputs with confidence percentages. GPU memory bars. MLflow-style experiment tables. Tensorboard-inspired metric dashboards.'
+      },
+      {
+        id: 'd95',
+        label: 'IoT Dashboard',
+        simple: 'Create IoT dashboard with sensor readings, device status, and smart home controls.',
+        detailed: 'Apply IoT dashboard aesthetic with connected device feel. Sensor reading gauges and displays. Device status cards with online/offline indicators. Temperature, humidity, motion data visualization. Smart home control switches. Automation rule builders. Device pairing interfaces. Firmware update progress. Battery level indicators. Location-based device maps. Alert and notification panels.',
+        advanced: 'Apply IoT aesthetic with smart device dashboard patterns. Sensor gauges: circular for temp/humidity, linear for levels. Device cards with MAC address, firmware version, last seen. Real-time charts for sensor time-series. Toggle switches for smart controls with state sync. Automation flows with trigger→condition→action. Device discovery lists with pairing buttons. OTA update progress bars. Battery icons with percentage (full→critical colors). Floor plan SVG with device markers. Push notification cards with device source. MQTT connection status indicators.'
+      },
+      {
+        id: 'd96',
+        label: 'Gaming HUD',
+        simple: 'Create gaming HUD interface with health bars, inventory slots, and minimap elements.',
+        detailed: 'Apply gaming HUD aesthetic with video game UI feel. Health and mana bars with animated depletion. Inventory grid with item slots and tooltips. Minimap with player and objective markers. Quest tracker panels. Achievement popups. Skill cooldown indicators. Damage numbers floating up. Level and XP progress bars. Crosshair and targeting elements. Buff/debuff icon rows.',
+        advanced: 'Apply gaming HUD aesthetic with AAA game UI patterns. Health bar with gradient (green→yellow→red), shield overlay. Inventory: 8x4 grid with rarity border colors (gray/green/blue/purple/gold). Minimap circular with fog of war, player arrow, objective diamonds. Quest tracker with checkbox objectives. Achievement toast with icon, title, XP reward. Skill bar with cooldown sweep animation. Floating damage numbers with crit styling. XP bar with level badges. Crosshair SVG variants. Buff icons with duration timers. Kill feed with player names.'
+      },
+      {
+        id: 'd97',
+        label: 'Crypto Trading',
+        simple: 'Create crypto trading interface with candlestick charts, order books, and portfolio trackers.',
+        detailed: 'Apply crypto trading aesthetic with exchange platform feel. Candlestick price charts with volume bars. Order book depth visualization. Trading pair selectors. Buy/sell order forms. Portfolio pie charts. Price alerts configuration. Historical trade tables. Wallet balance summaries. Market ticker strips. Liquidation warning indicators.',
+        advanced: 'Apply trading platform aesthetic with exchange patterns. TradingView-style candlesticks with OHLC data, MA lines overlay. Order book with bid/ask depth bars, spread display. Trading pairs: BTC/USDT format with 24h change percentage. Order forms with limit/market tabs, leverage sliders. Portfolio donut chart with asset breakdown. Price alert cards with trigger conditions. Trade history with timestamp, side, price, amount. Balance cards with available/in-order split. Scrolling ticker with green/red price changes. Margin call warnings with liquidation price.'
+      },
+      {
+        id: 'd98',
+        label: 'DevOps Pipeline',
+        simple: 'Create DevOps pipeline visualization with build stages, deployment flows, and infrastructure status.',
+        detailed: 'Apply DevOps pipeline aesthetic with CI/CD visualization. Pipeline stage cards connected by arrows. Build status indicators (pass/fail/running). Deployment environment selectors. Container orchestration views. Infrastructure as code previews. Rollback controls. Blue-green deployment toggles. Canary release percentages. Pipeline trigger histories. Artifact versioning displays.',
+        advanced: 'Apply DevOps aesthetic with CI/CD pipeline patterns. Stage cards: Build→Test→Deploy with connector arrows. Status badges: green checkmark, red X, spinning gear, gray skip. Environment cards: dev/staging/prod with promotion buttons. Container pods with replica counts. Terraform/YAML code blocks with syntax highlighting. Rollback buttons with version selectors. Blue-green toggle with traffic percentage. Canary slider 0-100%. Pipeline run history table with duration. Artifact cards with SHA, size, download links. Approval gates with reviewer avatars.'
+      },
+      {
+        id: 'd99',
+        label: 'GraphQL Explorer',
+        simple: 'Create GraphQL explorer interface with query builders, schema browsers, and response viewers.',
+        detailed: 'Apply GraphQL explorer aesthetic with API playground feel. Query editor with syntax highlighting. Schema type browser with field exploration. Variable input panels. Response JSON viewers. Query history sidebar. Documentation search. Type connections visualization. Subscription status indicators. Error highlighting with line markers. Performance timing displays.',
+        advanced: 'Apply GraphQL aesthetic with playground patterns. Query editor with GraphQL syntax highlighting, auto-complete dropdown. Schema explorer tree with types→fields→arguments. Variables panel with JSON input validation. Response viewer with collapsible JSON, syntax colors. History list with query previews, timestamps. Docs search with type/field results. Schema graph SVG with type nodes, relation edges. Subscription badge with connected/disconnected. Error gutters with red underlines, tooltip messages. Tracing panel with resolver timing bars.'
+      },
+      {
+        id: 'd100',
+        label: 'Microservices Map',
+        simple: 'Create microservices architecture visualization with service nodes, connections, and health monitoring.',
+        detailed: 'Apply microservices aesthetic with distributed system visualization. Service node cards with health status. Connection lines showing dependencies. Request flow animations. Circuit breaker indicators. Service mesh overlays. Load balancer distributions. API gateway representations. Message queue visualizations. Service discovery lists. Distributed tracing views.',
+        advanced: 'Apply microservices aesthetic with architecture diagram patterns. Service hexagons with name, version, instance count. Dependency arrows with request rate labels. Animated dots flowing along connections. Circuit breaker badges: closed (green), open (red), half-open (yellow). Istio-style mesh overlay grid. Load balancer with weighted routing percentages. API gateway node with route mappings. Queue icons with message counts. Consul-style service registry table. Jaeger-style trace waterfall with span timing.'
+      },
+      {
+        id: 'd101',
+        label: 'Serverless Functions',
+        simple: 'Create serverless interface with function cards, invocation logs, and trigger configurations.',
+        detailed: 'Apply serverless aesthetic with FaaS platform feel. Function cards with runtime indicators. Invocation count metrics. Cold start timing displays. Trigger type icons (HTTP, schedule, event). Environment variable editors. Memory and timeout configurations. Deployment version history. Error rate graphs. Concurrent execution gauges. Cost estimation displays.',
+        advanced: 'Apply serverless aesthetic with Lambda/Cloud Functions patterns. Function cards with runtime badge (Node.js, Python, Go), memory size, timeout. Invocation sparklines with count/errors. Cold start indicator with avg duration. Trigger icons: globe (HTTP), clock (cron), lightning (event), queue (SQS). Env var table with masked values, edit buttons. Sliders for memory (128MB-3GB), timeout (1s-15min). Version list with aliases (prod, staging). Error rate line chart with threshold line. Concurrent execution gauge with limit. Monthly cost estimate with request/duration breakdown.'
+      },
+      {
+        id: 'd102',
+        label: 'WebSocket Real-time',
+        simple: 'Create WebSocket interface with connection status, live message feeds, and channel subscriptions.',
+        detailed: 'Apply WebSocket aesthetic with real-time application feel. Connection status indicators with latency. Live message feed scrolling display. Channel subscription management. Presence indicators for online users. Typing indicators. Message acknowledgment badges. Reconnection countdown timers. Binary data size displays. Heartbeat pulse visualizations. Event type filtering controls.',
+        advanced: 'Apply WebSocket aesthetic with real-time patterns. Connection badge: connected (green pulse), disconnected (red), reconnecting (yellow spinner). Latency display with ms value. Message feed with auto-scroll, timestamp, direction arrows (↑↓). Channel list with subscriber counts, join/leave buttons. Presence: avatar stack with online count, "user is typing..." animation. ACK badges: sent→delivered→read. Reconnect countdown with attempt number. Binary messages with byte size, preview toggle. Heartbeat icon with pulse animation. Event filter checkboxes: message, join, leave, error.'
+      },
+      {
+        id: 'd103',
+        label: 'Mobile OS Interface',
+        simple: 'Create mobile OS style interface with app icons, notification center, and control panels.',
+        detailed: 'Apply mobile OS aesthetic with smartphone interface feel. App icon grids with labels. Notification center cards with actions. Control center toggles. Status bar with battery, signal, time. Lock screen with clock and shortcuts. Settings list with switches and chevrons. App drawer search. Widget stack layouts. Gesture indicators. Permission dialogs.',
+        advanced: 'Apply mobile OS aesthetic with iOS/Android patterns. App icon grid: 4x6 with rounded square icons, name labels below. Notification cards with app icon, title, body, action buttons. Control center: 4x4 toggle grid (WiFi, Bluetooth, Airplane, etc) with long-press expand. Status bar: signal bars, WiFi icon, battery with percentage, centered time. Lock screen: large time display, date, camera/flashlight shortcuts. Settings: grouped lists with icons, switches, disclosure arrows. Searchable app drawer. Widgets: small/medium/large snap grid. Swipe indicators with pill shapes. Permission sheets with Allow/Deny buttons.'
+      },
+      {
+        id: 'd104',
+        label: 'Smart Home Hub',
+        simple: 'Create smart home hub interface with room controls, device scenes, and automation rules.',
+        detailed: 'Apply smart home aesthetic with home automation feel. Room-based device grouping. Scene preset buttons (Movie, Sleep, Away). Lighting dimmer sliders. Thermostat controls with temperature display. Security camera feeds. Door lock status. Energy consumption graphs. Voice assistant integration. Routine scheduling. Away mode panels.',
+        advanced: 'Apply smart home aesthetic with home hub patterns. Room tabs: Living Room, Bedroom, Kitchen with device counts. Scene buttons with icons: Movie (dim lights, TV on), Sleep (all off, lock), Away (security on). Light sliders with color temperature picker, brightness percentage. Thermostat: circular dial with current/target temp, mode buttons (heat/cool/auto). Camera thumbnails with live badge, last motion time. Lock icons: locked (green), unlocked (red), with last activity. Energy chart: daily/weekly usage bars with cost estimate. Assistant orb with listening animation. Routine cards with time, days, actions list. Vacation mode toggle with smart presence simulation.'
+      },
+      {
+        id: 'd105',
+        label: 'AR/VR Interface',
+        simple: 'Create AR/VR interface with spatial UI elements, 3D object controls, and immersive menus.',
+        detailed: 'Apply AR/VR aesthetic with spatial computing feel. Floating panel windows. Gaze-based selection highlights. Hand tracking gesture icons. 3D object manipulation controls. Environment anchor points. Passthrough camera feeds. Spatial audio indicators. Virtual keyboard layouts. Comfort vignette settings. Guardian boundary visualizations.',
+        advanced: 'Apply AR/VR aesthetic with spatial UI patterns. Floating panels with glass morphism, slight 3D perspective. Gaze reticle with fill animation on hover. Hand icons: pinch, grab, point, palm gestures. 3D gizmo: translate (arrows), rotate (circles), scale (cubes). Anchor icons placed in space with distance labels. Passthrough feed with AR overlay elements. Audio sources with directional cone visualization. Curved virtual keyboard with key highlights. Vignette slider for motion comfort. Guardian boundary: blue grid floor, red warning when close. IPD adjustment slider.'
+      },
+      {
+        id: 'd106',
+        label: 'Chatbot Builder',
+        simple: 'Create chatbot builder interface with conversation flows, intent mapping, and response templates.',
+        detailed: 'Apply chatbot builder aesthetic with conversational AI feel. Flow diagram with message nodes. Intent classification cards. Entity extraction highlights. Response template editors. Training phrase lists. Conversation preview simulators. Analytics with session metrics. Fallback handling configuration. Multi-language support panels. Integration webhook settings.',
+        advanced: 'Apply chatbot builder aesthetic with dialog flow patterns. Node-based canvas: user message (blue), bot response (green), condition (yellow diamond), action (purple). Intent cards with training phrases, confidence threshold slider. Entity badges with @entity highlighting in text. Template editor with {variable} placeholders, rich message types (cards, buttons, carousels). Training table with phrase, intent, entities columns. Live preview: phone mockup with chat simulation. Analytics: sessions, completion rate, fallback rate charts. Fallback node with escalation options. Language tabs with translation status. Webhook cards with URL, auth, payload preview.'
+      },
+      {
+        id: 'd107',
+        label: 'Voice Assistant UI',
+        simple: 'Create voice assistant interface with waveform visualizations, command recognition, and response displays.',
+        detailed: 'Apply voice assistant aesthetic with conversational AI feel. Waveform visualization during listening. Speech-to-text transcription display. Command recognition with intent badges. Response cards with TTS playback. Wake word sensitivity controls. Voice profile management. Skill/action discovery. Multi-turn conversation threading. Noise cancellation indicators. Microphone permission states.',
+        advanced: 'Apply voice assistant aesthetic with Alexa/Google patterns. Circular waveform: bars or sine wave animation when listening. Transcription: real-time text appearance with cursor. Intent badge after recognition with confidence percentage. Response card with text, speak button, source attribution. Wake word: sensitivity slider, detection sound toggle. Voice profiles: family member list with voice samples. Skills grid with category filters. Conversation history with user/assistant turns. Noise gate meter with threshold line. Mic states: listening (blue pulse), processing (dots), muted (red), permissions (dialog).'
+      },
+      {
+        id: 'd108',
+        label: 'Analytics Platform',
+        simple: 'Create analytics platform interface with dashboards, metrics, funnels, and cohort analysis.',
+        detailed: 'Apply analytics aesthetic with data platform feel. KPI cards with sparklines and trends. Funnel visualization with conversion rates. Cohort retention matrices. Segment builder interfaces. Real-time user counters. Event stream displays. Custom report builders. Dashboard widget grids. Date range pickers. Export and scheduling options.',
+        advanced: 'Apply analytics aesthetic with Amplitude/Mixpanel patterns. KPI cards: metric value, percentage change (green up, red down), sparkline. Funnel: vertical bars with step labels, conversion % between steps, drop-off highlighting. Cohort matrix: heatmap with week cohorts (rows) vs periods (columns). Segment builder: property dropdowns, operator selects, AND/OR groups. Live counter with incrementing animation. Event stream: scrolling list with event name, properties, timestamp. Report builder: metric/dimension dropdowns, visualization picker. Dashboard: draggable widget grid with resize handles. Date picker with presets (7d, 30d, 90d) and custom range. Export buttons (CSV, PNG), scheduled report config.'
+      },
+      {
+        id: 'd109',
+        label: 'A/B Testing Dashboard',
+        simple: 'Create A/B testing interface with experiment cards, variant comparisons, and statistical results.',
+        detailed: 'Apply A/B testing aesthetic with experimentation platform feel. Experiment status cards (draft, running, completed). Variant traffic allocation sliders. Metric comparison tables. Statistical significance indicators. Confidence interval visualizations. Segment filtering. Winner declaration banners. Experiment timeline views. Feature flag associations. Rollout percentage controls.',
+        advanced: 'Apply A/B testing aesthetic with Optimizely/LaunchDarkly patterns. Experiment cards: name, status badge, start date, traffic percentage. Variant sliders: Control (A) vs Treatment (B/C/D) with percentage inputs summing to 100%. Metric table: variant columns, rows for each metric, relative lift with arrows. Significance badge: "95% confident", "Not significant", "Trending". Confidence interval error bars on comparison chart. Segment dropdown with user property filters. Winner banner: green "B wins by 12%", with ship button. Timeline: Gantt-style with experiment duration bars. Flag toggle linked to experiment. Rollout: 0-100% slider with graduated deployment suggestions.'
+      },
+      {
+        id: 'd110',
+        label: 'Feature Flag Manager',
+        simple: 'Create feature flag interface with toggle controls, targeting rules, and environment management.',
+        detailed: 'Apply feature flag aesthetic with release management feel. Flag toggle cards with status indicators. Targeting rule builders. Environment tabs (dev, staging, prod). User segment selectors. Percentage rollout sliders. Kill switch controls. Audit log displays. SDK code snippets. Stale flag warnings. Dependency visualization.',
+        advanced: 'Apply feature flag aesthetic with LaunchDarkly/Unleash patterns. Flag cards: name, key, toggle switch, last modified, created by. Rule builder: IF user.property OPERATOR value, THEN serve variant, with add/remove buttons. Environment tabs with independent configs, promote button between. Segment multi-select with user property-based definitions. Rollout: percentage slider with sticky (user ID hash) indicator. Kill switch: prominent red toggle with confirmation modal. Audit log: timeline with change diffs, actor, timestamp. SDK tabs with copy buttons for various languages. Stale warning: yellow badge for flags unchanged >90 days. Dependency graph showing flag prerequisites.'
+      },
+      {
+        id: 'd111',
+        label: 'Observability Stack',
+        simple: 'Create observability interface with logs, metrics, traces unified view and alerting.',
+        detailed: 'Apply observability aesthetic with monitoring platform feel. Three-pillar layout (logs, metrics, traces). Log search with filter bars. Metric dashboards with alert thresholds. Distributed trace waterfalls. Service health overview grids. Alerting rule editors. On-call schedule displays. Incident timeline views. SLO/SLI tracking. Correlation analysis panels.',
+        advanced: 'Apply observability aesthetic with Datadog/Grafana patterns. Three-column or tab layout for logs/metrics/traces correlation. Log viewer: query bar, level filters (ERROR, WARN, INFO), JSON expansion, tail mode. Metric panels: line charts with alert threshold line (red), anomaly band. Trace waterfall: service spans as horizontal bars with timing, error highlighting. Service grid: tiles with health score, request rate, error rate, p99 latency. Alert rule: metric condition, threshold, duration, severity, notify channels. On-call: rotation schedule with current, next, escalation path. Incident: timeline with events, status (investigating, mitigating, resolved). SLO card: 99.9% target, current %, error budget burn. Correlation: click log→see trace→see related metrics.'
+      },
+      {
+        id: 'd112',
+        label: 'Edge Computing Dashboard',
+        simple: 'Create edge computing interface with edge node status, deployment distribution, and latency maps.',
+        detailed: 'Apply edge computing aesthetic with distributed infrastructure feel. Edge node cards with location and status. Global deployment map visualization. Latency heatmaps by region. Edge function deployment controls. Cache hit ratio displays. Bandwidth consumption graphs. Node health monitoring. Failover configuration panels. CDN purge controls. Real-time request routing displays.',
+        advanced: 'Apply edge computing aesthetic with Cloudflare/Fastly patterns. Node cards: location flag, status LED, CPU/memory bars, request rate. World map SVG with node markers, connection lines to users, color-coded latency. Latency heatmap: region grid with ms values, green→yellow→red scale. Function deployment: region multi-select, version dropdown, deploy button with progress. Cache panel: hit/miss pie chart, TTL settings, vary headers. Bandwidth: stacked area chart by region over time. Health: uptime percentage, last incident, synthetic check status. Failover: primary/secondary region config, automatic toggle. Purge: URL pattern input, tag selector, instant/soft purge buttons. Request flow: animated dots from user→nearest edge→origin.'
       }
     ]
   },
