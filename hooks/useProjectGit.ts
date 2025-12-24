@@ -8,6 +8,7 @@
 import { useCallback } from 'react';
 import { projectApi, gitApi, ProjectMeta, GitStatus } from '@/services/projectApi';
 import type { FileSystem } from '@/types';
+import { activityLogger } from '@/services/activityLogger';
 
 // ============================================================================
 // Types
@@ -55,10 +56,9 @@ export function useProjectGit(options: UseProjectGitOptions): UseProjectGitRetur
   const initGit = useCallback(
     async (force = false, filesToSync?: FileSystem): Promise<boolean> => {
       const currentProject = getCurrentProject();
-      console.log('[ProjectGit] initGit called with force:', force);
 
       if (!currentProject) {
-        console.warn('[ProjectGit] initGit failed - no current project');
+        activityLogger.warn('git', 'Git init failed', 'No current project');
         return false;
       }
 
@@ -66,33 +66,29 @@ export function useProjectGit(options: UseProjectGitOptions): UseProjectGitRetur
       const fileCount = Object.keys(files).length;
 
       if (fileCount === 0) {
-        console.warn('[ProjectGit] Cannot init git with empty files');
+        activityLogger.warn('git', 'Cannot init git', 'No files');
         updateState(() => ({ error: 'Cannot initialize: no files' }));
         return false;
       }
 
+      const initTimer = activityLogger.startTimed('git', `Initializing git repository`);
       updateState(() => ({ error: null, isSyncing: true }));
 
       try {
         // Step 1: Sync files to backend first (force=true to bypass confirmation)
-        console.log('[ProjectGit] initGit - syncing', fileCount, 'files first...');
+        activityLogger.info('git', `Syncing ${fileCount} files...`);
         const syncResponse = await projectApi.update(currentProject.id, { files, force: true });
         if (syncResponse.blocked) {
-          console.error('[ProjectGit] Sync blocked before git init:', syncResponse.warning);
+          activityLogger.error('git', 'Sync blocked before git init', syncResponse.warning);
           updateState(() => ({ isSyncing: false, error: 'Sync blocked: ' + syncResponse.warning }));
           return false;
         }
-        console.log('[ProjectGit] initGit - files synced');
 
         // Step 2: Initialize git (force=true for corrupted repos)
-        console.log('[ProjectGit] initGit - calling gitApi.init...');
         await gitApi.init(currentProject.id, force);
-        console.log('[ProjectGit] initGit - git initialized successfully');
 
         // Step 3: Refresh status - gitStatus.initialized will now be true
-        console.log('[ProjectGit] initGit - refreshing git status...');
         const gitStatus = await gitApi.status(currentProject.id);
-        console.log('[ProjectGit] initGit - got status:', gitStatus);
 
         updateState(() => ({
           gitStatus,
@@ -100,9 +96,12 @@ export function useProjectGit(options: UseProjectGitOptions): UseProjectGitRetur
           lastSyncedAt: Date.now(),
         }));
 
+        initTimer();
+        activityLogger.success('git', 'Git repository initialized', currentProject.name);
         return true;
       } catch (_err) {
-        console.error('[ProjectGit] initGit failed:', _err);
+        const errorMsg = _err instanceof Error ? _err.message : 'Unknown error';
+        activityLogger.error('git', 'Git init failed', errorMsg);
         updateState(() => ({ isSyncing: false, error: 'Failed to initialize git' }));
         return false;
       }
@@ -125,28 +124,25 @@ export function useProjectGit(options: UseProjectGitOptions): UseProjectGitRetur
       const fileCount = Object.keys(files).length;
 
       if (fileCount === 0) {
-        console.warn('[ProjectGit] Cannot commit empty files');
+        activityLogger.warn('git', 'Cannot commit', 'No files');
         updateState(() => ({ error: 'Cannot commit: no files' }));
         return false;
       }
 
+      const commitTimer = activityLogger.startTimed('git', `Committing ${fileCount} files`);
       updateState(() => ({ error: null, isSyncing: true }));
 
       try {
-        console.log('[ProjectGit] Committing', fileCount, 'files...');
-
         // Step 1: Sync files to backend (force=true to bypass confirmation)
         const syncResponse = await projectApi.update(currentProject.id, { files, force: true });
         if (syncResponse.blocked) {
-          console.error('[ProjectGit] Sync blocked before commit:', syncResponse.warning);
+          activityLogger.error('git', 'Sync blocked before commit', syncResponse.warning);
           updateState(() => ({ isSyncing: false, error: 'Sync blocked: ' + syncResponse.warning }));
           return false;
         }
-        console.log('[ProjectGit] Files synced to backend');
 
         // Step 2: Git commit
         await gitApi.commit(currentProject.id, message, files);
-        console.log('[ProjectGit] Git commit created');
 
         // Step 3: Refresh status
         const newGitStatus = await gitApi.status(currentProject.id);
@@ -156,10 +152,12 @@ export function useProjectGit(options: UseProjectGitOptions): UseProjectGitRetur
           lastSyncedAt: Date.now(),
         }));
 
-        console.log('[ProjectGit] Commit complete!');
+        commitTimer();
+        activityLogger.success('git', 'Commit created', message.substring(0, 50));
         return true;
       } catch (_err) {
-        console.error('[ProjectGit] Commit failed:', _err);
+        const errorMsg = _err instanceof Error ? _err.message : 'Unknown error';
+        activityLogger.error('git', 'Commit failed', errorMsg);
         updateState(() => ({ isSyncing: false, error: 'Failed to create commit' }));
         return false;
       }
@@ -176,13 +174,14 @@ export function useProjectGit(options: UseProjectGitOptions): UseProjectGitRetur
 
     try {
       const gitStatus = await gitApi.status(currentProject.id);
-      console.log('[ProjectGit] Git status response:', gitStatus);
+      activityLogger.debug('git', 'Status refreshed', gitStatus.initialized ? 'Initialized' : 'Not initialized');
 
       updateState(() => ({
         gitStatus,
       }));
     } catch (_err) {
-      console.error('[ProjectGit] Failed to refresh git status:', _err);
+      const errorMsg = _err instanceof Error ? _err.message : 'Unknown error';
+      activityLogger.debug('git', 'Status refresh failed', errorMsg);
       // On error, keep current gitStatus - do not reset to null
     }
   }, [getCurrentProject, updateState]);

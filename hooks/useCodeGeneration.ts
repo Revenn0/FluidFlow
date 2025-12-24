@@ -27,6 +27,7 @@ import { useTruncationRecovery } from './useTruncationRecovery';
 import { useGenerationSuccess } from './useGenerationSuccess';
 import { buildSystemInstruction, buildPromptParts } from '../utils/generationUtils';
 import { getFluidFlowConfig } from '../services/fluidflowConfig';
+import { activityLogger } from '../services/activityLogger';
 
 export interface CodeGenerationOptions {
   prompt: string;
@@ -178,7 +179,8 @@ export function useCodeGeneration(options: UseCodeGenerationOptions): UseCodeGen
 
       // Build system instruction with configured response format
       const responseFormat = getFluidFlowConfig().getResponseFormat();
-      console.log(`[CodeGeneration] Using response format: ${responseFormat}`);
+      activityLogger.info('generation', `Starting generation with ${providerName}`, `Model: ${currentModel}`);
+      activityLogger.debug('generation', `Response format: ${responseFormat}`);
 
       const systemInstruction = buildSystemInstruction(
         !!existingApp,
@@ -237,6 +239,7 @@ export function useCodeGeneration(options: UseCodeGenerationOptions): UseCodeGen
 
         // Show parsing status
         setStreamingStatus(`✨ Processing ${detectedFiles.length} files...`);
+        activityLogger.info('generation', `Received response`, `${fullText.length} chars, ${chunkCount} chunks`);
 
         // Parse response based on mode
         let explanation: string;
@@ -353,10 +356,14 @@ export function useCodeGeneration(options: UseCodeGenerationOptions): UseCodeGen
           incompleteFiles
         );
 
+        const fileCount = Object.keys(newFiles).length;
+        const duration = Date.now() - genStartTime;
+        activityLogger.success('generation', `Generated ${fileCount} file${fileCount !== 1 ? 's' : ''}`, `${duration}ms`);
+
         return { success: true, continuationStarted: false };
       } catch (e) {
         const errorMsg = e instanceof Error ? e.message : 'Parse error';
-        console.error('Parse error:', errorMsg);
+        activityLogger.error('generation', 'Generation failed', errorMsg);
 
         // Check if this is a truncation error
         const isTruncationError =

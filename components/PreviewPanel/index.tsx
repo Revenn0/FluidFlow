@@ -3,7 +3,7 @@ import {
   Monitor, Smartphone, Tablet, RefreshCw, Eye, Code2, Copy, Check, Download, Database,
   ShieldCheck, FileText, Wrench, Package, Loader2,
   SplitSquareVertical, X, Zap, ZapOff, MousePointer2, Bug, Settings, ChevronDown,
-  Play, Box, Bot, Map, GitBranch
+  Play, Box, Bot, Map, GitBranch, Activity
 } from 'lucide-react';
 import { getProviderManager } from '../../services/ai';
 import { buildIframeHtml } from '../../utils/sandboxHtml';
@@ -41,6 +41,7 @@ import { ErrorFixPanel } from './ErrorFixPanel';
 import { DocsPanel } from './DocsPanel';
 import { PreviewContent } from './PreviewContent';
 import { CodeQualityPanel } from './CodeQualityPanel';
+import { ActivityLogPanel } from './ActivityLogPanel';
 import { runnerApi } from '../../services/projectApi';
 
 /**
@@ -631,10 +632,11 @@ export const PreviewPanel = memo(function PreviewPanel({
               { id: 'preview', icon: Eye, label: 'Preview' },
               { id: 'code', icon: Code2, label: 'Code' },
               { id: 'codemap', icon: Map, label: 'CodeMap' },
+              { id: 'quality', icon: ShieldCheck, label: 'Quality' },
+              { id: 'activity', icon: Activity, label: 'Activity' },
               { id: 'git', icon: GitBranch, label: 'Git' },
               { id: 'webcontainer', icon: Box, label: 'WebContainer' },
               { id: 'database', icon: Database, label: 'DB Studio' },
-              { id: 'quality', icon: ShieldCheck, label: 'Quality' },
               { id: 'docs', icon: FileText, label: 'Docs' },
               { id: 'env', icon: ShieldCheck, label: 'Env' },
               { id: 'debug', icon: Bug, label: 'Debug' },
@@ -877,6 +879,10 @@ export const PreviewPanel = memo(function PreviewPanel({
               activeFile={activeFile}
               onRunLint={() => {}}
             />
+          </div>
+        ) : activeTab === 'activity' ? (
+          <div className="flex-1 min-h-0 overflow-hidden flex flex-col relative">
+            <ActivityLogPanel />
           </div>
         ) : activeTab === 'database' || activeTab === 'codemap' || activeTab === 'docs' ? (
           // These tabs are always-rendered above, so return null here to avoid showing FileExplorer

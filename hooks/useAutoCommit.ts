@@ -9,6 +9,7 @@
  */
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { getProviderManager } from '../services/ai';
+import { activityLogger } from '../services/activityLogger';
 
 interface LocalChange {
   path: string;
@@ -105,8 +106,8 @@ ${changedFilesContext}`;
       }
 
       return cleanMessage || 'auto: update files';
-    } catch (err) {
-      console.error('[AutoCommit] Failed to generate message:', err);
+    } catch (_err) {
+      activityLogger.warn('autocommit', 'Failed to generate AI message', 'Using fallback');
       // Fallback to simple message
       const fileNames = localChanges.slice(0, 3).map(c => c.path.split('/').pop()).join(', ');
       return `auto: update ${fileNames}`;
@@ -121,26 +122,26 @@ ${changedFilesContext}`;
     if (previewHasErrors) return;
     if (localChanges.length === 0) return;
     if (localChanges.length > MAX_FILES_FOR_AUTO_COMMIT) {
-      console.log('[AutoCommit] Skipping: too many files changed', localChanges.length);
+      activityLogger.debug('autocommit', `Skipping: ${localChanges.length} files changed`, `Max is ${MAX_FILES_FOR_AUTO_COMMIT}`);
       return;
     }
 
     // Check cooldown
     const now = Date.now();
     if (now - lastCommitTimeRef.current < COOLDOWN_MS) {
-      console.log('[AutoCommit] Skipping: cooldown active');
+      activityLogger.debug('autocommit', 'Skipping: cooldown active', `${Math.ceil((COOLDOWN_MS - (now - lastCommitTimeRef.current)) / 1000)}s remaining`);
       return;
     }
 
     isCommittingRef.current = true;
     setIsAutoCommitting(true);
 
-    try {
-      console.log('[AutoCommit] Starting auto-commit...');
+    const commitTimer = activityLogger.startTimed('autocommit', `Auto-committing ${localChanges.length} file${localChanges.length > 1 ? 's' : ''}`);
 
+    try {
       // Generate commit message
       const message = await generateCommitMessage();
-      console.log('[AutoCommit] Generated message:', message);
+      activityLogger.info('autocommit', 'Generated message', message.substring(0, 50));
 
       // Perform commit
       const success = await onCommit(message);
@@ -148,25 +149,27 @@ ${changedFilesContext}`;
       if (success) {
         lastCommitTimeRef.current = Date.now();
         setLastAutoCommitMessage(message);
-        console.log('[AutoCommit] Success!');
+        commitTimer(); // Mark as complete with duration
+        activityLogger.success('autocommit', 'Auto-commit successful', message.substring(0, 50));
 
         // Trigger backup push if enabled
         if (backupEnabled && onBackupPush) {
+          const backupTimer = activityLogger.startTimed('backup', 'Pushing to backup branch');
           try {
-            console.log('[AutoCommit] Triggering backup push...');
             await onBackupPush();
             setLastBackupStatus('success');
-            console.log('[AutoCommit] Backup push successful!');
+            backupTimer();
+            activityLogger.success('backup', 'Backup push completed');
           } catch (backupErr) {
-            console.error('[AutoCommit] Backup push failed:', backupErr);
+            activityLogger.error('backup', 'Backup push failed', backupErr instanceof Error ? backupErr.message : 'Unknown error');
             setLastBackupStatus('error');
           }
         }
       } else {
-        console.log('[AutoCommit] Commit failed');
+        activityLogger.error('autocommit', 'Auto-commit failed', 'Git commit returned false');
       }
     } catch (err) {
-      console.error('[AutoCommit] Error:', err);
+      activityLogger.error('autocommit', 'Auto-commit error', err instanceof Error ? err.message : 'Unknown error');
     } finally {
       isCommittingRef.current = false;
       setIsAutoCommitting(false);

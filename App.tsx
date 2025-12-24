@@ -29,6 +29,7 @@ import { useUI } from './contexts/UIContext';
 import { useAutoCommit } from './hooks/useAutoCommit';
 import { githubApi } from './services/api/github';
 import { settingsApi } from './services/api/settings';
+import { activityLogger } from './services/activityLogger';
 import { Undo2, Redo2, History, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { InspectedElement, EditScope } from './components/PreviewPanel/ComponentInspector';
 import { getContextManager } from './services/conversationContext';
@@ -73,9 +74,13 @@ export default function App() {
 
   // Load backup settings on mount
   useEffect(() => {
+    activityLogger.info('system', 'FluidFlow started');
     settingsApi.getGitHubBackup().then((settings) => {
       setBackupEnabled(settings.enabled);
       setBackupBranchName(settings.branchName || 'backup/auto');
+      if (settings.enabled) {
+        activityLogger.info('backup', 'GitHub backup enabled', settings.branchName || 'backup/auto');
+      }
     }).catch(console.error);
   }, []);
 
@@ -87,9 +92,11 @@ export default function App() {
       // Get token from settings
       const { token } = await settingsApi.getBackupToken();
       if (!token) {
-        console.warn('[Backup] No token configured, skipping backup');
+        activityLogger.warn('backup', 'No GitHub token configured', 'Skipping backup push');
         return;
       }
+
+      activityLogger.info('backup', `Pushing to ${backupBranchName}`, ctx.currentProject.name);
 
       // Push to backup branch
       const result = await githubApi.backupPush(ctx.currentProject.id, {
@@ -100,13 +107,14 @@ export default function App() {
       // Update backup status
       if (result.success) {
         await settingsApi.updateBackupStatus(result.timestamp, result.commit);
-        console.log('[Backup] Success:', result.message);
+        activityLogger.success('backup', 'GitHub backup complete', result.commit?.substring(0, 7));
       }
     } catch (err) {
-      console.error('[Backup] Failed:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      activityLogger.error('backup', 'GitHub backup failed', errorMsg);
       throw err; // Re-throw so useAutoCommit can track status
     }
-  }, [ctx.currentProject?.id, backupBranchName]);
+  }, [ctx.currentProject?.id, ctx.currentProject?.name, backupBranchName]);
 
   // Auto-commit feature: commits when preview is error-free
   const { isAutoCommitting, lastBackupStatus: _lastBackupStatus } = useAutoCommit({
@@ -195,7 +203,7 @@ export default function App() {
   return (
     <ContextMenuProvider>
       <ToastProvider>
-        <div className="fixed inset-0 flex flex-col bg-[#020617] text-white overflow-hidden selection:bg-blue-500/30 selection:text-blue-50">
+        <div className="fixed inset-0 flex flex-col bg-[#020617] text-white overflow-hidden selection:bg-blue-500/30 selection:text-blue-50 max-h-screen">
       {/* Background Ambient Effects */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />

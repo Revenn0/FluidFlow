@@ -3,10 +3,18 @@
 html, body, #root {
   height: 100%;
   height: 100dvh; /* Dynamic viewport height - better for mobile and embedded views */
+  max-height: 100vh; /* Fallback constraint for embedded environments */
   width: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
+}
+
+/* Ensure root fills available space correctly */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Important for flex children */
 }
 body {
   font-family: 'Inter', sans-serif;
