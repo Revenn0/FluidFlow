@@ -5,7 +5,7 @@
  */
 
 import { apiCall } from './client';
-import type { StoredProviderConfig, CustomSnippet, GlobalSettings } from './types';
+import type { StoredProviderConfig, CustomSnippet, GlobalSettings, GitHubBackupSettings } from './types';
 
 export const settingsApi = {
   /**
@@ -67,4 +67,32 @@ export const settingsApi = {
     apiCall<{ message: string }>(`/settings/snippets/${id}`, {
       method: 'DELETE',
     }),
+
+  /**
+   * Get GitHub Backup settings
+   */
+  getGitHubBackup: () => apiCall<GitHubBackupSettings>('/settings/github-backup'),
+
+  /**
+   * Save GitHub Backup settings
+   */
+  saveGitHubBackup: (settings: Partial<GitHubBackupSettings>) =>
+    apiCall<{ message: string; updatedAt: number }>('/settings/github-backup', {
+      method: 'PUT',
+      body: JSON.stringify(settings),
+    }),
+
+  /**
+   * Update backup status after successful backup
+   */
+  updateBackupStatus: (lastBackupAt: number, lastBackupCommit: string) =>
+    apiCall<{ message: string; updatedAt: number }>('/settings/github-backup/update-status', {
+      method: 'POST',
+      body: JSON.stringify({ lastBackupAt, lastBackupCommit }),
+    }),
+
+  /**
+   * Get raw token for backup operations
+   */
+  getBackupToken: () => apiCall<{ token: string }>('/settings/github-backup/token'),
 };

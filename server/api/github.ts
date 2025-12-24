@@ -171,6 +171,94 @@ router.get('/:id/remote', async (req, res) => {
   }
 });
 
+// Push to backup branch (for auto-backup feature)
+router.post('/:id/backup-push', rateLimitMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { branch = 'backup/auto', token } = req.body;
+    const filesDir = getFilesDir(id);
+
+    if (!existsSync(filesDir)) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (!isOwnGitRepo(filesDir)) {
+      return res.status(400).json({ error: 'Git not initialized' });
+    }
+
+    const git: SimpleGit = simpleGit(filesDir);
+
+    // Check if remote exists
+    const remotes = await git.getRemotes(true);
+    const origin = remotes.find(r => r.name === 'origin');
+    if (!origin) {
+      return res.status(400).json({ error: 'No remote origin configured. Push to GitHub first.' });
+    }
+
+    // Get latest commit
+    const log = await git.log({ maxCount: 1 });
+    const latestCommit = log.latest?.hash;
+
+    if (!latestCommit) {
+      return res.status(400).json({ error: 'No commits found' });
+    }
+
+    // Configure remote URL with token if provided
+    const originalUrl = origin.refs.push || origin.refs.fetch;
+    let tokenizedUrl = originalUrl;
+
+    if (token && isValidGitHubToken(token)) {
+      // Insert token into URL for authentication
+      // https://github.com/user/repo.git -> https://token@github.com/user/repo.git
+      tokenizedUrl = originalUrl.replace('https://', `https://${token}@`);
+      await git.remote(['set-url', 'origin', tokenizedUrl]);
+    }
+
+    try {
+      // Create/update backup branch pointing to current HEAD
+      // First, try to delete remote backup branch if it exists (to allow force push)
+      try {
+        await git.push('origin', `:refs/heads/${branch}`);
+      } catch {
+        // Branch might not exist, that's fine
+      }
+
+      // Push current HEAD to backup branch
+      await git.push('origin', `HEAD:refs/heads/${branch}`, ['--force']);
+
+      // Restore original URL if we modified it
+      if (token && tokenizedUrl !== originalUrl) {
+        await git.remote(['set-url', 'origin', originalUrl]);
+      }
+
+      res.json({
+        success: true,
+        message: `Backed up to ${branch}`,
+        branch,
+        commit: latestCommit.substring(0, 7),
+        timestamp: Date.now()
+      });
+    } catch (pushError) {
+      // Restore original URL on error
+      if (token && tokenizedUrl !== originalUrl) {
+        await git.remote(['set-url', 'origin', originalUrl]);
+      }
+      throw pushError;
+    }
+  } catch (error: unknown) {
+    console.error('Backup push error:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+
+    if (errorMessage.includes('Authentication') || errorMessage.includes('403') || errorMessage.includes('401')) {
+      return res.status(401).json({
+        error: 'Authentication failed. Please check your GitHub token.'
+      });
+    }
+
+    res.status(500).json({ error: 'Failed to push backup' });
+  }
+});
+
 // Push to remote (GH-002 fix: rate limited)
 router.post('/:id/push', rateLimitMiddleware, async (req, res) => {
   try {

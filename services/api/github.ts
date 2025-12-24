@@ -76,4 +76,16 @@ export const githubApi = {
       method: 'POST',
       body: JSON.stringify({ token, ...options }),
     }),
+
+  /**
+   * Push to backup branch
+   */
+  backupPush: (projectId: string, options?: { branch?: string; token?: string }) =>
+    apiCall<{ success: boolean; message: string; branch: string; commit: string; timestamp: number }>(
+      `/github/${projectId}/backup-push`,
+      {
+        method: 'POST',
+        body: JSON.stringify(options || {}),
+      }
+    ),
 };

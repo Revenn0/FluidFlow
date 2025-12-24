@@ -27,6 +27,8 @@ import { useModalManager } from './hooks/useModalManager';
 import { useAppContext } from './contexts/AppContext';
 import { useUI } from './contexts/UIContext';
 import { useAutoCommit } from './hooks/useAutoCommit';
+import { githubApi } from './services/api/github';
+import { settingsApi } from './services/api/settings';
 import { Undo2, Redo2, History, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { InspectedElement, EditScope } from './components/PreviewPanel/ComponentInspector';
 import { getContextManager } from './services/conversationContext';
@@ -65,8 +67,49 @@ export default function App() {
   const [showPromptHistory, setShowPromptHistory] = useState(false);
   const [historyPrompt, setHistoryPrompt] = useState<string | undefined>();
 
+  // GitHub Backup state
+  const [backupEnabled, setBackupEnabled] = useState(false);
+  const [backupBranchName, setBackupBranchName] = useState('backup/auto');
+
+  // Load backup settings on mount
+  useEffect(() => {
+    settingsApi.getGitHubBackup().then((settings) => {
+      setBackupEnabled(settings.enabled);
+      setBackupBranchName(settings.branchName || 'backup/auto');
+    }).catch(console.error);
+  }, []);
+
+  // Backup push callback
+  const handleBackupPush = useCallback(async () => {
+    if (!ctx.currentProject?.id) return;
+
+    try {
+      // Get token from settings
+      const { token } = await settingsApi.getBackupToken();
+      if (!token) {
+        console.warn('[Backup] No token configured, skipping backup');
+        return;
+      }
+
+      // Push to backup branch
+      const result = await githubApi.backupPush(ctx.currentProject.id, {
+        branch: backupBranchName,
+        token,
+      });
+
+      // Update backup status
+      if (result.success) {
+        await settingsApi.updateBackupStatus(result.timestamp, result.commit);
+        console.log('[Backup] Success:', result.message);
+      }
+    } catch (err) {
+      console.error('[Backup] Failed:', err);
+      throw err; // Re-throw so useAutoCommit can track status
+    }
+  }, [ctx.currentProject?.id, backupBranchName]);
+
   // Auto-commit feature: commits when preview is error-free
-  const { isAutoCommitting } = useAutoCommit({
+  const { isAutoCommitting, lastBackupStatus: _lastBackupStatus } = useAutoCommit({
     enabled: ui.autoCommitEnabled,
     files: ctx.files,
     hasUncommittedChanges: ctx.hasUncommittedChanges,
@@ -74,6 +117,8 @@ export default function App() {
     gitInitialized: ctx.gitStatus?.initialized ?? false,
     localChanges: ctx.localChanges,
     onCommit: ctx.commit,
+    backupEnabled,
+    onBackupPush: handleBackupPush,
   });
 
   // Toggle auto-commit

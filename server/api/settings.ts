@@ -169,6 +169,14 @@ interface WebContainerSettings {
   scope: string;
 }
 
+interface GitHubBackupSettings {
+  enabled: boolean;
+  branchName: string;
+  token?: string;
+  lastBackupAt?: number;
+  lastBackupCommit?: string;
+}
+
 interface GlobalSettings {
   // AI Provider settings
   aiProviders: ProviderConfig[];
@@ -180,6 +188,9 @@ interface GlobalSettings {
   // WebContainer settings
   webContainer: WebContainerSettings;
 
+  // GitHub Backup settings
+  githubBackup: GitHubBackupSettings;
+
   // Metadata
   updatedAt: number;
 }
@@ -190,11 +201,20 @@ const DEFAULT_WEBCONTAINER_SETTINGS: WebContainerSettings = {
   scope: '',
 };
 
+const DEFAULT_GITHUB_BACKUP_SETTINGS: GitHubBackupSettings = {
+  enabled: false,
+  branchName: 'backup/auto',
+  token: undefined,
+  lastBackupAt: undefined,
+  lastBackupCommit: undefined,
+};
+
 const DEFAULT_SETTINGS: GlobalSettings = {
   aiProviders: [],
   activeProviderId: 'default-gemini',
   customSnippets: [],
   webContainer: DEFAULT_WEBCONTAINER_SETTINGS,
+  githubBackup: DEFAULT_GITHUB_BACKUP_SETTINGS,
   updatedAt: 0
 };
 
@@ -623,6 +643,107 @@ router.put('/webcontainer', async (req, res) => {
   } catch (error) {
     console.error('Save WebContainer settings error:', error);
     res.status(500).json({ error: 'Failed to save WebContainer settings' });
+  }
+});
+
+// ============ GITHUB BACKUP SETTINGS ============
+
+// Get GitHub Backup settings (mask token)
+router.get('/github-backup', async (req, res) => {
+  try {
+    const settings = await loadSettings();
+    const backupSettings = settings.githubBackup || DEFAULT_GITHUB_BACKUP_SETTINGS;
+
+    // Mask token before sending
+    res.json({
+      ...backupSettings,
+      token: backupSettings.token ? maskApiKey(backupSettings.token) : undefined,
+    });
+  } catch (error) {
+    console.error('Get GitHub Backup settings error:', error);
+    res.status(500).json({ error: 'Failed to get GitHub Backup settings' });
+  }
+});
+
+// Save GitHub Backup settings
+router.put('/github-backup', async (req, res) => {
+  try {
+    const { enabled, branchName, token } = req.body;
+
+    // Validate branch name
+    if (branchName !== undefined) {
+      if (typeof branchName !== 'string' || branchName.length === 0 || branchName.length > 100) {
+        return res.status(400).json({ error: 'Invalid branch name' });
+      }
+      // Basic branch name validation
+      if (!/^[a-zA-Z0-9._/-]+$/.test(branchName)) {
+        return res.status(400).json({ error: 'Branch name contains invalid characters' });
+      }
+    }
+
+    const updatedAt = await withSettingsLock(async () => {
+      const settings = await loadSettings();
+
+      const currentBackup = settings.githubBackup || DEFAULT_GITHUB_BACKUP_SETTINGS;
+
+      settings.githubBackup = {
+        enabled: enabled ?? currentBackup.enabled,
+        branchName: branchName ?? currentBackup.branchName,
+        // Preserve original token if masked value is submitted
+        token: token && !isMaskedApiKey(token) ? token : currentBackup.token,
+        lastBackupAt: currentBackup.lastBackupAt,
+        lastBackupCommit: currentBackup.lastBackupCommit,
+      };
+
+      await saveSettings(settings);
+      return settings.updatedAt;
+    });
+
+    res.json({ message: 'GitHub Backup settings saved', updatedAt });
+  } catch (error) {
+    console.error('Save GitHub Backup settings error:', error);
+    res.status(500).json({ error: 'Failed to save GitHub Backup settings' });
+  }
+});
+
+// Update last backup info (called after successful backup)
+router.post('/github-backup/update-status', async (req, res) => {
+  try {
+    const { lastBackupAt, lastBackupCommit } = req.body;
+
+    const updatedAt = await withSettingsLock(async () => {
+      const settings = await loadSettings();
+
+      if (settings.githubBackup) {
+        settings.githubBackup.lastBackupAt = lastBackupAt;
+        settings.githubBackup.lastBackupCommit = lastBackupCommit;
+      }
+
+      await saveSettings(settings);
+      return settings.updatedAt;
+    });
+
+    res.json({ message: 'Backup status updated', updatedAt });
+  } catch (error) {
+    console.error('Update backup status error:', error);
+    res.status(500).json({ error: 'Failed to update backup status' });
+  }
+});
+
+// Get raw token for backup operations (not masked)
+router.get('/github-backup/token', async (req, res) => {
+  try {
+    const settings = await loadSettings();
+    const backupSettings = settings.githubBackup || DEFAULT_GITHUB_BACKUP_SETTINGS;
+
+    if (!backupSettings.token) {
+      return res.status(404).json({ error: 'No token configured' });
+    }
+
+    res.json({ token: backupSettings.token });
+  } catch (error) {
+    console.error('Get GitHub Backup token error:', error);
+    res.status(500).json({ error: 'Failed to get token' });
   }
 });
 

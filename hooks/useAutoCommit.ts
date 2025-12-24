@@ -23,6 +23,9 @@ interface UseAutoCommitOptions {
   gitInitialized: boolean;
   localChanges: LocalChange[];
   onCommit: (message: string) => Promise<boolean>;
+  // Backup options
+  backupEnabled?: boolean;
+  onBackupPush?: () => Promise<void>;
 }
 
 // Debounce time: wait 3 seconds of stable error-free state
@@ -40,9 +43,12 @@ export function useAutoCommit({
   gitInitialized,
   localChanges,
   onCommit,
+  backupEnabled = false,
+  onBackupPush,
 }: UseAutoCommitOptions) {
   const [isAutoCommitting, setIsAutoCommitting] = useState(false);
   const [lastAutoCommitMessage, setLastAutoCommitMessage] = useState<string | null>(null);
+  const [lastBackupStatus, setLastBackupStatus] = useState<'success' | 'error' | null>(null);
 
   // Refs for tracking state
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -143,6 +149,19 @@ ${changedFilesContext}`;
         lastCommitTimeRef.current = Date.now();
         setLastAutoCommitMessage(message);
         console.log('[AutoCommit] Success!');
+
+        // Trigger backup push if enabled
+        if (backupEnabled && onBackupPush) {
+          try {
+            console.log('[AutoCommit] Triggering backup push...');
+            await onBackupPush();
+            setLastBackupStatus('success');
+            console.log('[AutoCommit] Backup push successful!');
+          } catch (backupErr) {
+            console.error('[AutoCommit] Backup push failed:', backupErr);
+            setLastBackupStatus('error');
+          }
+        }
       } else {
         console.log('[AutoCommit] Commit failed');
       }
@@ -152,7 +171,7 @@ ${changedFilesContext}`;
       isCommittingRef.current = false;
       setIsAutoCommitting(false);
     }
-  }, [enabled, gitInitialized, hasUncommittedChanges, previewHasErrors, localChanges, generateCommitMessage, onCommit]);
+  }, [enabled, gitInitialized, hasUncommittedChanges, previewHasErrors, localChanges, generateCommitMessage, onCommit, backupEnabled, onBackupPush]);
 
   // Effect: Monitor conditions and trigger auto-commit with debounce
   useEffect(() => {
@@ -196,6 +215,7 @@ ${changedFilesContext}`;
   return {
     isAutoCommitting,
     lastAutoCommitMessage,
+    lastBackupStatus,
   };
 }
 

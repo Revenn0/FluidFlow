@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Settings2, Check, Info, Loader2, FlaskConical } from 'lucide-react';
+import { Settings2, Check, Info, Loader2, FlaskConical, Github, CloudUpload, Eye, EyeOff } from 'lucide-react';
 import { SettingsSection } from '../shared';
 import { SettingsToggle } from '../shared/SettingsToggle';
 import { SettingsSelect } from '../shared/SettingsSelect';
 import { getFluidFlowConfig, type AIResponseFormat } from '../../../services/fluidflowConfig';
 import { webContainerService } from '../../../services/webcontainer';
 import { DEFAULT_WEBCONTAINER_SETTINGS, type WebContainerSettings } from '../../../types';
+import { settingsApi } from '../../../services/api/settings';
+import type { GitHubBackupSettings } from '../../../services/api/types';
 
 export const AdvancedPanel: React.FC = () => {
   const [editingRules, setEditingRules] = useState(false);
@@ -19,6 +21,16 @@ export const AdvancedPanel: React.FC = () => {
 
   // AI Response Format
   const [responseFormat, setResponseFormat] = useState<AIResponseFormat>('json');
+
+  // GitHub Backup settings
+  const [backupSettings, setBackupSettings] = useState<GitHubBackupSettings>({
+    enabled: false,
+    branchName: 'backup/auto',
+  });
+  const [backupToken, setBackupToken] = useState('');
+  const [showBackupToken, setShowBackupToken] = useState(false);
+  const [backupSaving, setBackupSaving] = useState(false);
+  const [backupMessage, setBackupMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     const config = getFluidFlowConfig();
@@ -34,6 +46,14 @@ export const AdvancedPanel: React.FC = () => {
 
     // Load response format
     setResponseFormat(config.getResponseFormat());
+
+    // Load GitHub Backup settings
+    settingsApi.getGitHubBackup().then((settings) => {
+      setBackupSettings(settings);
+      if (settings.token) {
+        setBackupToken(settings.token);
+      }
+    }).catch(console.error);
   }, []);
 
   const handleResponseFormatChange = (format: string) => {
@@ -69,6 +89,47 @@ export const AdvancedPanel: React.FC = () => {
     config.setRules(rulesInput);
     setSavedRules(rulesInput);
     setEditingRules(false);
+  };
+
+  // GitHub Backup handlers
+  const handleBackupSettingChange = async (key: keyof GitHubBackupSettings, value: boolean | string) => {
+    setBackupSaving(true);
+    setBackupMessage(null);
+
+    try {
+      const updates: Partial<GitHubBackupSettings> = { [key]: value };
+      await settingsApi.saveGitHubBackup(updates);
+      setBackupSettings(prev => ({ ...prev, [key]: value }));
+      setBackupMessage({ type: 'success', text: 'Saved!' });
+      setTimeout(() => setBackupMessage(null), 2000);
+    } catch (err) {
+      console.error('Failed to save backup settings:', err);
+      setBackupMessage({ type: 'error', text: 'Failed to save' });
+      setTimeout(() => setBackupMessage(null), 3000);
+    } finally {
+      setBackupSaving(false);
+    }
+  };
+
+  const handleSaveBackupToken = async () => {
+    if (!backupToken || backupToken.includes('****')) {
+      return; // Don't save masked tokens
+    }
+
+    setBackupSaving(true);
+    setBackupMessage(null);
+
+    try {
+      await settingsApi.saveGitHubBackup({ token: backupToken });
+      setBackupMessage({ type: 'success', text: 'Token saved!' });
+      setTimeout(() => setBackupMessage(null), 2000);
+    } catch (err) {
+      console.error('Failed to save token:', err);
+      setBackupMessage({ type: 'error', text: 'Failed to save token' });
+      setTimeout(() => setBackupMessage(null), 3000);
+    } finally {
+      setBackupSaving(false);
+    }
   };
 
   return (
@@ -228,6 +289,119 @@ export const AdvancedPanel: React.FC = () => {
               <span className="text-sm text-red-400">Failed to boot. Use Chrome/Edge browser.</span>
             )}
           </div>
+        </div>
+      </SettingsSection>
+
+      {/* GitHub Backup Settings */}
+      <SettingsSection
+        title="GitHub Auto-Backup"
+        description="Automatically push commits to a backup branch on GitHub"
+      >
+        {/* Info Box */}
+        <div className="flex items-start gap-3 p-3 bg-slate-500/10 border border-slate-500/20 rounded-lg mb-4">
+          <Github className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+          <div className="text-xs text-slate-400">
+            When enabled, every auto-commit will also be pushed to a backup branch on GitHub.
+            This provides an automatic off-site backup of your work. Requires a GitHub token with
+            <code className="px-1 py-0.5 bg-slate-800 rounded text-slate-300 mx-1">repo</code>
+            scope and a remote origin configured.
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* Enable Toggle */}
+          <SettingsToggle
+            label="Enable Auto-Backup"
+            description="Push to backup branch after each auto-commit"
+            checked={backupSettings.enabled}
+            onChange={(checked) => handleBackupSettingChange('enabled', checked)}
+          />
+
+          {/* Branch Name */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-white">Backup Branch Name</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={backupSettings.branchName}
+                onChange={(e) => setBackupSettings(prev => ({ ...prev, branchName: e.target.value }))}
+                onBlur={(e) => {
+                  if (e.target.value && e.target.value !== backupSettings.branchName) {
+                    handleBackupSettingChange('branchName', e.target.value);
+                  }
+                }}
+                placeholder="backup/auto"
+                className="flex-1 px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-blue-500/50"
+              />
+            </div>
+            <p className="text-xs text-slate-500">Branch where backups will be pushed (e.g., backup/auto)</p>
+          </div>
+
+          {/* Token */}
+          <div className="space-y-1.5">
+            <label className="text-sm text-white">GitHub Token (PAT)</label>
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <input
+                  type={showBackupToken ? 'text' : 'password'}
+                  value={backupToken}
+                  onChange={(e) => setBackupToken(e.target.value)}
+                  placeholder="ghp_xxxxxxxxxxxx"
+                  className="w-full px-3 py-2 pr-10 bg-slate-800 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-blue-500/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowBackupToken(!showBackupToken)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-white"
+                >
+                  {showBackupToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              <button
+                onClick={handleSaveBackupToken}
+                disabled={backupSaving || !backupToken || backupToken.includes('****')}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+              >
+                {backupSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudUpload className="w-4 h-4" />}
+                Save
+              </button>
+            </div>
+            <p className="text-xs text-slate-500">
+              Personal Access Token with <code className="px-1 py-0.5 bg-slate-800 rounded">repo</code> scope.{' '}
+              <a
+                href="https://github.com/settings/tokens/new?scopes=repo&description=FluidFlow%20Auto-Backup"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-400 hover:underline"
+              >
+                Create token →
+              </a>
+            </p>
+          </div>
+
+          {/* Status Message */}
+          {backupMessage && (
+            <div className={`text-sm px-3 py-2 rounded-lg ${
+              backupMessage.type === 'success'
+                ? 'bg-green-500/20 text-green-400'
+                : 'bg-red-500/20 text-red-400'
+            }`}>
+              {backupMessage.text}
+            </div>
+          )}
+
+          {/* Last Backup Info */}
+          {backupSettings.lastBackupAt && (
+            <div className="text-xs text-slate-500 flex items-center gap-2">
+              <Check className="w-3 h-3 text-green-400" />
+              Last backup: {new Date(backupSettings.lastBackupAt).toLocaleString()}
+              {backupSettings.lastBackupCommit && (
+                <code className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">
+                  {backupSettings.lastBackupCommit}
+                </code>
+              )}
+            </div>
+          )}
         </div>
       </SettingsSection>
 

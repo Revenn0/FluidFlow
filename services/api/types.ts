@@ -173,10 +173,19 @@ export interface CustomSnippet {
   createdAt: number;
 }
 
+export interface GitHubBackupSettings {
+  enabled: boolean;
+  branchName: string; // e.g., 'backup/auto'
+  token?: string; // Encrypted GitHub PAT
+  lastBackupAt?: number;
+  lastBackupCommit?: string;
+}
+
 export interface GlobalSettings {
   aiProviders: StoredProviderConfig[];
   activeProviderId: string;
   customSnippets: CustomSnippet[];
+  githubBackup?: GitHubBackupSettings;
   updatedAt: number;
 }
 
