@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import {
   FolderOpen, Plus, Trash2, Copy, Clock, GitBranch, CloudOff, RefreshCw,
-  Search, MoreVertical, Check, AlertCircle, FolderPlus, Loader2
+  Search, MoreVertical, Check, AlertCircle, FolderPlus, Loader2, Github
 } from 'lucide-react';
 import type { ProjectMeta } from '@/services/projectApi';
 import { BaseModal, ConfirmModal } from './shared/BaseModal';
+import { GitHubImportModal } from './GitHubImportModal';
 
 interface ProjectManagerProps {
   isOpen: boolean;
@@ -53,6 +54,16 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showGitHubImport, setShowGitHubImport] = useState(false);
+
+  // Handle GitHub import complete
+  const handleGitHubImportComplete = async (project: ProjectMeta) => {
+    setShowGitHubImport(false);
+    // Refresh project list and open the imported project
+    await onRefresh();
+    await onOpenProject(project.id);
+    onClose();
+  };
 
   // Filter projects
   const filteredProjects = projects.filter(project => {
@@ -156,6 +167,17 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
             title="Refresh projects"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </button>
+
+          {/* Import from GitHub Button */}
+          <button
+            onClick={() => setShowGitHubImport(true)}
+            disabled={!isServerOnline}
+            className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg text-sm font-medium transition-colors border border-white/10"
+            title="Import from GitHub"
+          >
+            <Github className="w-4 h-4" />
+            Import
           </button>
 
           {/* New Project Button */}
@@ -357,6 +379,13 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
         variant="danger"
         icon={<AlertCircle className="w-5 h-5 text-red-400" />}
         isLoading={!!deleteConfirmId && actionLoading === deleteConfirmId}
+      />
+
+      {/* GitHub Import Modal */}
+      <GitHubImportModal
+        isOpen={showGitHubImport}
+        onClose={() => setShowGitHubImport(false)}
+        onImportComplete={handleGitHubImportComplete}
       />
     </>
   );

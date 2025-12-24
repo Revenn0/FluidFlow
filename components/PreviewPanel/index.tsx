@@ -3,7 +3,7 @@ import {
   Monitor, Smartphone, Tablet, RefreshCw, Eye, Code2, Copy, Check, Download, Database,
   ShieldCheck, FileText, Wrench, Package, Loader2,
   SplitSquareVertical, X, Zap, ZapOff, MousePointer2, Bug, Settings, ChevronDown,
-  Play, Box, Bot, Map, GitBranch, Activity
+  Play, Box, Bot, Map, GitBranch, Activity, FolderOpen
 } from 'lucide-react';
 import { getProviderManager } from '../../services/ai';
 import { buildIframeHtml } from '../../utils/sandboxHtml';
@@ -42,6 +42,7 @@ import { DocsPanel } from './DocsPanel';
 import { PreviewContent } from './PreviewContent';
 import { CodeQualityPanel } from './CodeQualityPanel';
 import { ActivityLogPanel } from './ActivityLogPanel';
+import { ProjectsPanel } from './ProjectsPanel';
 import { runnerApi } from '../../services/projectApi';
 
 /**
@@ -544,9 +545,16 @@ export const PreviewPanel = memo(function PreviewPanel({
     pushResult,
     setPushResult,
     pushToGithub,
+    // Push to existing repo
+    repoUrl,
+    setRepoUrl,
+    hasRemote,
+    currentRemoteUrl,
+    pushToExisting,
   } = useExport({
     files,
     appCode,
+    projectId,
   });
 
   // Build iframe content
@@ -634,6 +642,7 @@ export const PreviewPanel = memo(function PreviewPanel({
               { id: 'codemap', icon: Map, label: 'CodeMap' },
               { id: 'quality', icon: ShieldCheck, label: 'Quality' },
               { id: 'activity', icon: Activity, label: 'Activity' },
+              { id: 'projects', icon: FolderOpen, label: 'Projects' },
               { id: 'git', icon: GitBranch, label: 'Git' },
               { id: 'webcontainer', icon: Box, label: 'WebContainer' },
               { id: 'database', icon: Database, label: 'DB Studio' },
@@ -821,6 +830,8 @@ export const PreviewPanel = memo(function PreviewPanel({
           <DebugPanel />
         ) : activeTab === 'env' ? (
           <EnvironmentPanel files={files} setFiles={setFiles} />
+        ) : activeTab === 'projects' ? (
+          <ProjectsPanel />
         ) : activeTab === 'git' ? (
           <div className="flex-1 min-h-0 overflow-auto">
             <GitPanel
@@ -1109,7 +1120,22 @@ export const PreviewPanel = memo(function PreviewPanel({
 
         {/* Modals */}
         <ExportModal isOpen={showExportModal} onClose={() => setShowExportModal(false)} onDownloadZip={downloadAsZip} onPushToGithub={() => { setShowExportModal(false); setShowGithubModal(true); }} isDownloading={isDownloading} />
-        <GithubModal isOpen={showGithubModal} onClose={() => { setShowGithubModal(false); setPushResult(null); }} githubToken={githubToken} onTokenChange={setGithubToken} repoName={repoName} onRepoNameChange={setRepoName} onPush={pushToGithub} isPushing={isPushing} pushResult={pushResult} />
+        <GithubModal
+          isOpen={showGithubModal}
+          onClose={() => { setShowGithubModal(false); setPushResult(null); }}
+          githubToken={githubToken}
+          onTokenChange={setGithubToken}
+          repoName={repoName}
+          onRepoNameChange={setRepoName}
+          onPush={pushToGithub}
+          isPushing={isPushing}
+          pushResult={pushResult}
+          repoUrl={repoUrl}
+          onRepoUrlChange={setRepoUrl}
+          onPushToExisting={pushToExisting}
+          hasRemote={hasRemote}
+          currentRemoteUrl={currentRemoteUrl}
+        />
         {activeTab === 'preview' && <ConsultantReport suggestions={suggestions} onClose={() => setSuggestions(null)} />}
         {activeTab === 'preview' && <AccessibilityModal isOpen={showAccessReport} onClose={() => setShowAccessReport(false)} report={accessibilityReport} isAuditing={isAuditing} isFixing={isFixingAccessibility} onFix={fixAccessibilityIssues} />}
       </div>

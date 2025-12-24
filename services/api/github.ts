@@ -44,7 +44,7 @@ export const githubApi = {
   /**
    * Push to remote
    */
-  push: (projectId: string, options?: { remote?: string; branch?: string; force?: boolean }) =>
+  push: (projectId: string, options?: { remote?: string; branch?: string; force?: boolean; token?: string }) =>
     apiCall<{ message: string; remote: string; branch: string }>(`/github/${projectId}/push`, {
       method: 'POST',
       body: JSON.stringify(options || {}),
@@ -88,4 +88,40 @@ export const githubApi = {
         body: JSON.stringify(options || {}),
       }
     ),
+
+  /**
+   * Import project from GitHub (supports private repos and restores FluidFlow metadata)
+   */
+  importProject: (options: { url: string; token?: string; branch?: string; name?: string }) =>
+    apiCall<{
+      message: string;
+      project: ProjectMeta;
+      restored: { metadata: boolean; context: boolean };
+    }>('/github/import', {
+      method: 'POST',
+      body: JSON.stringify(options),
+    }),
+
+  /**
+   * List user's GitHub repositories
+   */
+  listRepos: (token: string) =>
+    apiCall<{
+      repos: Array<{
+        id: number;
+        name: string;
+        fullName: string;
+        description: string | null;
+        url: string;
+        cloneUrl: string;
+        private: boolean;
+        updatedAt: string;
+        defaultBranch: string;
+        hasFluidFlowBackup: boolean;
+      }>;
+    }>('/github/repos', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
 };

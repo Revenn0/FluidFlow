@@ -43,7 +43,7 @@ export const CreditsModal: React.FC<CreditsModalProps> = ({ isOpen, onClose, sho
       try {
         // Try to load from GitHub first
         const githubResponse = await fetch(
-          'https://raw.githubusercontent.com/ersinkoc/ersinkoc/refs/heads/main/ads.json',
+          'https://raw.githubusercontent.com/ersinkoc/ersinkoc/main/ads.json',
           { signal: abortController.signal }
         );
         const data: Project[] = await githubResponse.json();

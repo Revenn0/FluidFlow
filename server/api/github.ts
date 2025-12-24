@@ -176,6 +176,7 @@ router.post('/:id/backup-push', rateLimitMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const { branch = 'backup/auto', token } = req.body;
+    const projectDir = getProjectPath(id);
     const filesDir = getFilesDir(id);
 
     if (!existsSync(filesDir)) {
@@ -195,7 +196,37 @@ router.post('/:id/backup-push', rateLimitMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'No remote origin configured. Push to GitHub first.' });
     }
 
-    // Get latest commit
+    // === NEW: Copy metadata files to .fluidflow/ for backup ===
+    const fluidflowDir = path.join(filesDir, '.fluidflow');
+    try {
+      // Create .fluidflow directory if it doesn't exist
+      if (!existsSync(fluidflowDir)) {
+        await fs.mkdir(fluidflowDir, { recursive: true });
+      }
+
+      // Copy project.json and context.json
+      const projectJsonPath = path.join(projectDir, 'project.json');
+      const contextJsonPath = path.join(projectDir, 'context.json');
+
+      if (existsSync(projectJsonPath)) {
+        await fs.copyFile(projectJsonPath, path.join(fluidflowDir, 'project.json'));
+      }
+      if (existsSync(contextJsonPath)) {
+        await fs.copyFile(contextJsonPath, path.join(fluidflowDir, 'context.json'));
+      }
+
+      // Stage and commit metadata changes if any
+      await git.add('.fluidflow/*');
+      const status = await git.status();
+      if (status.staged.length > 0) {
+        await git.commit('chore: sync FluidFlow metadata for backup');
+      }
+    } catch (metaError) {
+      console.warn('Warning: Could not sync metadata files:', metaError);
+      // Continue with backup even if metadata sync fails
+    }
+
+    // Get latest commit (might be new if we just committed metadata)
     const log = await git.log({ maxCount: 1 });
     const latestCommit = log.latest?.hash;
 
@@ -261,30 +292,99 @@ router.post('/:id/backup-push', rateLimitMiddleware, async (req, res) => {
 
 // Push to remote (GH-002 fix: rate limited)
 router.post('/:id/push', rateLimitMiddleware, async (req, res) => {
+  const { id } = req.params;
+  const { remote = 'origin', branch, force = false, setUpstream = true, token } = req.body;
+  const filesDir = getFilesDir(id);
+
+  console.log(`[Push] Project: ${id}, Remote: ${remote}, Force: ${force}, HasToken: ${!!token}`);
+
+  if (!existsSync(filesDir)) {
+    console.log(`[Push] Project not found: ${filesDir}`);
+    return res.status(404).json({ error: 'Project not found' });
+  }
+
+  if (!isOwnGitRepo(filesDir)) {
+    console.log(`[Push] Git not initialized in: ${filesDir}`);
+    return res.status(400).json({ error: 'Git not initialized' });
+  }
+
+  const git: SimpleGit = simpleGit(filesDir);
+  let originalRemoteUrl: string | null = null;
+
   try {
-    const { id } = req.params;
-    const { remote = 'origin', branch, force = false, setUpstream = true } = req.body;
-    const filesDir = getFilesDir(id);
-
-    if (!existsSync(filesDir)) {
-      return res.status(404).json({ error: 'Project not found' });
-    }
-
-    if (!isOwnGitRepo(filesDir)) {
-      return res.status(400).json({ error: 'Git not initialized' });
-    }
-
-    const git: SimpleGit = simpleGit(filesDir);
-
     // Get current branch if not specified
-    const currentBranch = branch || (await git.branchLocal()).current;
+    const branchInfo = await git.branchLocal();
+    let currentBranch = branch || branchInfo.current;
+    console.log(`[Push] Current branch: ${currentBranch}, All branches: ${branchInfo.all.join(', ')}`);
+
+    // Check if current branch looks like a commit hash (detached HEAD state)
+    const isDetachedHead = /^[0-9a-f]{7,40}$/.test(currentBranch);
+    if (isDetachedHead) {
+      console.log(`[Push] Detected detached HEAD state, attempting to fix...`);
+      // Try to find or create a proper branch
+      if (branchInfo.all.includes('main')) {
+        await git.checkout('main');
+        currentBranch = 'main';
+      } else if (branchInfo.all.includes('master')) {
+        await git.checkout('master');
+        currentBranch = 'master';
+      } else {
+        // Create main branch from current HEAD
+        console.log(`[Push] Creating 'main' branch from current HEAD`);
+        await git.checkoutLocalBranch('main');
+        currentBranch = 'main';
+      }
+      console.log(`[Push] Now on branch: ${currentBranch}`);
+    }
+
+    // Check if we have any commits
+    const log = await git.log({ maxCount: 1 }).catch(() => null);
+    if (!log || log.total === 0) {
+      console.log(`[Push] No commits found`);
+      return res.status(400).json({ error: 'No commits to push. Please make a commit first.' });
+    }
+    console.log(`[Push] Latest commit: ${log.latest?.hash?.substring(0, 7)} - ${log.latest?.message}`);
+
+    // If token is provided, temporarily update remote URL with authentication
+    if (token) {
+      const remotes = await git.getRemotes(true);
+      console.log(`[Push] Remotes found: ${remotes.map(r => r.name).join(', ')}`);
+      const remoteInfo = remotes.find(r => r.name === remote);
+      if (remoteInfo?.refs?.push) {
+        originalRemoteUrl = remoteInfo.refs.push;
+        console.log(`[Push] Original remote URL: ${originalRemoteUrl}`);
+        // Convert https://github.com/user/repo.git to https://token@github.com/user/repo.git
+        const authenticatedUrl = originalRemoteUrl.replace(
+          /^https:\/\/(.*@)?github\.com\//,
+          `https://${token.substring(0, 4)}****@github.com/`
+        );
+        console.log(`[Push] Setting authenticated URL: ${authenticatedUrl}`);
+        // Actually set URL with full token
+        const realAuthUrl = originalRemoteUrl.replace(
+          /^https:\/\/(.*@)?github\.com\//,
+          `https://${token}@github.com/`
+        );
+        await git.remote(['set-url', remote, realAuthUrl]);
+      } else {
+        console.log(`[Push] No push URL found for remote: ${remote}`);
+      }
+    } else {
+      console.log(`[Push] No token provided, using existing credentials`);
+    }
 
     // Build push options
     const pushOptions: string[] = [];
     if (setUpstream) pushOptions.push('-u');
     if (force) pushOptions.push('--force');
 
+    console.log(`[Push] Pushing to ${remote}/${currentBranch} with options: ${pushOptions.join(', ') || 'none'}`);
     await git.push(remote, currentBranch, pushOptions);
+    console.log(`[Push] Push successful!`);
+
+    // Restore original remote URL before sending response
+    if (originalRemoteUrl) {
+      await git.remote(['set-url', remote, originalRemoteUrl]);
+    }
 
     res.json({
       message: `Pushed to ${remote}/${currentBranch}`,
@@ -292,17 +392,38 @@ router.post('/:id/push', rateLimitMiddleware, async (req, res) => {
       branch: currentBranch
     });
   } catch (error: unknown) {
+    // Restore original remote URL (without token) for security
+    if (originalRemoteUrl) {
+      try {
+        await git.remote(['set-url', remote, originalRemoteUrl]);
+      } catch (restoreErr) {
+        console.error('Failed to restore remote URL:', restoreErr);
+      }
+    }
+
     // BUG-005 FIX: Log full error server-side, return sanitized message to client
     console.error('Push error:', error);
     const errorMessage = error instanceof Error ? error.message : String(error);
+
     // Check for authentication error
-    if (errorMessage.includes('Authentication') || errorMessage.includes('403')) {
+    if (errorMessage.includes('Authentication') || errorMessage.includes('403') || errorMessage.includes('could not read Username')) {
       return res.status(401).json({
-        error: 'Authentication failed. Make sure you have configured git credentials or use a personal access token.'
-        // Removed: details field that exposed internal error messages
+        error: 'Authentication failed. Make sure your GitHub token is valid and has repo permissions.'
       });
     }
-    res.status(500).json({ error: 'Failed to push to remote repository' });
+    // Check for rejected push (non-fast-forward)
+    if (errorMessage.includes('rejected') || errorMessage.includes('non-fast-forward')) {
+      return res.status(409).json({
+        error: 'Push rejected: Remote contains work that you do not have locally. Try pulling first or use force push.'
+      });
+    }
+    // Check for no upstream branch
+    if (errorMessage.includes('no upstream branch') || errorMessage.includes('has no upstream')) {
+      return res.status(400).json({
+        error: 'No upstream branch configured. The push will set up tracking automatically.'
+      });
+    }
+    res.status(500).json({ error: `Push failed: ${errorMessage}` });
   }
 });
 
@@ -603,6 +724,212 @@ router.post('/verify-token', rateLimitMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Verify token error:', error);
     res.status(500).json({ error: 'Failed to verify token' });
+  }
+});
+
+// Import FluidFlow project from GitHub (supports private repos and restores metadata)
+router.post('/import', rateLimitMiddleware, async (req, res) => {
+  try {
+    const { url, token, branch = 'backup/auto', name } = req.body;
+
+    if (!url) {
+      return res.status(400).json({ error: 'Repository URL required' });
+    }
+
+    // Validate URL to prevent SSRF attacks
+    if (!isValidGitUrl(url)) {
+      return res.status(400).json({
+        error: 'Invalid repository URL',
+        details: 'Only HTTPS URLs from trusted git hosting providers are allowed'
+      });
+    }
+
+    // Validate token if provided
+    if (token && !isValidGitHubToken(token)) {
+      return res.status(400).json({ error: 'Invalid GitHub token format' });
+    }
+
+    // Generate project ID
+    const { v4: uuidv4 } = await import('uuid');
+    const id = uuidv4();
+    const projectPath = getProjectPath(id);
+    const filesDir = getFilesDir(id);
+
+    // Create project directory
+    await fs.mkdir(projectPath, { recursive: true });
+
+    // Prepare clone URL with token if provided (for private repos)
+    let cloneUrl = url;
+    if (token) {
+      cloneUrl = url.replace('https://', `https://${token}@`);
+    }
+
+    // Clone repository
+    const git: SimpleGit = simpleGit();
+
+    // Clone specific branch if it exists, otherwise clone default
+    try {
+      await git.clone(cloneUrl, filesDir, ['--branch', branch, '--single-branch']);
+    } catch {
+      // If branch doesn't exist, clone default branch
+      await git.clone(cloneUrl, filesDir);
+    }
+
+    // Remove token from remote URL for security
+    if (token) {
+      const gitInDir = simpleGit(filesDir);
+      await gitInDir.remote(['set-url', 'origin', url]);
+    }
+
+    // Check for .fluidflow/ metadata and restore it
+    const fluidflowDir = path.join(filesDir, '.fluidflow');
+    let restoredMeta = null;
+    let restoredContext = false;
+
+    if (existsSync(fluidflowDir)) {
+      // Restore project.json
+      const backupProjectJson = path.join(fluidflowDir, 'project.json');
+      if (existsSync(backupProjectJson)) {
+        const backupMeta = await safeReadJson<Record<string, unknown> | null>(backupProjectJson, null);
+        if (backupMeta) {
+          // Update ID to new one but keep other metadata
+          restoredMeta = {
+            ...backupMeta,
+            id,
+            name: name || backupMeta.name || 'Imported Project',
+            updatedAt: Date.now(),
+            importedFrom: url,
+            importedAt: Date.now()
+          };
+        }
+      }
+
+      // Restore context.json (conversation history)
+      const backupContextJson = path.join(fluidflowDir, 'context.json');
+      if (existsSync(backupContextJson)) {
+        try {
+          await fs.copyFile(backupContextJson, path.join(projectPath, 'context.json'));
+          restoredContext = true;
+        } catch {
+          console.warn('Could not restore context.json');
+        }
+      }
+    }
+
+    // Create or use restored meta file
+    const meta = restoredMeta || {
+      id,
+      name: name || url.split('/').pop()?.replace('.git', '') || 'Imported Project',
+      description: `Imported from ${url}`,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      gitInitialized: true,
+      githubRepo: url
+    };
+
+    await fs.writeFile(getMetaPath(id), JSON.stringify(meta, null, 2));
+
+    res.status(201).json({
+      message: 'Project imported successfully',
+      project: meta,
+      restored: {
+        metadata: !!restoredMeta,
+        context: restoredContext
+      }
+    });
+  } catch (error: unknown) {
+    console.error('Import error:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+
+    // Check for common error types
+    if (message.includes('Authentication failed') || message.includes('401')) {
+      return res.status(401).json({ error: 'Authentication failed. Check your GitHub token.' });
+    }
+    if (message.includes('not found') || message.includes('404')) {
+      return res.status(404).json({ error: 'Repository not found. Check the URL or your access permissions.' });
+    }
+
+    res.status(500).json({ error: 'Failed to import repository' });
+  }
+});
+
+// List user's GitHub repos (for import picker)
+router.get('/repos', rateLimitMiddleware, async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+
+    if (!token) {
+      return res.status(400).json({ error: 'GitHub token required' });
+    }
+
+    if (!isValidGitHubToken(token)) {
+      return res.status(400).json({ error: 'Invalid GitHub token format' });
+    }
+
+    // Fetch user's repos
+    const response = await fetch('https://api.github.com/user/repos?sort=updated&per_page=50', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github.v3+json'
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Failed to fetch repositories' });
+    }
+
+    interface GitHubRepo {
+      id: number;
+      name: string;
+      full_name: string;
+      description: string | null;
+      html_url: string;
+      clone_url: string;
+      private: boolean;
+      updated_at: string;
+      default_branch: string;
+    }
+
+    const repos: GitHubRepo[] = await response.json();
+
+    // Check which repos have backup/auto branch (FluidFlow backups)
+    const reposWithInfo = await Promise.all(
+      repos.map(async (repo) => {
+        let hasBackupBranch = false;
+        try {
+          const branchResponse = await fetch(
+            `https://api.github.com/repos/${repo.full_name}/branches/backup/auto`,
+            {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github.v3+json'
+              }
+            }
+          );
+          hasBackupBranch = branchResponse.ok;
+        } catch {
+          // Ignore errors checking branch
+        }
+
+        return {
+          id: repo.id,
+          name: repo.name,
+          fullName: repo.full_name,
+          description: repo.description,
+          url: repo.html_url,
+          cloneUrl: repo.clone_url,
+          private: repo.private,
+          updatedAt: repo.updated_at,
+          defaultBranch: repo.default_branch,
+          hasFluidFlowBackup: hasBackupBranch
+        };
+      })
+    );
+
+    res.json({ repos: reposWithInfo });
+  } catch (error) {
+    console.error('List repos error:', error);
+    res.status(500).json({ error: 'Failed to list repositories' });
   }
 });
 

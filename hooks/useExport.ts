@@ -6,10 +6,11 @@
  * Extracted from PreviewPanel to reduce complexity.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import { FileSystem, PushResult } from '../types';
+import { githubApi } from '../services/api/github';
 import {
   getPackageJson,
   getViteConfig,
@@ -25,6 +26,7 @@ import {
 export interface UseExportOptions {
   files: FileSystem;
   appCode: string | undefined;
+  projectId?: string | null;
 }
 
 export interface UseExportReturn {
@@ -45,10 +47,17 @@ export interface UseExportReturn {
   pushResult: PushResult | null;
   setPushResult: (result: PushResult | null) => void;
   pushToGithub: () => Promise<void>;
+
+  // Push to existing repo
+  repoUrl: string;
+  setRepoUrl: (url: string) => void;
+  hasRemote: boolean;
+  currentRemoteUrl: string;
+  pushToExisting: (force?: boolean) => Promise<void>;
 }
 
 export function useExport(options: UseExportOptions): UseExportReturn {
-  const { files, appCode } = options;
+  const { files, appCode, projectId } = options;
 
   // Export modal state
   const [showExportModal, setShowExportModal] = useState(false);
@@ -60,6 +69,36 @@ export function useExport(options: UseExportOptions): UseExportReturn {
   const [repoName, setRepoName] = useState('fluidflow-app');
   const [isPushing, setIsPushing] = useState(false);
   const [pushResult, setPushResult] = useState<PushResult | null>(null);
+
+  // Push to existing repo state
+  const [repoUrl, setRepoUrl] = useState('');
+  const [hasRemote, setHasRemote] = useState(false);
+  const [currentRemoteUrl, setCurrentRemoteUrl] = useState('');
+
+  // Load remote info when projectId changes or modal opens
+  useEffect(() => {
+    const loadRemotes = async () => {
+      if (!projectId || !showGithubModal) return;
+      try {
+        const result = await githubApi.getRemotes(projectId);
+        if (result.initialized && result.remotes.length > 0) {
+          const origin = result.remotes.find(r => r.name === 'origin');
+          if (origin) {
+            setHasRemote(true);
+            setCurrentRemoteUrl(origin.push || origin.fetch || '');
+          }
+        } else {
+          setHasRemote(false);
+          setCurrentRemoteUrl('');
+        }
+      } catch (err) {
+        console.error('Failed to load remotes:', err);
+        setHasRemote(false);
+        setCurrentRemoteUrl('');
+      }
+    };
+    loadRemotes();
+  }, [projectId, showGithubModal]);
 
   /**
    * Download project as ZIP file
@@ -305,6 +344,45 @@ Thumbs.db
     }
   }, [githubToken, repoName, appCode, files]);
 
+  /**
+   * Push to existing GitHub repository
+   */
+  const pushToExisting = useCallback(async (force?: boolean) => {
+    if (!projectId || !githubToken) return;
+
+    setIsPushing(true);
+    setPushResult(null);
+
+    try {
+      // If there's a new repo URL and no remote configured, set the remote first
+      if (repoUrl && !currentRemoteUrl) {
+        await githubApi.setRemote(projectId, repoUrl, 'origin');
+        setCurrentRemoteUrl(repoUrl);
+        setHasRemote(true);
+      }
+
+      // Push using backend API (which uses simple-git)
+      await githubApi.push(projectId, {
+        force: force || false,
+      });
+
+      // Try to get the repo URL for the success message
+      const remotes = await githubApi.getRemotes(projectId);
+      const origin = remotes.remotes.find(r => r.name === 'origin');
+      const url = origin?.push?.replace(/\.git$/, '').replace(/^https:\/\/.*@/, 'https://') || '';
+
+      setPushResult({
+        success: true,
+        url: url || undefined,
+      });
+    } catch (error: unknown) {
+      const msg = error instanceof Error ? error.message : 'Failed to push to GitHub';
+      setPushResult({ success: false, error: msg });
+    } finally {
+      setIsPushing(false);
+    }
+  }, [projectId, githubToken, repoUrl, currentRemoteUrl]);
+
   return {
     // Export modal
     showExportModal,
@@ -323,5 +401,12 @@ Thumbs.db
     pushResult,
     setPushResult,
     pushToGithub,
+
+    // Push to existing repo
+    repoUrl,
+    setRepoUrl,
+    hasRemote,
+    currentRemoteUrl,
+    pushToExisting,
   };
 }
