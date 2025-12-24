@@ -9,6 +9,7 @@ export type SettingsCategory =
   | 'projects'
   | 'editor'
   | 'appearance'
+  | 'github'
   | 'debug'
   | 'shortcuts'
   | 'advanced';

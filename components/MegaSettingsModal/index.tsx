@@ -9,6 +9,7 @@ import { TechStackPanel } from './panels/TechStackPanel';
 import { ProjectsPanel } from './panels/ProjectsPanel';
 import { EditorPanel } from './panels/EditorPanel';
 import { AppearancePanel } from './panels/AppearancePanel';
+import { GitHubPanel } from './panels/GitHubPanel';
 import { DebugPanel } from './panels/DebugPanel';
 import { AdvancedPanel } from './panels/AdvancedPanel';
 import {
@@ -176,6 +177,8 @@ export const MegaSettingsModal: React.FC<MegaSettingsModalProps> = ({
         return <EditorPanel />;
       case 'appearance':
         return <AppearancePanel />;
+      case 'github':
+        return <GitHubPanel />;
       case 'debug':
         return <DebugPanel />;
       case 'advanced':

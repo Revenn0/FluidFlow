@@ -457,8 +457,8 @@ Fix the error in src/App.tsx.`;
     // Clear chat messages
     setMessages([]);
 
-    // Clear AI context
-    contextManager.clearContext(sessionId);
+    // Clear ALL AI contexts (main-chat, prompt-improver, git-commit, quick-edit, etc.)
+    contextManager.clearAllContexts();
 
     // Reset app state (files, project, WIP, UI)
     resetApp();
@@ -466,7 +466,7 @@ Fix the error in src/App.tsx.`;
     // Close the modal
     modals.closeResetConfirm();
 
-    console.log('[ControlPanel] Start Fresh completed');
+    console.log('[ControlPanel] Start Fresh completed - all contexts cleared');
   };
 
   return (

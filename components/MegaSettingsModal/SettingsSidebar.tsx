@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Cpu, MessageSquare, Package, FolderOpen, Code,
-  Palette, Bug, Settings2
+  Palette, Bug, Settings2, Github
 } from 'lucide-react';
 import { SettingsCategory, SettingsCategoryConfig } from './types';
 
@@ -46,6 +46,12 @@ const SETTINGS_CATEGORIES: SettingsCategoryConfig[] = [
     label: 'Appearance',
     icon: Palette,
     description: 'UI theme and layout'
+  },
+  {
+    id: 'github',
+    label: 'GitHub',
+    icon: Github,
+    description: 'Sync, backup, and push settings'
   },
   {
     id: 'debug',

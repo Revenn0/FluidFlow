@@ -126,6 +126,15 @@ class ConversationContextManager {
     this.saveToStorage();
   }
 
+  /**
+   * Clear all contexts (used by Start Fresh)
+   */
+  clearAllContexts(): void {
+    this.contexts.clear();
+    this.saveToStorage();
+    console.log('[ContextManager] All contexts cleared');
+  }
+
   listContexts(): ConversationContext[] {
     return Array.from(this.contexts.values());
   }

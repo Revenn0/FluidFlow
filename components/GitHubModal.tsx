@@ -101,10 +101,33 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
   const [pushMode, setPushMode] = useState<'new' | 'existing'>(hasExistingRemote ? 'existing' : 'new');
   const [includeContext, setIncludeContext] = useState(false); // Default false for safety
 
-  // Initialize new repo name from project name
+  // Import options
+  const [importMode, setImportMode] = useState<'myRepos' | 'url'>('myRepos');
+  const [cloneUrl, setCloneUrl] = useState('');
+
+  // Initialize from saved settings and project name
   useEffect(() => {
-    if (mode === 'push' && projectName) {
-      setNewRepoName(projectName.replace(/\s+/g, '-').toLowerCase());
+    if (mode === 'push') {
+      // Load saved push settings from localStorage
+      try {
+        const savedSettings = localStorage.getItem('fluidflow_github_push_settings');
+        if (savedSettings) {
+          const settings = JSON.parse(savedSettings);
+          if (typeof settings.includeConversationHistory === 'boolean') {
+            setIncludeContext(settings.includeConversationHistory);
+          }
+          if (typeof settings.defaultPrivate === 'boolean') {
+            setIsPrivate(settings.defaultPrivate);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load push settings:', err);
+      }
+
+      // Set repo name from project name
+      if (projectName) {
+        setNewRepoName(projectName.replace(/\s+/g, '-').toLowerCase());
+      }
     }
   }, [mode, projectName]);
 
@@ -190,6 +213,39 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
       setResult({
         success: false,
         error: err instanceof Error ? err.message : 'Import failed',
+      });
+      setStep('result');
+    }
+  };
+
+  // Clone by URL (public repos or with token for private)
+  const handleCloneByUrl = async () => {
+    if (!cloneUrl.trim()) return;
+
+    setStep('processing');
+    setError(null);
+
+    try {
+      // Extract repo name from URL
+      const urlParts = cloneUrl.trim().replace(/\.git$/, '').split('/');
+      const repoName = urlParts[urlParts.length - 1] || 'imported-project';
+
+      const importResult = await githubApi.importProject({
+        url: cloneUrl.trim(),
+        token: token || undefined, // Use token if available (for private repos)
+        name: repoName,
+      });
+
+      setResult({
+        success: true,
+        project: importResult.project,
+        restored: importResult.restored,
+      });
+      setStep('result');
+    } catch (err) {
+      setResult({
+        success: false,
+        error: err instanceof Error ? err.message : 'Clone failed. Make sure the URL is correct and the repository is accessible.',
       });
       setStep('result');
     }
@@ -320,6 +376,8 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
     setIsPrivate(true);
     setForcePush(false);
     setPushMode('new');
+    setImportMode('myRepos');
+    setCloneUrl('');
     onClose();
   }, [onClose]);
 
@@ -626,7 +684,76 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                 </div>
               )}
 
-              {/* Search and Filter Bar */}
+              {/* Import Mode Toggle (My Repos vs Clone URL) */}
+              {isImport && (
+                <div className="px-6 py-3 border-b border-white/5 flex-shrink-0">
+                  <div className="flex items-center gap-2 p-1 bg-slate-800/50 rounded-lg">
+                    <button
+                      onClick={() => setImportMode('myRepos')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+                        importMode === 'myRepos'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-slate-400 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <FolderGit className="w-4 h-4" />
+                      My Repositories
+                    </button>
+                    <button
+                      onClick={() => setImportMode('url')}
+                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+                        importMode === 'url'
+                          ? 'bg-blue-600 text-white'
+                          : 'text-slate-400 hover:text-white hover:bg-white/5'
+                      }`}
+                    >
+                      <Link2 className="w-4 h-4" />
+                      Clone URL
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Clone by URL Section */}
+              {isImport && importMode === 'url' && (
+                <div className="px-6 py-4 border-b border-white/5 space-y-4 flex-shrink-0">
+                  <div>
+                    <label className="text-xs font-semibold text-slate-400 uppercase block mb-1.5">
+                      GitHub Repository URL
+                    </label>
+                    <input
+                      type="text"
+                      value={cloneUrl}
+                      onChange={(e) => setCloneUrl(e.target.value)}
+                      placeholder="https://github.com/username/repository"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-slate-600"
+                    />
+                    <p className="mt-1.5 text-[10px] text-slate-500">
+                      Paste any public GitHub repository URL. For private repos, enter your token first.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleCloneByUrl}
+                    disabled={!cloneUrl.trim()}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    Clone Repository
+                  </button>
+
+                  <div className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                    <FolderGit className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                    <p className="text-xs text-emerald-300">
+                      If the repo contains <code className="bg-black/30 px-1 rounded">.fluidflow/</code> folder, project metadata and conversation history will be restored automatically.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Search and Filter Bar (only for My Repos mode) */}
+              {(!isImport || importMode === 'myRepos') && (
+                <>
               <div className="px-6 py-3 border-b border-white/5 flex items-center gap-3 flex-shrink-0">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
@@ -764,6 +891,8 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                   </div>
                 )}
               </div>
+                </>
+              )}
             </>
           )}
 
@@ -783,13 +912,11 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                 </div>
               </div>
               <h4 className="mt-6 text-lg font-medium text-white">
-                {isImport ? `Importing ${selectedRepo?.name || 'project'}` : 'Pushing to GitHub'}
+                {isImport ? `Importing ${selectedRepo?.name || cloneUrl.split('/').pop()?.replace('.git', '') || 'project'}` : 'Pushing to GitHub'}
               </h4>
               <p className="mt-2 text-sm text-slate-400">
                 {isImport
-                  ? selectedRepo?.hasFluidFlowBackup
-                    ? 'Cloning repository and restoring FluidFlow metadata...'
-                    : 'Cloning repository...'
+                  ? 'Cloning repository and checking for FluidFlow metadata...'
                   : 'Creating repository and pushing files...'}
               </p>
             </div>

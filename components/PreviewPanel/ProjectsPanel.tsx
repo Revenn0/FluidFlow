@@ -9,7 +9,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   FolderOpen, Plus, Trash2, Copy, Clock, GitBranch, RefreshCw,
   Search, MoreVertical, Check, AlertCircle, FolderPlus, Loader2, Github,
-  FolderGit, Upload
+  FolderGit, Upload, Pencil, X
 } from 'lucide-react';
 import type { ProjectMeta } from '@/services/projectApi';
 import { projectApi } from '@/services/projectApi';
@@ -44,6 +44,11 @@ export const ProjectsPanel: React.FC = () => {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Edit project state
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
 
   // GitHub modal state
   const [showGitHubModal, setShowGitHubModal] = useState(false);
@@ -150,6 +155,47 @@ export const ProjectsPanel: React.FC = () => {
       setMenuOpenId(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to duplicate project');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Start editing a project
+  const handleStartEdit = (project: ProjectMeta) => {
+    setEditingProjectId(project.id);
+    setEditName(project.name);
+    setEditDescription(project.description || '');
+    setMenuOpenId(null);
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditingProjectId(null);
+    setEditName('');
+    setEditDescription('');
+  };
+
+  // Save edited project
+  const handleSaveEdit = async () => {
+    if (!editingProjectId || !editName.trim()) return;
+
+    setActionLoading(editingProjectId);
+    try {
+      await projectApi.update(editingProjectId, {
+        name: editName.trim(),
+        description: editDescription.trim() || undefined,
+      });
+      // Update local state
+      setProjects(prev => prev.map(p =>
+        p.id === editingProjectId
+          ? { ...p, name: editName.trim(), description: editDescription.trim() || undefined }
+          : p
+      ));
+      setEditingProjectId(null);
+      setEditName('');
+      setEditDescription('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update project');
     } finally {
       setActionLoading(null);
     }
@@ -393,59 +439,116 @@ export const ProjectsPanel: React.FC = () => {
                   )}
                 </div>
 
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-medium text-white truncate">
-                      {project.name}
-                    </h3>
-                    {currentProject?.id === project.id && (
-                      <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] rounded">
-                        Current
-                      </span>
-                    )}
+                {/* Info or Edit Form */}
+                {editingProjectId === project.id ? (
+                  <div className="flex-1 min-w-0 space-y-2" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      placeholder="Project name"
+                      className="w-full px-2 py-1.5 bg-slate-800 border border-white/20 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveEdit();
+                        if (e.key === 'Escape') handleCancelEdit();
+                      }}
+                    />
+                    <input
+                      type="text"
+                      value={editDescription}
+                      onChange={(e) => setEditDescription(e.target.value)}
+                      placeholder="Description (optional)"
+                      className="w-full px-2 py-1.5 bg-slate-800 border border-white/20 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveEdit();
+                        if (e.key === 'Escape') handleCancelEdit();
+                      }}
+                    />
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={handleSaveEdit}
+                        disabled={!editName.trim() || actionLoading === project.id}
+                        className="flex items-center gap-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded text-xs font-medium transition-colors"
+                      >
+                        {actionLoading === project.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <Check className="w-3 h-3" />
+                        )}
+                        Save
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="flex items-center gap-1 px-2 py-1 hover:bg-white/10 text-slate-400 rounded text-xs transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                        Cancel
+                      </button>
+                    </div>
                   </div>
-                  {project.description && (
-                    <p className="text-xs text-slate-500 truncate mt-0.5">
-                      {project.description}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-3 mt-1">
-                    <span className="flex items-center gap-1 text-[10px] text-slate-500">
-                      <Clock className="w-3 h-3" />
-                      {formatDate(project.updatedAt)}
-                    </span>
-                    {project.gitInitialized && (
-                      <span className="flex items-center gap-1 text-[10px] text-emerald-500">
-                        <GitBranch className="w-3 h-3" />
-                        Git
-                      </span>
+                ) : (
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-medium text-white truncate">
+                        {project.name}
+                      </h3>
+                      {currentProject?.id === project.id && (
+                        <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] rounded">
+                          Current
+                        </span>
+                      )}
+                    </div>
+                    {project.description && (
+                      <p className="text-xs text-slate-500 truncate mt-0.5">
+                        {project.description}
+                      </p>
                     )}
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="flex items-center gap-1 text-[10px] text-slate-500">
+                        <Clock className="w-3 h-3" />
+                        {formatDate(project.updatedAt)}
+                      </span>
+                      {project.gitInitialized && (
+                        <span className="flex items-center gap-1 text-[10px] text-emerald-500">
+                          <GitBranch className="w-3 h-3" />
+                          Git
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                {/* Loading */}
-                {actionLoading === project.id && (
+                {/* Loading - only show when not editing */}
+                {actionLoading === project.id && editingProjectId !== project.id && (
                   <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
                 )}
 
-                {/* Actions Menu */}
-                <div className="relative">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMenuOpenId(menuOpenId === project.id ? null : project.id);
-                    }}
-                    className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all"
-                  >
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
+                {/* Actions Menu - hide when editing */}
+                {editingProjectId !== project.id && (
+                  <div className="relative">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setMenuOpenId(menuOpenId === project.id ? null : project.id);
+                      }}
+                      className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
 
                   {menuOpenId === project.id && (
                     <div
                       className="absolute right-0 top-full mt-1 w-40 bg-slate-800 border border-white/10 rounded-lg shadow-xl overflow-hidden z-10"
                       onClick={(e) => e.stopPropagation()}
                     >
+                      <button
+                        onClick={() => handleStartEdit(project)}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-300 hover:bg-white/10 transition-colors"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        Edit
+                      </button>
                       <button
                         onClick={() => handleOpenPush(project.id, project.name)}
                         className="w-full flex items-center gap-2 px-3 py-2 text-xs text-blue-400 hover:bg-blue-500/10 transition-colors"
@@ -473,7 +576,8 @@ export const ProjectsPanel: React.FC = () => {
                       </button>
                     </div>
                   )}
-                </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>

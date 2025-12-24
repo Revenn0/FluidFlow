@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, X, RotateCcw, MessageSquare, FileCode, History, Server, FolderOpen } from 'lucide-react';
+import { AlertTriangle, X, RotateCcw, MessageSquare, FileCode, History, Server, FolderOpen, Database } from 'lucide-react';
 
 interface ResetConfirmModalProps {
   isOpen: boolean;
@@ -70,6 +70,14 @@ export function ResetConfirmModal({
               <div>
                 <p className="text-sm font-medium text-white">Version History</p>
                 <p className="text-xs text-slate-500">All undo/redo states will be lost</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-white/5">
+              <Database className="w-5 h-5 text-orange-400 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-white">AI Contexts</p>
+                <p className="text-xs text-slate-500">All conversation contexts (main, prompt improver, git, etc.)</p>
               </div>
             </div>
 

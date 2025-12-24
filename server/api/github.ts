@@ -319,31 +319,59 @@ router.post('/:id/push', rateLimitMiddleware, async (req, res) => {
       // Create .fluidflow directory if it doesn't exist
       if (!existsSync(fluidflowDir)) {
         await fs.mkdir(fluidflowDir, { recursive: true });
+        console.log(`[Push] Created .fluidflow/ directory`);
       }
 
-      // Copy project.json and context.json from project root
+      // Copy project.json from project root (ALWAYS include this)
       const projectJsonPath = path.join(projectDir, 'project.json');
       const contextJsonPath = path.join(projectDir, 'context.json');
+      const destProjectJson = path.join(fluidflowDir, 'project.json');
+      const destContextJson = path.join(fluidflowDir, 'context.json');
+      const filesToAdd: string[] = [];
 
+      console.log(`[Push] Checking project.json at: ${projectJsonPath}`);
       if (existsSync(projectJsonPath)) {
-        await fs.copyFile(projectJsonPath, path.join(fluidflowDir, 'project.json'));
-        console.log(`[Push] Synced project.json to .fluidflow/`);
-      }
-      // Only include context.json if explicitly requested (for privacy)
-      if (includeContext && existsSync(contextJsonPath)) {
-        await fs.copyFile(contextJsonPath, path.join(fluidflowDir, 'context.json'));
-        console.log(`[Push] Synced context.json to .fluidflow/`);
+        await fs.copyFile(projectJsonPath, destProjectJson);
+        filesToAdd.push('.fluidflow/project.json');
+        console.log(`[Push] ✓ Copied project.json to .fluidflow/`);
+      } else {
+        console.log(`[Push] ✗ project.json not found at ${projectJsonPath}`);
       }
 
-      // Stage metadata changes
-      await git.add('.fluidflow/*');
-      const status = await git.status();
-      if (status.staged.length > 0) {
-        await git.commit('chore: sync FluidFlow metadata');
-        console.log(`[Push] Committed metadata sync`);
+      // Only include context.json if explicitly requested (for privacy)
+      console.log(`[Push] Include context: ${includeContext}`);
+      if (includeContext) {
+        console.log(`[Push] Checking context.json at: ${contextJsonPath}`);
+        if (existsSync(contextJsonPath)) {
+          await fs.copyFile(contextJsonPath, destContextJson);
+          filesToAdd.push('.fluidflow/context.json');
+          console.log(`[Push] ✓ Copied context.json to .fluidflow/`);
+        } else {
+          console.log(`[Push] ✗ context.json not found at ${contextJsonPath}`);
+        }
+      }
+
+      // Stage metadata changes (add each file explicitly)
+      if (filesToAdd.length > 0) {
+        console.log(`[Push] Staging files: ${filesToAdd.join(', ')}`);
+        for (const file of filesToAdd) {
+          await git.add(file);
+        }
+
+        const status = await git.status();
+        console.log(`[Push] Git status - staged: ${status.staged.length}, modified: ${status.modified.length}`);
+
+        if (status.staged.length > 0) {
+          await git.commit('chore: sync FluidFlow metadata');
+          console.log(`[Push] ✓ Committed metadata sync`);
+        } else {
+          console.log(`[Push] No changes to commit (files unchanged)`);
+        }
+      } else {
+        console.log(`[Push] No metadata files to sync`);
       }
     } catch (metaError) {
-      console.warn('[Push] Warning: Could not sync metadata files:', metaError);
+      console.error('[Push] Error syncing metadata files:', metaError);
       // Continue with push even if metadata sync fails
     }
 

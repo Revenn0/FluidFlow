@@ -181,6 +181,12 @@ export interface GitHubBackupSettings {
   lastBackupCommit?: string;
 }
 
+export interface GitHubPushSettings {
+  includeProjectMetadata: boolean; // Always include project.json
+  includeConversationHistory: boolean; // Include context.json (default false for privacy)
+  defaultPrivate: boolean; // Create repos as private by default
+}
+
 export interface GlobalSettings {
   aiProviders: StoredProviderConfig[];
   activeProviderId: string;
