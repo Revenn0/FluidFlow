@@ -30,7 +30,6 @@ import { useAutoCommit } from './hooks/useAutoCommit';
 import { githubApi } from './services/api/github';
 import { settingsApi } from './services/api/settings';
 import { activityLogger } from './services/activityLogger';
-import { Undo2, Redo2, History, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import { InspectedElement, EditScope } from './components/PreviewPanel/ComponentInspector';
 import { getContextManager } from './services/conversationContext';
 import { ToastProvider } from './components/Toast';
@@ -223,6 +222,8 @@ export default function App() {
           onInfoClick={() => modals.open('credits')}
           onOpenGitTab={() => ui.setActiveTab('git')}
           onOpenProjectsTab={() => ui.setActiveTab('projects')}
+          onOpenHistoryPanel={() => modals.toggle('history')}
+          onOpenCredits={() => modals.open('credits')}
           showActivityBar={true}
           showTitleBar={true}
           showStatusBar={true}
@@ -345,80 +346,6 @@ export default function App() {
         initialCategory={megaSettingsInitialCategory}
         onProviderChange={(_providerId, modelId) => handleModelChange(modelId)}
       />
-
-      {/* Floating History Toolbar */}
-      <div className={`fixed bottom-6 z-50 flex items-center gap-1 bg-slate-900/90 backdrop-blur-xl border border-white/10 rounded-xl p-1 shadow-2xl transition-all duration-300 ${modals.state.history ? 'right-[21rem]' : 'right-6'}`}>
-        {/* Undo */}
-        <button
-          onClick={ctx.undo}
-          disabled={!ctx.canUndo}
-          className={`p-2 rounded-lg transition-all ${
-            ctx.canUndo
-              ? 'hover:bg-white/10 text-white'
-              : 'text-slate-600 cursor-not-allowed'
-          }`}
-          title="Undo (Ctrl+Z)"
-        >
-          <Undo2 className="w-4 h-4" />
-        </button>
-
-        {/* Position Indicator */}
-        <button
-          onClick={() => modals.toggle('history')}
-          className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-white/10 transition-colors group"
-          title="History Timeline (Ctrl+Shift+H)"
-        >
-          <ChevronLeft
-            className={`w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 transition-colors ${!ctx.canUndo ? 'opacity-30' : ''}`}
-          />
-          <span className="text-xs font-mono text-slate-400 group-hover:text-white transition-colors min-w-[3rem] text-center">
-            {ctx.currentIndex + 1} / {ctx.historyLength}
-          </span>
-          <ChevronRight
-            className={`w-3.5 h-3.5 text-slate-500 group-hover:text-blue-400 transition-colors ${!ctx.canRedo ? 'opacity-30' : ''}`}
-          />
-        </button>
-
-        {/* Redo */}
-        <button
-          onClick={ctx.redo}
-          disabled={!ctx.canRedo}
-          className={`p-2 rounded-lg transition-all ${
-            ctx.canRedo
-              ? 'hover:bg-white/10 text-white'
-              : 'text-slate-600 cursor-not-allowed'
-          }`}
-          title="Redo (Ctrl+Y)"
-        >
-          <Redo2 className="w-4 h-4" />
-        </button>
-
-        <div className="w-px h-5 bg-white/10" />
-
-        {/* History Panel Toggle */}
-        <button
-          onClick={() => modals.toggle('history')}
-          className={`p-2 rounded-lg transition-all ${
-            modals.state.history
-              ? 'bg-blue-500/20 text-blue-400'
-              : 'hover:bg-white/10 text-slate-400 hover:text-white'
-          }`}
-          title="History Timeline (Ctrl+Shift+H)"
-        >
-          <History className="w-4 h-4" />
-        </button>
-
-        <div className="w-px h-5 bg-white/10" />
-
-        {/* Credits */}
-        <button
-          onClick={() => modals.open('credits')}
-          className="p-2 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-all"
-          title="About FluidFlow"
-        >
-          <Info className="w-4 h-4" />
-        </button>
-      </div>
 
       {/* History Panel */}
       <HistoryPanel

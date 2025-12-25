@@ -26,7 +26,11 @@ import {
   FileCode,
   Circle,
   FolderOpen,
-  ChevronDown
+  ChevronDown,
+  Undo2,
+  Redo2,
+  History,
+  Info,
 } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useUI } from '../../contexts/UIContext';
@@ -35,11 +39,15 @@ import { useStatusBar } from '../../contexts/StatusBarContext';
 interface StatusBarProps {
   onOpenGitTab?: () => void;
   onOpenProjectsTab?: () => void;
+  onOpenHistoryPanel?: () => void;
+  onOpenCredits?: () => void;
 }
 
 export const StatusBar = memo(function StatusBar({
   onOpenGitTab,
   onOpenProjectsTab,
+  onOpenHistoryPanel,
+  onOpenCredits,
 }: StatusBarProps) {
   // Get state from contexts
   const ctx = useAppContext();
@@ -68,6 +76,12 @@ export const StatusBar = memo(function StatusBar({
   // AI status
   const isGenerating = ui.isGenerating;
   const selectedModel = ui.selectedModel;
+
+  // History state
+  const canUndo = ctx.canUndo;
+  const canRedo = ctx.canRedo;
+  const currentIndex = ctx.currentIndex;
+  const historyLength = ctx.historyLength;
 
   // Extract model name from model ID
   const getModelDisplayName = (modelId: string): string => {
@@ -98,7 +112,7 @@ export const StatusBar = memo(function StatusBar({
 
   return (
     <footer
-      className="h-7 bg-slate-900/80 backdrop-blur-sm border-t border-white/5 text-slate-400 flex items-center justify-between px-2 text-[11px] font-mono select-none shrink-0"
+      className="h-8 bg-slate-900/80 backdrop-blur-sm border-t border-white/5 text-slate-400 flex items-center justify-between px-2 text-xs font-mono select-none shrink-0"
     >
       {/* Left Section */}
       <div className="flex items-center gap-0.5 h-full">
@@ -238,6 +252,55 @@ export const StatusBar = memo(function StatusBar({
           </div>
         )}
 
+        {/* Separator */}
+        <div className="w-px h-3 bg-white/10 mx-0.5" />
+
+        {/* History Controls */}
+        <div className="flex items-center h-full">
+          {/* Undo */}
+          <button
+            onClick={ctx.undo}
+            disabled={!canUndo}
+            className={`px-1.5 h-full flex items-center rounded transition-colors ${
+              canUndo
+                ? 'hover:bg-white/5 text-slate-300'
+                : 'text-slate-600 cursor-not-allowed'
+            }`}
+            title="Undo"
+          >
+            <Undo2 className="w-3 h-3" />
+          </button>
+
+          {/* Position Indicator - opens History Panel */}
+          <button
+            onClick={onOpenHistoryPanel}
+            className="flex items-center gap-0.5 px-1 h-full hover:bg-white/5 rounded transition-colors group"
+            title="History Timeline"
+          >
+            <span className="text-slate-400 group-hover:text-white transition-colors text-[10px] tabular-nums">
+              {currentIndex + 1}/{historyLength}
+            </span>
+            <History className="w-3 h-3 text-slate-500 group-hover:text-blue-400 transition-colors" />
+          </button>
+
+          {/* Redo */}
+          <button
+            onClick={ctx.redo}
+            disabled={!canRedo}
+            className={`px-1.5 h-full flex items-center rounded transition-colors ${
+              canRedo
+                ? 'hover:bg-white/5 text-slate-300'
+                : 'text-slate-600 cursor-not-allowed'
+            }`}
+            title="Redo"
+          >
+            <Redo2 className="w-3 h-3" />
+          </button>
+        </div>
+
+        {/* Separator */}
+        <div className="w-px h-3 bg-white/10 mx-0.5" />
+
         {/* AI Model & Status */}
         <div
           className={`flex items-center gap-1.5 px-2 h-full rounded ${
@@ -270,6 +333,15 @@ export const StatusBar = memo(function StatusBar({
             <WifiOff className="w-3 h-3" />
           )}
         </div>
+
+        {/* About FluidFlow */}
+        <button
+          onClick={onOpenCredits}
+          className="px-2 h-full flex items-center hover:bg-white/5 rounded transition-colors text-slate-400 hover:text-white"
+          title="About FluidFlow"
+        >
+          <Info className="w-3 h-3" />
+        </button>
       </div>
     </footer>
   );

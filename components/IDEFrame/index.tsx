@@ -22,6 +22,8 @@ interface IDEFrameProps {
   onInfoClick?: () => void;
   onOpenGitTab?: () => void;
   onOpenProjectsTab?: () => void;
+  onOpenHistoryPanel?: () => void;
+  onOpenCredits?: () => void;
   chatUnread?: number;
 }
 
@@ -35,6 +37,8 @@ export const IDEFrame = memo(function IDEFrame({
   onInfoClick,
   onOpenGitTab,
   onOpenProjectsTab,
+  onOpenHistoryPanel,
+  onOpenCredits,
   chatUnread = 0,
 }: IDEFrameProps) {
   return (
@@ -68,6 +72,8 @@ export const IDEFrame = memo(function IDEFrame({
         <StatusBar
           onOpenGitTab={onOpenGitTab}
           onOpenProjectsTab={onOpenProjectsTab}
+          onOpenHistoryPanel={onOpenHistoryPanel}
+          onOpenCredits={onOpenCredits}
         />
       )}
     </div>
