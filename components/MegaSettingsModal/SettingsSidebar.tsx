@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Cpu, MessageSquare, Package, FolderOpen, Code,
-  Palette, Bug, Settings2, Github
+  Palette, Bug, Settings2, Github, Info
 } from 'lucide-react';
 import { SettingsCategory, SettingsCategoryConfig } from './types';
 
@@ -64,6 +64,12 @@ const SETTINGS_CATEGORIES: SettingsCategoryConfig[] = [
     label: 'Advanced',
     icon: Settings2,
     description: 'Rules, agents, and more'
+  },
+  {
+    id: 'about',
+    label: 'About',
+    icon: Info,
+    description: 'Version, updates, and changelog'
   }
 ];
 

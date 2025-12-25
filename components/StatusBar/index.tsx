@@ -11,7 +11,7 @@
  *
  * Uses StatusBarContext for shared state from PreviewPanel and CodeEditor.
  */
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useState, useEffect } from 'react';
 import {
   GitBranch,
   Wifi,
@@ -33,11 +33,13 @@ import {
   Info,
   GitCommitHorizontal,
   Sparkles,
+  ArrowUpCircle,
 } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useUI } from '../../contexts/UIContext';
 import { useStatusBar } from '../../contexts/StatusBarContext';
 import { getTokenSavings } from '../../services/context';
+import { checkForUpdatesWithCache, APP_VERSION, type UpdateCheckResult } from '../../services/version';
 
 interface StatusBarProps {
   onOpenGitTab?: () => void;
@@ -58,6 +60,14 @@ export const StatusBar = memo(function StatusBar({
   const ctx = useAppContext();
   const ui = useUI();
   const statusBar = useStatusBar();
+
+  // Update check state
+  const [updateCheck, setUpdateCheck] = useState<UpdateCheckResult | null>(null);
+
+  // Check for updates on mount
+  useEffect(() => {
+    checkForUpdatesWithCache().then(setUpdateCheck);
+  }, []);
 
   // Auto-commit state
   const { autoCommitEnabled, setAutoCommitEnabled } = ui;
@@ -399,13 +409,29 @@ export const StatusBar = memo(function StatusBar({
           )}
         </div>
 
-        {/* About FluidFlow */}
+        {/* Version & About FluidFlow */}
         <button
           onClick={onOpenCredits}
-          className="px-2 h-full flex items-center hover:bg-white/5 rounded transition-colors text-slate-400 hover:text-white"
-          title="About FluidFlow"
+          className={`px-2 h-full flex items-center gap-1 hover:bg-white/5 rounded transition-colors ${
+            updateCheck?.hasUpdate ? 'text-emerald-400' : 'text-slate-400 hover:text-white'
+          }`}
+          title={
+            updateCheck?.hasUpdate
+              ? `Update available: v${updateCheck.latestVersion} (current: v${APP_VERSION})`
+              : `FluidFlow v${APP_VERSION}`
+          }
         >
-          <Info className="w-3 h-3" />
+          {updateCheck?.hasUpdate ? (
+            <>
+              <ArrowUpCircle className="w-3 h-3" />
+              <span className="text-[10px]">v{updateCheck.latestVersion}</span>
+            </>
+          ) : (
+            <>
+              <Info className="w-3 h-3" />
+              <span className="text-[10px]">v{APP_VERSION}</span>
+            </>
+          )}
         </button>
       </div>
     </footer>

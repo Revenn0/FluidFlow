@@ -12,7 +12,8 @@ export type SettingsCategory =
   | 'github'
   | 'debug'
   | 'shortcuts'
-  | 'advanced';
+  | 'advanced'
+  | 'about';
 
 export interface SettingsCategoryConfig {
   id: SettingsCategory;

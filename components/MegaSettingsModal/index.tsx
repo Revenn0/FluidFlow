@@ -12,6 +12,7 @@ import { AppearancePanel } from './panels/AppearancePanel';
 import { GitHubPanel } from './panels/GitHubPanel';
 import { DebugPanel } from './panels/DebugPanel';
 import { AdvancedPanel } from './panels/AdvancedPanel';
+import { AboutPanel } from './panels/AboutPanel';
 import {
   MegaSettingsModalProps,
   SettingsCategory,
@@ -183,6 +184,8 @@ export const MegaSettingsModal: React.FC<MegaSettingsModalProps> = ({
         return <DebugPanel />;
       case 'advanced':
         return <AdvancedPanel />;
+      case 'about':
+        return <AboutPanel />;
       default:
         return null;
     }
