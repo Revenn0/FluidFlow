@@ -637,6 +637,106 @@ export function getBootstrapScript(files: FileSystem): string {
         let fixed = code;
 
         // ═══════════════════════════════════════════════════════════
+        // PHASE 0: Reserved name conflicts with browser globals
+        // ═══════════════════════════════════════════════════════════
+        // Component names that conflict with browser APIs (window.History, etc.)
+        // These cause "Illegal constructor" errors when used as component names
+        const reservedNames = {
+          'History': 'HistoryView',
+          'Location': 'LocationView',
+          'Navigator': 'NavigatorView',
+          'Document': 'DocumentView',
+          'Window': 'WindowView',
+          'Event': 'EventView',
+          'Error': 'ErrorView',
+          'Storage': 'StorageView',
+          'Headers': 'HeadersView',
+          'Request': 'RequestView',
+          'Response': 'ResponseView',
+          'URL': 'URLView',
+          'FormData': 'FormDataView',
+          'Node': 'NodeView',
+          'Element': 'ElementView',
+          'Text': 'TextView',
+          'Comment': 'CommentView',
+          'Image': 'ImageView',
+          'Audio': 'AudioView',
+          'Video': 'VideoView',
+          'Map': 'MapView',
+          'Set': 'SetView',
+          'Date': 'DateView',
+          'Object': 'ObjectView',
+          'Array': 'ArrayView',
+          'Function': 'FunctionView',
+          'Number': 'NumberView',
+          'String': 'StringView',
+          'Boolean': 'BooleanView',
+          'Symbol': 'SymbolView',
+          'Promise': 'PromiseView',
+          'Proxy': 'ProxyView',
+          'Reflect': 'ReflectView',
+          'JSON': 'JSONView',
+          'Math': 'MathView',
+          'Infinity': 'InfinityView',
+          'NaN': 'NaNView',
+          'Console': 'ConsoleView',
+          'Blob': 'BlobView',
+          'File': 'FileView',
+          'FileReader': 'FileReaderView',
+          'FileList': 'FileListView',
+          'Worker': 'WorkerView',
+          'WebSocket': 'WebSocketView',
+          'MessageEvent': 'MessageEventView',
+          'CustomEvent': 'CustomEventView',
+          'Range': 'RangeView',
+          'Selection': 'SelectionView',
+          'Option': 'OptionView',
+          'Form': 'FormView',
+          'Input': 'InputView',
+          'Button': 'ButtonView',
+          'Label': 'LabelView',
+          'Table': 'TableView',
+          'Canvas': 'CanvasView',
+          'Screen': 'ScreenView',
+        };
+
+        for (const [reserved, replacement] of Object.entries(reservedNames)) {
+          // Create a regex that matches the reserved name as a whole word
+          // in common component declaration patterns
+          const patterns = [
+            // function History() or function History(props)
+            new RegExp('\\\\bfunction\\\\s+' + reserved + '\\\\s*\\\\(', 'g'),
+            // const History = or let History = or var History =
+            new RegExp('\\\\b(const|let|var)\\\\s+' + reserved + '\\\\s*=', 'g'),
+            // export function History or export const History
+            new RegExp('\\\\bexport\\\\s+(default\\\\s+)?(function\\\\s+|const\\\\s+|let\\\\s+|var\\\\s+)?' + reserved + '\\\\b', 'g'),
+            // <History or </History
+            new RegExp('<\\\\/?\\\\s*' + reserved + '(?=[\\\\s/>])', 'g'),
+            // {History} in imports/exports
+            new RegExp('\\\\{\\\\s*' + reserved + '\\\\s*\\\\}', 'g'),
+          ];
+
+          let wasFixed = false;
+          for (const pattern of patterns) {
+            if (pattern.test(fixed)) {
+              wasFixed = true;
+              break;
+            }
+          }
+
+          if (wasFixed) {
+            // Replace the reserved name with the safe replacement
+            // Use word boundary to avoid partial matches
+            const wholeWordPattern = new RegExp('\\\\b' + reserved + '\\\\b', 'g');
+            const beforeReplace = fixed;
+            fixed = fixed.replace(wholeWordPattern, replacement);
+            if (fixed !== beforeReplace) {
+              console.log('[AutoFix] Renamed reserved component "' + reserved + '" to "' + replacement + '"');
+            }
+          }
+        }
+
+        // ═══════════════════════════════════════════════════════════
         // PHASE 1: Arrow function fixes
         // ═══════════════════════════════════════════════════════════
 

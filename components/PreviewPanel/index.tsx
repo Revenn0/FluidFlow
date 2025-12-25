@@ -3,7 +3,7 @@ import {
   Monitor, Smartphone, Tablet, RefreshCw, Eye, Code2, Copy, Check, Download, Database,
   ShieldCheck, FileText, Wrench, Package, Loader2,
   SplitSquareVertical, X, Zap, ZapOff, MousePointer2, Bug, Settings, ChevronDown,
-  Play, Box, Bot, Map, GitBranch, Activity, FolderOpen
+  Play, Bot, Map, GitBranch, Activity, FolderOpen
 } from 'lucide-react';
 import { getProviderManager } from '../../services/ai';
 import { buildIframeHtml } from '../../utils/sandboxHtml';
@@ -37,7 +37,6 @@ import { CodeMapTab } from './CodeMapTab';
 import { EnvironmentPanel } from './EnvironmentPanel';
 import { GitPanel } from '../GitPanel';
 import { RunnerPanel } from './RunnerPanel';
-import { WebContainerPanel } from './WebContainerPanel';
 import { ErrorFixPanel } from './ErrorFixPanel';
 import { DocsPanel } from './DocsPanel';
 import { PreviewContent } from './PreviewContent';
@@ -153,7 +152,8 @@ export const PreviewPanel = memo(function PreviewPanel({
   // Notify parent when runner status changes
   useEffect(() => {
     onRunnerStatusChange?.(isRunnerActive);
-  }, [isRunnerActive, onRunnerStatusChange]);
+    setRunnerActive(isRunnerActive);
+  }, [isRunnerActive, onRunnerStatusChange, setRunnerActive]);
 
   // Close settings when clicking outside
   useEffect(() => {
@@ -233,6 +233,11 @@ export const PreviewPanel = memo(function PreviewPanel({
     onSendErrorToChat,
     generateSystemInstruction,
   });
+
+  // Update StatusBar with auto-fix status
+  useEffect(() => {
+    setAutoFixStatus(autoFixEnabled, isAutoFixing);
+  }, [autoFixEnabled, isAutoFixing, setAutoFixStatus]);
 
   // Iframe messaging hook (console, network, inspect events, URL)
   const {
@@ -635,17 +640,11 @@ export const PreviewPanel = memo(function PreviewPanel({
   };
 
   return (
-    <section className="flex-1 min-w-0 min-h-0 h-full self-stretch flex flex-col bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden shadow-2xl transition-all duration-300">
+    <section className="flex-1 min-w-0 min-h-0 h-full self-stretch flex flex-col bg-slate-900/60 backdrop-blur-xl overflow-hidden transition-all duration-300">
       {/* Toolbar */}
-      <div className="h-14 flex-none border-b border-white/5 flex items-center justify-between px-4 md:px-6 bg-white/[0.02]">
-        <div className="flex items-center gap-6">
-          <div className="flex gap-1.5 opacity-60">
-            <div className="w-3 h-3 rounded-full bg-red-500/40 border border-red-500/50" />
-            <div className="w-3 h-3 rounded-full bg-yellow-500/40 border border-yellow-500/50" />
-            <div className="w-3 h-3 rounded-full bg-green-500/40 border border-green-500/50" />
-          </div>
-
-          <div className="flex p-1 bg-slate-950/50 rounded-lg border border-white/5">
+      <div className="h-12 flex-none border-b border-white/10 flex items-center justify-between px-4 bg-slate-950/50">
+        <div className="flex items-center gap-4">
+          <div className="flex p-1 bg-slate-900/80 rounded-md border border-white/5">
             {[
               { id: 'run', icon: Play, label: 'Run', hasIndicator: true },
               { id: 'preview', icon: Eye, label: 'Preview' },
@@ -655,7 +654,6 @@ export const PreviewPanel = memo(function PreviewPanel({
               { id: 'activity', icon: Activity, label: 'Activity' },
               { id: 'projects', icon: FolderOpen, label: 'Projects' },
               { id: 'git', icon: GitBranch, label: 'Git' },
-              { id: 'webcontainer', icon: Box, label: 'WebContainer' },
               { id: 'database', icon: Database, label: 'DB Studio' },
               { id: 'docs', icon: FileText, label: 'Docs' },
               { id: 'env', icon: ShieldCheck, label: 'Env' },
@@ -865,13 +863,6 @@ export const PreviewPanel = memo(function PreviewPanel({
               projectName={files['package.json'] ? (() => { try { return JSON.parse(files['package.json']).name; } catch { return undefined; }})() : undefined}
               hasCommittedFiles={Boolean(gitStatus?.initialized)}
               files={files}
-            />
-          </div>
-        ) : activeTab === 'webcontainer' ? (
-          <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-            <WebContainerPanel
-              files={files}
-              projectId={projectId}
             />
           </div>
         ) : activeTab === 'errorfix' ? (

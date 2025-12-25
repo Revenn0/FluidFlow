@@ -6,7 +6,13 @@
 
 import { WebContainer, FileSystemTree, WebContainerProcess } from '@webcontainer/api';
 import type { FileSystem } from '@/types';
-import type { WebContainerSettings } from '@/types';
+
+// Local type definition (WebContainer feature is disabled)
+interface WebContainerSettings {
+  clientId: string;
+  scope: string;
+  enabled: boolean;
+}
 
 export type WebContainerStatus =
   | 'idle'

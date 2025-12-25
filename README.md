@@ -2,7 +2,7 @@
 
 # FluidFlow
 
-**Sketch-to-App AI Prototyping Tool**
+**React Page Builder / AI Prototyping Tool**
 
 Transform wireframes and sketches into functional React applications using AI.
 
@@ -42,9 +42,22 @@ Transform wireframes and sketches into functional React applications using AI.
 - **Cloud Projects** - Save and manage multiple projects with backend sync
 - **Git Integration** - Built-in version control with commit history
 - **WIP Persistence** - Uncommitted changes survive page refresh (IndexedDB)
+- **Scratch Mode** - Work without creating a project, state persists across page refresh
 - **Discard Changes** - Restore to last commit with one click
 - **AI Commit Messages** - Generate commit messages with AI
 - **Unsaved Work Detection** - Smart detection when switching projects with unsaved changes
+
+### GitHub Integration
+
+| Feature | Description |
+|---------|-------------|
+| **Push to GitHub** | Create new repository or push to existing repo |
+| **Import from GitHub** | Browse and import your GitHub repositories |
+| **Clone by URL** | Import any public repository by URL |
+| **Auto-Backup** | Automatic backup to GitHub branch on each commit |
+| **Conversation Sync** | Optionally include AI chat history in `.fluidflow/` folder |
+| **Metadata Restore** | Restore project context when importing from GitHub |
+| **Privacy Control** | Choose public or private repository on push |
 
 ### Context Management
 
@@ -65,16 +78,18 @@ Transform wireframes and sketches into functional React applications using AI.
 | **Accessibility Audit** | WCAG 2.1 compliance checking with auto-fix |
 | **Responsiveness Fix** | AI-powered mobile optimization |
 | **Context Compaction** | AI summarizes long conversations to stay within token limits |
+| **Sandbox Auto-Fix** | Automatically fixes common AI code errors (syntax, reserved names, etc.) |
 
 ### Export Options
 
-- **ZIP Download** - Complete Vite + React + Tailwind project
-- **GitHub Push** - Direct repository creation and push
+- **ZIP Download** - Complete Vite + React + Tailwind project ready to run
+- **GitHub Push** - Push to new or existing repository with metadata sync
 
 ### Developer Tools
 
 - **Console Panel** - View logs, warnings, and errors from preview
 - **Network Panel** - Monitor HTTP requests
+- **Activity Log** - Track all actions (generation, edits, commits, errors) with timestamps
 - **Debug Mode** - Track all AI API calls with JSON inspection
 - **Version History** - Undo/redo with full timeline navigation
 - **Database Studio** - Visual SQLite database management
@@ -117,15 +132,18 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 ZAI_API_KEY=your_zai_api_key
 MINIMAX_API_KEY=your_minimax_api_key
 
+# GitHub Integration (optional - can also be set in UI)
+GITHUB_TOKEN=your_github_personal_access_token
+
 # Backend API (optional)
-VITE_API_URL=http://localhost:3200/api
+VITE_API_URL=https://localhost:3200/api
 ```
 
 ### Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start both frontend (port 3100) and backend (port 3200) |
+| `npm run dev` | Start both frontend (port 3100) and backend (port 3200) (Self-Signed SSL) |
 | `npm run dev:frontend` | Start only frontend development server |
 | `npm run dev:server` | Start only backend development server |
 | `npm run build` | Build for production |
@@ -175,6 +193,39 @@ Analyzes designs and provides UX improvement suggestions before code generation.
 ### AI Provider Selection
 
 Configure your preferred AI provider in the Settings modal (gear icon). Each provider offers different models optimized for various use cases.
+
+### GitHub Workflow
+
+#### Pushing to GitHub
+
+1. Click the **GitHub** button in the export options
+2. Enter your GitHub Personal Access Token (stored securely)
+3. Choose **Create New** or **Push to Existing** repository
+4. Configure options:
+   - Repository name and description
+   - Public or private visibility
+   - Include project metadata (`.fluidflow/config.json`)
+   - Include conversation history (`.fluidflow/context.json`)
+5. Click **Push** to create/update the repository
+
+#### Importing from GitHub
+
+1. Click **Import from GitHub** in the Projects panel
+2. Authenticate with your GitHub token
+3. Browse your repositories or enter a URL directly
+4. Repositories with FluidFlow backups show a special badge
+5. Select a repository to import
+6. FluidFlow automatically restores:
+   - Project files and structure
+   - Project metadata and settings
+   - Conversation history (if synced)
+
+#### Auto-Backup
+
+Enable automatic GitHub backups in Settings > GitHub:
+1. Configure backup token and branch name
+2. Enable auto-backup toggle
+3. Every commit automatically pushes to your backup branch
 
 ---
 
@@ -304,17 +355,6 @@ Monitor all AI API interactions in real-time.
 - **Copy** - One-click JSON export
 - **Duration** - Response time tracking
 - **Model Info** - See which model was used
-
----
-
-## Keyboard Shortcuts
-
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl/Cmd + Z` | Undo |
-| `Ctrl/Cmd + Y` | Redo |
-| `Ctrl/Cmd + Shift + H` | Toggle History panel |
-| `Escape` | Close modals |
 
 ---
 

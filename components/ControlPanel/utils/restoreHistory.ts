@@ -133,3 +133,97 @@ export function getEntriesUpToTimestamp(
     .filter(h => h.timestamp <= targetTimestamp && h.success)
     .sort((a, b) => a.timestamp - b.timestamp);
 }
+
+/**
+ * Restore from a single history entry without merging previous entries
+ * This is useful when you want to restore to a specific checkpoint without
+ * replaying all previous generations.
+ *
+ * @param entry - Single history entry to restore from
+ * @param baseFiles - Optional base files to merge with (e.g., committed files)
+ * @returns RestoreResult with messages and files from this single entry
+ */
+export function restoreFromSingleEntry(
+  entry: AIHistoryEntry,
+  baseFiles?: FileSystem
+): RestoreResult {
+  try {
+    // Parse files from this entry - try unified parser first (supports both JSON and marker formats)
+    const unifiedResult = parseUnifiedResponse(entry.rawResponse);
+    const parsed = unifiedResult ? {
+      files: unifiedResult.files,
+      explanation: unifiedResult.explanation,
+      deletedFiles: unifiedResult.deletedFiles,
+    } : parseMultiFileResponse(entry.rawResponse);
+
+    if (!parsed?.files || Object.keys(parsed.files).length === 0) {
+      return {
+        messages: [],
+        files: {},
+        success: false,
+        error: 'No files found in history entry'
+      };
+    }
+
+    // Clean the generated code
+    const cleanedFiles: FileSystem = {};
+    for (const [path, content] of Object.entries(parsed.files)) {
+      cleanedFiles[path] = cleanGeneratedCode(content);
+    }
+
+    // Calculate final files - start with base files if provided
+    let finalFiles: FileSystem;
+    if (baseFiles && Object.keys(baseFiles).length > 0) {
+      // Merge with base files (base + cleaned updates)
+      finalFiles = { ...baseFiles, ...cleanedFiles };
+
+      // Remove deleted files
+      const deletedFiles = parsed.deletedFiles || [];
+      for (const deletedPath of deletedFiles) {
+        delete finalFiles[deletedPath];
+      }
+    } else {
+      // Use only the entry's files
+      finalFiles = cleanedFiles;
+    }
+
+    const fileChanges = calculateFileChanges(baseFiles || {}, finalFiles);
+
+    // Create user message
+    const userMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: 'user',
+      timestamp: entry.timestamp - 1000,
+      prompt: entry.prompt,
+      attachments: entry.hasSketch || entry.hasBrand ? [
+        ...(entry.hasSketch ? [{ type: 'sketch' as const, preview: '', file: new File([], 'sketch.png') }] : []),
+        ...(entry.hasBrand ? [{ type: 'brand' as const, preview: '', file: new File([], 'brand.png') }] : [])
+      ] : undefined
+    };
+
+    // Create assistant message with file changes
+    const assistantMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: 'assistant',
+      timestamp: entry.timestamp,
+      files: cleanedFiles,
+      explanation: parsed.explanation || entry.explanation || '',
+      fileChanges,
+      snapshotFiles: cleanedFiles
+    };
+
+    return {
+      messages: [userMessage, assistantMessage],
+      files: finalFiles,
+      success: true
+    };
+  } catch (error) {
+    console.error('[restoreHistory] Failed to restore single entry:', error);
+    return {
+      messages: [],
+      files: {},
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}

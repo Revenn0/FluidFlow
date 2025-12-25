@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, ChevronUp, ChevronDown, CheckCircle, AlertCircle, GraduationCap, Bug, Settings2, ChevronRight, History, X, Map, Package, Zap, SlidersHorizontal, GitBranch } from 'lucide-react';
+import { ChevronUp, ChevronDown, CheckCircle, AlertCircle, GraduationCap, Bug, Settings2, ChevronRight, History, X, Map, Package, Zap, SlidersHorizontal, GitBranch } from 'lucide-react';
 import { useDebugStore } from '../../hooks/useDebugStore';
 import { getProviderManager } from '../../services/ai';
 
@@ -74,8 +74,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         aria-controls="settings-panel"
       >
         <div className="flex items-center gap-2 text-sm font-medium">
-          <Settings className="w-4 h-4" />
-          <span>Settings</span>
+          <SlidersHorizontal className="w-4 h-4" />
+          <span>Quick Settings</span>
         </div>
         {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
       </button>
@@ -90,8 +90,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             {/* Header */}
             <div className="flex items-center justify-between p-3 border-b border-white/5">
               <div className="flex items-center gap-2">
-                <Settings className="w-4 h-4 text-blue-400" />
-                <span className="text-sm font-medium text-white">Settings</span>
+                <SlidersHorizontal className="w-4 h-4 text-blue-400" />
+                <span className="text-sm font-medium text-white">Quick Settings</span>
               </div>
               <button
                 onClick={() => setIsOpen(false)}

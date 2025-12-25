@@ -105,7 +105,7 @@ export interface PushResult {
 
 // Device types for preview
 export type PreviewDevice = 'desktop' | 'tablet' | 'mobile';
-export type TabType = 'preview' | 'code' | 'codemap' | 'database' | 'docs' | 'env' | 'debug' | 'git' | 'run' | 'webcontainer' | 'errorfix' | 'quality' | 'activity' | 'projects';
+export type TabType = 'preview' | 'code' | 'codemap' | 'database' | 'docs' | 'env' | 'debug' | 'git' | 'run' | 'errorfix' | 'quality' | 'activity' | 'projects';
 export type TerminalTab = 'console' | 'network' | 'elements';
 
 // AI Model types
@@ -306,19 +306,6 @@ export interface DebugState {
     searchQuery: string;
   };
 }
-
-// WebContainer Settings
-export interface WebContainerSettings {
-  clientId: string;
-  scope: string;
-  enabled: boolean;
-}
-
-export const DEFAULT_WEBCONTAINER_SETTINGS: WebContainerSettings = {
-  clientId: '',
-  scope: '',
-  enabled: false,
-};
 
 // Search/Replace Mode Types (Beta) - Token-efficient updates
 export interface SearchReplaceOperation {

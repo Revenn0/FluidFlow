@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Mic, MicOff, Loader2, Wand2, Paperclip, Image, Palette, X, Maximize2, Sparkles, Brain, Clock } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Send, Loader2, Wand2, Paperclip, Image, Palette, X, Maximize2, Sparkles, Brain, Clock } from 'lucide-react';
 import { ChatAttachment, FileSystem } from '../../types';
 import { PromptLibrary, PromptDropdown } from './PromptLibrary';
 import { UploadCards } from './UploadCards';
@@ -7,7 +7,6 @@ import { ExpandedPromptModal } from './ExpandedPromptModal';
 import { PromptImproverModal } from './PromptImproverModal';
 import { QuickLevelToggle } from './PromptLevelModal';
 import { usePromptLevel } from './hooks';
-import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { useToast } from '../Toast/ToastContext';
 
 interface ChatInputProps {
@@ -68,14 +67,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const attachTypeRef = useRef<'sketch' | 'brand'>('sketch');
 
-  // Speech recognition hook
-  const handleSpeechTranscript = useCallback((text: string) => {
-    setPrompt(prev => prev + (prev ? ' ' : '') + text);
-  }, []);
-  const { isListening, toggleListening, error: speechError } = useSpeechRecognition(handleSpeechTranscript);
-
-  // Combine local and speech errors
-  const error = localError || speechError;
+  const error = localError;
 
   const handleAttach = (type: 'sketch' | 'brand', file: File, preview: string) => {
     const newAttachment: ChatAttachment = { type, file, preview };
@@ -322,22 +314,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Voice and expand buttons */}
+          {/* Expand button */}
           <button
             onClick={() => setShowExpandedModal(true)}
             className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
             title="Expand editor (Ctrl+Shift+E)"
           >
             <Maximize2 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={toggleListening}
-            className={`p-1.5 rounded-md transition-colors ${
-              isListening ? 'text-red-400 bg-red-500/20' : 'text-slate-400 hover:text-white'
-            }`}
-            title={isListening ? 'Stop listening' : 'Voice input'}
-          >
-            {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
           </button>
         </div>
       </div>

@@ -18,7 +18,7 @@ import { useProject, PendingSyncConfirmation } from '../hooks/useProject';
 import { useVersionHistory, HistoryEntry } from '../hooks/useVersionHistory';
 import { safeJsonParse } from '../utils/safeJson';
 import { gitApi, projectApi } from '../services/projectApi';
-import { getWIP, saveWIP, clearWIP, WIPData } from '../services/wipStorage';
+import { getWIP, saveWIP, clearWIP, WIPData, SCRATCH_WIP_ID } from '../services/wipStorage';
 import { isIgnoredPath } from '../utils/filePathUtils';
 import { useUI } from './UIContext';
 // Note: UIContext is used internally for operations that need UI state,
@@ -143,6 +143,7 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
   const hasInitializedFromBackend = useRef(false);
   const lastProjectIdRef = useRef<string | null>(null);
   const isSwitchingProjectRef = useRef(false);
+  const hasRestoredScratchWIP = useRef(false);
 
   // Diff Review State
   const [pendingReview, setPendingReview] = useState<{
@@ -234,21 +235,61 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Only re-run when project id changes, not on every currentProject property change
   }, [project.isInitialized, project.currentProject?.id, project.files, resetFiles]);
 
+  // Restore scratch WIP when no project is selected (on mount)
+  useEffect(() => {
+    // Only restore scratch WIP once, and only if no project is selected
+    if (hasRestoredScratchWIP.current || project.currentProject) return;
+
+    // Wait for project initialization to complete
+    if (!project.isInitialized) return;
+
+    hasRestoredScratchWIP.current = true;
+
+    const restoreScratchWIP = async () => {
+      try {
+        const scratchWip = await getWIP(SCRATCH_WIP_ID);
+
+        if (scratchWip && scratchWip.files && Object.keys(scratchWip.files).length > 0) {
+          console.log('[AppContext] Restoring scratch WIP:', Object.keys(scratchWip.files).length, 'files');
+          resetFiles(scratchWip.files);
+
+          if (scratchWip.activeFile && scratchWip.files[scratchWip.activeFile]) {
+            setActiveFile(scratchWip.activeFile);
+          }
+          if (scratchWip.activeTab) {
+            setActiveTab(scratchWip.activeTab as TabType);
+          }
+        }
+      } catch (err) {
+        console.warn('[AppContext] Scratch WIP restore failed:', err);
+      }
+    };
+
+    restoreScratchWIP();
+  }, [project.isInitialized, project.currentProject, resetFiles, setActiveTab]);
+
   // Save WIP to IndexedDB when files change
   useEffect(() => {
-    if (!project.currentProject || !hasInitializedFromBackend.current) return;
-    // Capture project id before setTimeout callback to satisfy TypeScript null check
-    const currentProjectId = project.currentProject.id;
+    // Save to project WIP or scratch WIP depending on context
+    const wipId = project.currentProject?.id || SCRATCH_WIP_ID;
+
+    // For project WIP, wait for initialization
+    if (project.currentProject && !hasInitializedFromBackend.current) return;
+
+    // Don't save empty files
     if (Object.keys(files).length === 0) return;
 
-    const currentFilesJson = JSON.stringify(files);
-    const hasChanges = lastCommittedFilesRef.current !== '' &&
-                       currentFilesJson !== lastCommittedFilesRef.current;
-    setHasUncommittedChanges(hasChanges);
+    // Track uncommitted changes for project mode
+    if (project.currentProject) {
+      const currentFilesJson = JSON.stringify(files);
+      const hasChanges = lastCommittedFilesRef.current !== '' &&
+                         currentFilesJson !== lastCommittedFilesRef.current;
+      setHasUncommittedChanges(hasChanges);
+    }
 
     const timeout = setTimeout(() => {
       const wipData: WIPData = {
-        id: currentProjectId,
+        id: wipId,
         files,
         activeFile,
         activeTab,
@@ -379,7 +420,12 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
 
   // Project operations with WIP handling
   const createProject = useCallback(async (name: string, description?: string) => {
-    return await project.createProject(name, description, files);
+    const result = await project.createProject(name, description, files);
+    if (result) {
+      // Clear scratch WIP when project is created (scratch work is now part of project)
+      clearWIP(SCRATCH_WIP_ID).catch(console.warn);
+    }
+    return result;
   }, [project, files]);
 
   const openProject = useCallback(async (id: string) => {
@@ -399,6 +445,9 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
           activeFile,
           activeTab,
         });
+      } else {
+        // Clear scratch WIP when opening a project (scratch work is transferred)
+        clearWIP(SCRATCH_WIP_ID).catch(console.warn);
       }
 
       const result = await project.openProject(id);
@@ -458,6 +507,9 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
       // Clear WIP for this project (fire and forget)
       clearWIP(project.currentProject.id).catch(console.warn);
       project.closeProject();
+    } else {
+      // Clear scratch WIP if no project
+      clearWIP(SCRATCH_WIP_ID).catch(console.warn);
     }
 
     // Reset version history to default files
@@ -470,6 +522,7 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
     lastCommittedFilesRef.current = '';
     setHasUncommittedChanges(false);
     hasInitializedFromBackend.current = false;
+    hasRestoredScratchWIP.current = false;
 
     // Clear pending review
     setPendingReview(null);

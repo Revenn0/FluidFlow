@@ -2,7 +2,7 @@ import React, { useState, useCallback, useImperativeHandle, forwardRef } from 'r
 import { Layers, RotateCcw, Settings, ChevronDown, SlidersHorizontal, Upload } from 'lucide-react';
 import { FileSystem, ChatMessage, ChatAttachment, FileChange } from '../../types';
 import { estimateTokenCount } from './utils';
-import { restoreFromHistoryEntries, getEntriesUpToTimestamp } from './utils/restoreHistory';
+import { restoreFromHistoryEntries, getEntriesUpToTimestamp, restoreFromSingleEntry } from './utils/restoreHistory';
 import { executeConsultantMode } from './utils/consultantMode';
 import { debugLog } from '../../hooks/useDebugStore';
 import { useTechStack } from '../../hooks/useTechStack';
@@ -30,7 +30,6 @@ import { ChatPanel } from './ChatPanel';
 import { ChatInput } from './ChatInput';
 import { SettingsPanel } from './SettingsPanel';
 import { ModeToggle } from './ModeToggle';
-import { ProjectPanel } from './ProjectPanel';
 import { ResetConfirmModal } from './ResetConfirmModal';
 import { runnerApi } from '@/services/projectApi';
 
@@ -470,7 +469,7 @@ Fix the error in src/App.tsx.`;
   };
 
   return (
-    <aside className="w-full md:w-[30%] md:min-w-[360px] md:max-w-[440px] h-full self-stretch min-h-0 flex flex-col bg-slate-900/40 backdrop-blur-xl border border-white/5 rounded-2xl shadow-2xl overflow-hidden relative z-20 transition-all">
+    <aside className="w-full md:w-[400px] md:min-w-[380px] md:max-w-[440px] h-full self-stretch min-h-0 flex flex-col bg-slate-900/60 backdrop-blur-xl border-r border-white/10 overflow-hidden relative z-20 transition-all">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/5 flex-shrink-0">
         <div className="flex items-center gap-3">
@@ -481,7 +480,7 @@ Fix the error in src/App.tsx.`;
             <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-100 to-slate-300">
               FluidFlow
             </h1>
-            <p className="text-[10px] text-slate-500 font-medium tracking-wide">AI APP BUILDER</p>
+            <p className="text-[10px] text-slate-500 font-medium tracking-wide">REACT PAGE BUILDER</p>
           </div>
         </div>
 
@@ -689,42 +688,6 @@ Fix the error in src/App.tsx.`;
         onOpened={modals.openSettings}
       />
 
-      {/* Project Panel */}
-      {onCreateProject && onOpenProject && onDeleteProject && onDuplicateProject && onRefreshProjects && onCloseProject && (
-        <ProjectPanel
-          currentProject={currentProject || null}
-          projects={projects}
-          isServerOnline={isServerOnline}
-          isSyncing={isSyncing}
-          lastSyncedAt={lastSyncedAt || null}
-          isLoadingProjects={isLoadingProjects}
-          onCreateProject={onCreateProject}
-          onOpenProject={onOpenProject}
-          onDeleteProject={onDeleteProject}
-          onDuplicateProject={onDuplicateProject}
-          onRefreshProjects={onRefreshProjects}
-          onCloseProject={onCloseProject}
-          gitStatus={gitStatus}
-          hasUncommittedChanges={hasUncommittedChanges}
-          onOpenGitTab={onOpenGitTab}
-          autoCommitEnabled={autoCommitEnabled}
-          onToggleAutoCommit={onToggleAutoCommit}
-          isAutoCommitting={isAutoCommitting}
-          // Unsaved work props - only show if more files than default template (9 files)
-          // or if files have been modified (we check count as a simple proxy)
-          hasUnsavedWork={!currentProject && Object.keys(files).length > 9}
-          fileCount={Object.keys(files).length}
-          onSaveCurrentAsProject={async (name, description) => {
-            // Create new project with current files
-            // onCreateProject captures 'files' from App.tsx scope
-            const newProject = await onCreateProject?.(name, description);
-            return newProject || null;
-          }}
-          shouldClose={modals.shouldCloseProjects}
-          onClosed={modals.closeProjects}
-          onOpened={modals.openProjects}
-        />
-      )}
 
       {/* Reset Confirmation Modal */}
       <ResetConfirmModal
@@ -746,11 +709,13 @@ Fix the error in src/App.tsx.`;
         onDeleteEntry={aiHistory.deleteEntry}
         onExportHistory={aiHistory.exportHistory}
         onRestoreEntry={async (entry) => {
-          const entries = getEntriesUpToTimestamp(aiHistory.history, entry.timestamp);
-          const result = restoreFromHistoryEntries(entries);
+          // Use single entry restore instead of merging all entries up to timestamp
+          // This prevents issues where merged history creates broken/incomplete state
+          const result = restoreFromSingleEntry(entry, files);
 
           if (result.success) {
-            setMessages(result.messages);
+            // Only add the messages from this single entry, not replace all
+            setMessages(prev => [...prev, ...result.messages]);
             setFiles(result.files);
             return true;
           }

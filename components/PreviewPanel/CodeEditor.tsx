@@ -6,6 +6,7 @@ import { FileSystem } from '../../types';
 import { useEditorSettings } from '../../hooks/useEditorSettings';
 import { useCodeContextMenu } from '../ContextMenu';
 import { SnippetLibraryModal } from '../SnippetLibraryModal';
+import { useStatusBarCursor } from '../../contexts/StatusBarContext';
 
 interface CodeEditorProps {
   files: FileSystem;
@@ -39,6 +40,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ files, setFiles, activeF
   const editorRef = useRef<Monaco.editor.IStandaloneCodeEditor | null>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const { settings: editorSettings } = useEditorSettings();
+  const { setCursorPosition } = useStatusBarCursor();
 
   // Snippet library modal state
   const [showSnippetLibrary, setShowSnippetLibrary] = useState(false);
@@ -74,8 +76,10 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ files, setFiles, activeF
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
+      // Clear cursor position when unmounting
+      setCursorPosition(null);
     };
-  }, []);
+  }, [setCursorPosition]);
 
   const handleEditorChange = useCallback(
     (value: string | undefined) => {
@@ -115,6 +119,20 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ files, setFiles, activeF
   // Handle Ctrl+S save
   const handleEditorMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
+
+    // Track cursor position for StatusBar
+    const updateCursorPosition = () => {
+      const position = editor.getPosition();
+      if (position) {
+        setCursorPosition({ line: position.lineNumber, column: position.column });
+      }
+    };
+
+    // Initial cursor position
+    updateCursorPosition();
+
+    // Listen for cursor position changes
+    editor.onDidChangeCursorPosition(updateCursorPosition);
 
     // Add Ctrl+S save action
     editor.addAction({

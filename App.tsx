@@ -35,7 +35,7 @@ import { InspectedElement, EditScope } from './components/PreviewPanel/Component
 import { getContextManager } from './services/conversationContext';
 import { ToastProvider } from './components/Toast';
 import { ContextMenuProvider } from './components/ContextMenu';
-import { StatusBar } from './components/StatusBar';
+import { IDEFrame } from './components/IDEFrame';
 
 // Lazy-loaded modals for better initial bundle size (~80KB savings)
 import {
@@ -206,40 +206,52 @@ export default function App() {
       <ToastProvider>
         <div className="fixed inset-0 flex flex-col bg-[#020617] text-white overflow-hidden selection:bg-blue-500/30 selection:text-blue-50 max-h-screen">
       {/* Background Ambient Effects */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-[40%] left-[40%] w-[30%] h-[30%] bg-purple-600/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
+      <div className="absolute top-[40%] left-[40%] w-[30%] h-[30%] bg-purple-600/5 rounded-full blur-[100px] pointer-events-none z-0" />
 
-      <main className="flex flex-col md:flex-row flex-1 min-h-0 w-full p-4 gap-4 z-10 overflow-hidden">
-        {/* ControlPanel - now consumes contexts directly, minimal props */}
-        <ControlPanel
-          ref={controlPanelRef}
-          key={resetKey}
-          // App.tsx callbacks
-          resetApp={handleResetApp}
-          onModelChange={handleModelChange}
-          // Modal open handlers
-          onOpenAISettings={() => modals.open('aiSettings')}
-          onOpenMegaSettings={() => modals.open('megaSettings')}
-          onOpenCodeMap={() => modals.open('codeMap')}
+      {/* IDE Frame wrapper */}
+      <div className="flex-1 min-h-0 z-10 relative">
+        <IDEFrame
+          onSettingsClick={() => modals.open('megaSettings')}
           onOpenGitTab={() => ui.setActiveTab('git')}
-          onOpenPromptHistory={() => setShowPromptHistory(true)}
-          // Auto-commit
-          onToggleAutoCommit={handleToggleAutoCommit}
-          isAutoCommitting={isAutoCommitting}
-          // Local state
-          hasRunningServer={hasRunningServer}
-          historyPrompt={historyPrompt}
-        />
-        {/* PreviewPanel - now consumes contexts directly, minimal props */}
-        <PreviewPanel
-          // Only App.tsx-specific callbacks remain
-          onInspectEdit={handleInspectEdit}
-          onSendErrorToChat={(error) => controlPanelRef.current?.sendErrorToChat(error)}
-          onPreviewErrorsChange={setPreviewHasErrors}
-          onRunnerStatusChange={setHasRunningServer}
-        />
-      </main>
+          onOpenProjectsTab={() => ui.setActiveTab('projects')}
+          showActivityBar={true}
+          showTitleBar={true}
+          showStatusBar={true}
+        >
+          <div className="flex flex-col md:flex-row h-full w-full overflow-hidden">
+          {/* ControlPanel - now consumes contexts directly, minimal props */}
+          <ControlPanel
+            ref={controlPanelRef}
+            key={resetKey}
+            // App.tsx callbacks
+            resetApp={handleResetApp}
+            onModelChange={handleModelChange}
+            // Modal open handlers
+            onOpenAISettings={() => modals.open('aiSettings')}
+            onOpenMegaSettings={() => modals.open('megaSettings')}
+            onOpenCodeMap={() => modals.open('codeMap')}
+            onOpenGitTab={() => ui.setActiveTab('git')}
+            onOpenPromptHistory={() => setShowPromptHistory(true)}
+            // Auto-commit
+            onToggleAutoCommit={handleToggleAutoCommit}
+            isAutoCommitting={isAutoCommitting}
+            // Local state
+            hasRunningServer={hasRunningServer}
+            historyPrompt={historyPrompt}
+          />
+          {/* PreviewPanel - now consumes contexts directly, minimal props */}
+          <PreviewPanel
+            // Only App.tsx-specific callbacks remain
+            onInspectEdit={handleInspectEdit}
+            onSendErrorToChat={(error) => controlPanelRef.current?.sendErrorToChat(error)}
+            onPreviewErrorsChange={setPreviewHasErrors}
+            onRunnerStatusChange={setHasRunningServer}
+          />
+          </div>
+        </IDEFrame>
+      </div>
 
       {/* Diff Modal */}
       {ctx.pendingReview && (
@@ -456,9 +468,6 @@ export default function App() {
           setHistoryPrompt(selectedPrompt);
         }}
       />
-
-      {/* Status Bar */}
-      <StatusBar />
       </div>
     </ToastProvider>
     </ContextMenuProvider>

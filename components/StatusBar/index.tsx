@@ -2,8 +2,9 @@
  * StatusBar - IDE-style status bar at the bottom of the application
  *
  * Displays:
- * - Git branch and status
- * - Server connection status
+ * - Project name (clickable to open projects)
+ * - Git branch and status (clickable to open git tab)
+ * - Server/backend connection status
  * - Error/warning counts from console
  * - Current file info (line/column, encoding)
  * - AI model and generation status
@@ -13,7 +14,6 @@
 import React, { memo } from 'react';
 import {
   GitBranch,
-  RefreshCw,
   Wifi,
   WifiOff,
   AlertCircle,
@@ -24,13 +24,23 @@ import {
   CloudOff,
   Bot,
   FileCode,
-  Circle
+  Circle,
+  FolderOpen,
+  ChevronDown
 } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useUI } from '../../contexts/UIContext';
 import { useStatusBar } from '../../contexts/StatusBarContext';
 
-export const StatusBar = memo(function StatusBar() {
+interface StatusBarProps {
+  onOpenGitTab?: () => void;
+  onOpenProjectsTab?: () => void;
+}
+
+export const StatusBar = memo(function StatusBar({
+  onOpenGitTab,
+  onOpenProjectsTab,
+}: StatusBarProps) {
   // Get state from contexts
   const ctx = useAppContext();
   const ui = useUI();
@@ -83,20 +93,42 @@ export const StatusBar = memo(function StatusBar() {
   const activeFile = ctx.activeFile;
   const fileExtension = activeFile?.split('.').pop()?.toUpperCase() || 'TXT';
 
+  // Project info
+  const projectName = ctx.currentProject?.name;
+
   return (
     <footer
-      className="h-6 bg-slate-900/80 backdrop-blur-sm border-t border-white/5 text-slate-400 flex items-center justify-between px-2 text-[11px] font-mono select-none shrink-0"
+      className="h-7 bg-slate-900/80 backdrop-blur-sm border-t border-white/5 text-slate-400 flex items-center justify-between px-2 text-[11px] font-mono select-none shrink-0"
     >
       {/* Left Section */}
-      <div className="flex items-center gap-1 h-full">
-        {/* Git Branch */}
+      <div className="flex items-center gap-0.5 h-full">
+        {/* Project Name */}
+        <button
+          onClick={onOpenProjectsTab}
+          className="flex items-center gap-1.5 hover:bg-white/5 px-2 h-full cursor-pointer transition-colors rounded group"
+          title={projectName ? `Project: ${projectName}` : 'No project - Click to open projects'}
+        >
+          <FolderOpen className="w-3 h-3 text-blue-400" />
+          <span className="max-w-[100px] truncate text-slate-300">
+            {projectName || 'No Project'}
+          </span>
+          <ChevronDown className="w-3 h-3 text-slate-500 group-hover:text-slate-300 transition-colors" />
+        </button>
+
+        {/* Separator */}
+        <div className="w-px h-3 bg-white/10 mx-1" />
+
+        {/* Git Branch - clickable to open git tab */}
         {gitInitialized ? (
           <button
+            onClick={onOpenGitTab}
             className="flex items-center gap-1.5 hover:bg-white/5 px-2 h-full cursor-pointer transition-colors rounded"
-            title={`Branch: ${gitBranch}${hasUncommitted ? ' (uncommitted changes)' : ''}`}
+            title={`Branch: ${gitBranch}${hasUncommitted ? ' (uncommitted changes)' : ''} - Click to open Git`}
           >
-            <GitBranch className="w-3 h-3" />
-            <span className="max-w-[100px] truncate">{gitBranch}</span>
+            <GitBranch className={`w-3 h-3 ${hasUncommitted ? 'text-amber-400' : 'text-emerald-400'}`} />
+            <span className={`max-w-[80px] truncate ${hasUncommitted ? 'text-amber-400' : ''}`}>
+              {gitBranch}
+            </span>
             {hasUncommitted && (
               <Circle className="w-1.5 h-1.5 fill-amber-400 text-amber-400" />
             )}
@@ -104,29 +136,44 @@ export const StatusBar = memo(function StatusBar() {
         ) : (
           <div className="flex items-center gap-1.5 px-2 h-full text-slate-500">
             <GitBranch className="w-3 h-3" />
-            <span className="italic">no repo</span>
+            <span className="italic text-[10px]">no git</span>
           </div>
         )}
 
-        {/* Sync Status */}
+        {/* Separator */}
+        <div className="w-px h-3 bg-white/10 mx-1" />
+
+        {/* Backend Status */}
         <div
           className={`flex items-center gap-1.5 px-2 h-full transition-colors rounded ${
             isSyncing ? 'text-blue-400' : 'hover:bg-white/5 cursor-pointer'
           }`}
-          title={isSyncing ? 'Syncing...' : isOnline ? 'Connected to server' : 'Server offline'}
+          title={isSyncing ? 'Syncing...' : isOnline ? 'Backend connected' : 'Backend offline'}
         >
           {isSyncing ? (
-            <RefreshCw className="w-3 h-3 animate-spin" />
+            <>
+              <Loader2 className="w-3 h-3 animate-spin" />
+              <span className="text-[10px]">Syncing</span>
+            </>
           ) : isOnline ? (
-            <Cloud className="w-3 h-3 text-emerald-400" />
+            <>
+              <Cloud className="w-3 h-3 text-emerald-400" />
+              <span className="text-[10px] text-emerald-400">Backend</span>
+            </>
           ) : (
-            <CloudOff className="w-3 h-3 text-red-400" />
+            <>
+              <CloudOff className="w-3 h-3 text-red-400" />
+              <span className="text-[10px] text-red-400">Offline</span>
+            </>
           )}
         </div>
 
+        {/* Separator */}
+        <div className="w-px h-3 bg-white/10 mx-1" />
+
         {/* Errors & Warnings */}
         <button
-          className="flex items-center gap-3 hover:bg-white/5 px-2 h-full cursor-pointer transition-colors rounded"
+          className="flex items-center gap-2 hover:bg-white/5 px-2 h-full cursor-pointer transition-colors rounded"
           title={`${errorCount} error(s), ${warningCount} warning(s)`}
         >
           <div className={`flex items-center gap-1 ${errorCount > 0 ? 'text-red-400' : ''}`}>
@@ -141,13 +188,16 @@ export const StatusBar = memo(function StatusBar() {
 
         {/* Runner Status */}
         {isRunnerActive && (
-          <div
-            className="flex items-center gap-1.5 px-2 h-full text-emerald-400"
-            title="Dev server running"
-          >
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Running</span>
-          </div>
+          <>
+            <div className="w-px h-3 bg-white/10 mx-1" />
+            <div
+              className="flex items-center gap-1.5 px-2 h-full text-emerald-400"
+              title="Dev server running"
+            >
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Running</span>
+            </div>
+          </>
         )}
       </div>
 

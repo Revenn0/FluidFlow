@@ -10,6 +10,12 @@ import { WIP_DB_NAME, WIP_DB_VERSION, WIP_STORE_NAME } from '@/constants';
 import { FileSystem } from '@/types';
 
 /**
+ * Special ID for scratch mode (no project selected)
+ * Used to persist work even when no project has been created
+ */
+export const SCRATCH_WIP_ID = '__scratch__';
+
+/**
  * WIP data structure stored in IndexedDB
  */
 export interface WIPData {

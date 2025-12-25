@@ -365,18 +365,10 @@ export const STANDARD_UPDATE_INSTRUCTION = `
 You are UPDATING an existing codebase. Be surgical and efficient.
 
 ### UPDATE RULES:
-
 1. **Only changed files**: Do NOT include unchanged files
 2. **Full content**: Provide complete file content (not diffs)
 3. **Preserve patterns**: Match existing code style, naming conventions
-4. **Relative imports**: Always use \`'./components/X'\` not \`'src/components/X'\`
-5. **Maintain attributes**: Keep existing \`data-ff-group\` and \`data-ff-id\` attributes
-
-### RESPONSE FORMAT:
-\`\`\`
-// PLAN: {"create":["src/components/NewFeature.tsx"],"update":["src/App.tsx"],"delete":["src/old/Unused.tsx"],"total":2,"sizes":{"src/App.tsx":30,"src/components/NewFeature.tsx":45}}
-{"explanation":"Added NewFeature component with dark mode support","files":{"src/App.tsx":"[COMPLETE UPDATED CONTENT]","src/components/NewFeature.tsx":"[COMPLETE NEW FILE CONTENT]"},"deletedFiles":["src/old/Unused.tsx"]}
-\`\`\`
+4. **Maintain attributes**: Keep existing \`data-ff-group\` and \`data-ff-id\` attributes
 
 ### INCLUDE:
 - Files being modified (complete content)
@@ -385,8 +377,7 @@ You are UPDATING an existing codebase. Be surgical and efficient.
 
 ### EXCLUDE:
 - Unchanged files
-- Whitespace-only changes
-- Explanatory comments about unchanged code`;
+- Whitespace-only changes`;
 
 /**
  * Standard update mode extension for system instruction (MARKER format)
@@ -399,34 +390,10 @@ export const STANDARD_UPDATE_INSTRUCTION_MARKER = `
 You are UPDATING an existing codebase. Be surgical and efficient.
 
 ### UPDATE RULES:
-
 1. **Only changed files**: Do NOT include unchanged files
 2. **Full content**: Provide complete file content (not diffs)
 3. **Preserve patterns**: Match existing code style, naming conventions
-4. **Relative imports**: Always use \`'./components/X'\` not \`'src/components/X'\`
-5. **Maintain attributes**: Keep existing \`data-ff-group\` and \`data-ff-id\` attributes
-
-### RESPONSE FORMAT (MARKER):
-\`\`\`
-<!-- PLAN -->
-create: src/components/NewFeature.tsx
-update: src/App.tsx
-delete: src/old/Unused.tsx
-sizes: src/App.tsx:30, src/components/NewFeature.tsx:45
-<!-- /PLAN -->
-
-<!-- EXPLANATION -->
-Added NewFeature component with dark mode support
-<!-- /EXPLANATION -->
-
-<!-- FILE:src/App.tsx -->
-[COMPLETE UPDATED CONTENT]
-<!-- /FILE:src/App.tsx -->
-
-<!-- FILE:src/components/NewFeature.tsx -->
-[COMPLETE NEW FILE CONTENT]
-<!-- /FILE:src/components/NewFeature.tsx -->
-\`\`\`
+4. **Maintain attributes**: Keep existing \`data-ff-group\` and \`data-ff-id\` attributes
 
 ### INCLUDE:
 - Files being modified (complete content in FILE blocks)
@@ -435,8 +402,7 @@ Added NewFeature component with dark mode support
 
 ### EXCLUDE:
 - Unchanged files
-- Whitespace-only changes
-- Explanatory comments about unchanged code`;
+- Whitespace-only changes`;
 
 /**
  * Continuation system instruction for multi-batch generation

@@ -133,6 +133,12 @@ function fixArrowFunctionSyntax(code: string): string {
     return fnName + '((' + params + ') => {';
   });
 
+  // Pattern: useState<Type>(() { - function with generics followed by callback
+  cleaned = cleaned.replace(/(\w+<[^>]+>)\s*\(\s*\(([^)]*)\)\s*\{(?!\s*=>)/g, (match, fnWithGeneric, params) => {
+    if (match.includes('=>')) return match;
+    return fnWithGeneric + '((' + params + ') => {';
+  });
+
   // FIX 3: JSX event handler missing arrow - "onClick={() {}}" → "onClick={() => {}}"
   cleaned = cleaned.replace(/=\{\s*\(([^)]*)\)\s*\{(?!\s*=>)/g, (match, params) => {
     if (match.includes('=>')) return match;

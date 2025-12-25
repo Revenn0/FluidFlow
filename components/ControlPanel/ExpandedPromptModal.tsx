@@ -1,10 +1,8 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
   X,
   Send,
-  Mic,
-  MicOff,
   Loader2,
   Image,
   Palette,
@@ -28,7 +26,6 @@ import { promptLibrary, quickPrompts, PromptItem, PromptLevel } from '../../data
 import { PromptImproverModal } from './PromptImproverModal';
 import { PromptLevelModal, QuickLevelToggle } from './PromptLevelModal';
 import { usePromptLevel } from './hooks';
-import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 
 interface ExpandedPromptModalProps {
   isOpen: boolean;
@@ -92,14 +89,7 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const attachTypeRef = useRef<'sketch' | 'brand'>('sketch');
 
-  // Speech recognition hook
-  const handleSpeechTranscript = useCallback((text: string) => {
-    setPrompt(prev => prev + (prev ? ' ' : '') + text);
-  }, []);
-  const { isListening, toggleListening, error: speechError } = useSpeechRecognition(handleSpeechTranscript);
-
-  // Combine local and speech errors
-  const error = localError || speechError;
+  const error = localError;
 
   // Focus textarea when modal opens
   useEffect(() => {
@@ -501,19 +491,6 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
               {/* Footer for left panel */}
               <div className="flex items-center justify-between p-4 border-t border-white/10 bg-slate-900/50">
                 <div className="flex items-center gap-2">
-                  {/* Voice */}
-                  <button
-                    onClick={toggleListening}
-                    className={`p-2.5 rounded-lg transition-colors ${
-                      isListening
-                        ? 'bg-red-500/20 text-red-400'
-                        : 'hover:bg-white/10 text-slate-400 hover:text-white'
-                    }`}
-                    title={isListening ? 'Stop listening' : 'Voice input'}
-                  >
-                    {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                  </button>
-
                   {/* Prompt Library Toggle */}
                   <button
                     onClick={() => setShowPromptLibrary(!showPromptLibrary)}
