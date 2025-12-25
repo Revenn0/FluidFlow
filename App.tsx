@@ -37,6 +37,7 @@ import { ContextMenuProvider } from './components/ContextMenu';
 import { IDEFrame } from './components/IDEFrame';
 import { PromptConfirmationProvider } from './contexts/PromptConfirmationContext';
 import { PromptConfirmationModal } from './components/PromptConfirmationModal';
+import { ProjectHealthModal } from './components/ProjectHealthModal';
 
 // Lazy-loaded modals for better initial bundle size (~80KB savings)
 import {
@@ -227,6 +228,7 @@ export default function App() {
           onOpenProjectsTab={() => ui.setActiveTab('projects')}
           onOpenHistoryPanel={() => modals.toggle('history')}
           onOpenCredits={() => modals.open('credits')}
+          onOpenHealthCheck={() => modals.open('projectHealth')}
           showActivityBar={true}
           showTitleBar={true}
           showStatusBar={true}
@@ -411,6 +413,15 @@ export default function App() {
 
       {/* Prompt Confirmation Modal (intercepts all AI calls when enabled) */}
       <PromptConfirmationModal />
+
+      {/* Project Health Modal */}
+      <ProjectHealthModal
+        isOpen={modals.state.projectHealth}
+        onClose={() => modals.close('projectHealth')}
+        files={ctx.files}
+        projectName={ctx.currentProject?.name}
+        onApplyFixes={(fixes) => ctx.setFiles({ ...ctx.files, ...fixes })}
+      />
           </div>
         </ToastProvider>
       </ContextMenuProvider>

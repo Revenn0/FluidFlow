@@ -34,18 +34,22 @@ import {
   GitCommitHorizontal,
   Sparkles,
   ArrowUpCircle,
+  ShieldCheck,
+  ShieldAlert,
 } from 'lucide-react';
 import { useAppContext } from '../../contexts/AppContext';
 import { useUI } from '../../contexts/UIContext';
 import { useStatusBar } from '../../contexts/StatusBarContext';
 import { getTokenSavings } from '../../services/context';
 import { checkForUpdatesWithCache, APP_VERSION, type UpdateCheckResult } from '../../services/version';
+import { getQuickHealthStatus, type HealthStatus } from '../../services/projectHealth';
 
 interface StatusBarProps {
   onOpenGitTab?: () => void;
   onOpenProjectsTab?: () => void;
   onOpenHistoryPanel?: () => void;
   onOpenCredits?: () => void;
+  onOpenHealthCheck?: () => void;
   isAutoCommitting?: boolean;
 }
 
@@ -54,6 +58,7 @@ export const StatusBar = memo(function StatusBar({
   onOpenProjectsTab,
   onOpenHistoryPanel,
   onOpenCredits,
+  onOpenHealthCheck,
   isAutoCommitting = false,
 }: StatusBarProps) {
   // Get state from contexts
@@ -68,6 +73,13 @@ export const StatusBar = memo(function StatusBar({
   useEffect(() => {
     checkForUpdatesWithCache().then(setUpdateCheck);
   }, []);
+
+  // Project health status
+  const healthStatus = useMemo<HealthStatus>(() => {
+    const files = ctx.files;
+    if (!files || Object.keys(files).length === 0) return 'healthy';
+    return getQuickHealthStatus(files);
+  }, [ctx.files]);
 
   // Auto-commit state
   const { autoCommitEnabled, setAutoCommitEnabled } = ui;
@@ -260,6 +272,29 @@ export const StatusBar = memo(function StatusBar({
             <span>{warningCount}</span>
           </div>
         </button>
+
+        {/* Project Health Indicator */}
+        {healthStatus !== 'healthy' && (
+          <>
+            <div className="w-px h-3 bg-white/10 mx-1" />
+            <button
+              onClick={onOpenHealthCheck}
+              className={`flex items-center gap-1 px-2 h-full rounded transition-colors hover:bg-white/5 ${
+                healthStatus === 'critical' ? 'text-red-400' : 'text-amber-400'
+              }`}
+              title={
+                healthStatus === 'critical'
+                  ? 'Critical: Missing required files - Click to fix'
+                  : 'Warning: Some config files need attention'
+              }
+            >
+              <ShieldAlert className="w-3 h-3" />
+              <span className="text-[10px]">
+                {healthStatus === 'critical' ? 'Fix Required' : 'Check Health'}
+              </span>
+            </button>
+          </>
+        )}
 
         {/* Token Savings Indicator */}
         {tokensSaved > 0 && (

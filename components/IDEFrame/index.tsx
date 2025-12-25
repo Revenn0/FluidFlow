@@ -24,6 +24,7 @@ interface IDEFrameProps {
   onOpenProjectsTab?: () => void;
   onOpenHistoryPanel?: () => void;
   onOpenCredits?: () => void;
+  onOpenHealthCheck?: () => void;
   chatUnread?: number;
   isAutoCommitting?: boolean;
 }
@@ -40,6 +41,7 @@ export const IDEFrame = memo(function IDEFrame({
   onOpenProjectsTab,
   onOpenHistoryPanel,
   onOpenCredits,
+  onOpenHealthCheck,
   chatUnread = 0,
   isAutoCommitting = false,
 }: IDEFrameProps) {
@@ -76,6 +78,7 @@ export const IDEFrame = memo(function IDEFrame({
           onOpenProjectsTab={onOpenProjectsTab}
           onOpenHistoryPanel={onOpenHistoryPanel}
           onOpenCredits={onOpenCredits}
+          onOpenHealthCheck={onOpenHealthCheck}
           isAutoCommitting={isAutoCommitting}
         />
       )}

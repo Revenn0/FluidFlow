@@ -5,6 +5,19 @@ All notable changes to FluidFlow will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2025-12-25
+
+### Added
+- Project Health system for detecting missing/corrupted critical files
+- Auto-fix capability for package.json, vite.config.ts, tsconfig.json, index.html, etc.
+- Health indicator in StatusBar showing project status (Fix Required / Check Health)
+- ProjectHealthModal with issue selection and bulk fix options
+- Critical file templates for scaffolding missing configurations
+
+### Changed
+- StatusBar now includes project health monitoring
+- IDEFrame supports health check callback
+
 ## [0.5.0] - 2025-12-25
 
 ### Added

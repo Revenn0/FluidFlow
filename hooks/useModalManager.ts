@@ -22,7 +22,8 @@ export type ModalType =
   | 'projectManager'
   | 'credits'
   | 'codeMap'
-  | 'diff';
+  | 'diff'
+  | 'projectHealth';
 
 /**
  * Modal state record
@@ -45,6 +46,7 @@ const INITIAL_STATE: ModalState = {
   credits: false,
   codeMap: false,
   diff: false,
+  projectHealth: false,
 };
 
 /**
@@ -128,6 +130,7 @@ export function useModalManager(): ModalManager {
       'credits',
       'codeMap',
       'diff',
+      'projectHealth',
     ];
 
     for (const modal of modalTypes) {
