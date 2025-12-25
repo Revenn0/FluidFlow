@@ -44,6 +44,8 @@ export interface UIContextValue {
 
   // Reset
   resetUIState: () => void;
+  /** Counter that increments on each reset - components can listen to clear their state */
+  resetCounter: number;
 }
 
 // ============ Context ============
@@ -78,6 +80,9 @@ export function UIProvider({ children }: UIProviderProps) {
     return localStorage.getItem('autoCommitEnabled') === 'true';
   });
 
+  // Reset counter - increments on each reset, components can listen to this
+  const [resetCounter, setResetCounter] = useState(0);
+
   // Persist diffModeEnabled to localStorage
   useEffect(() => {
     localStorage.setItem('diffModeEnabled', String(diffModeEnabled));
@@ -88,10 +93,11 @@ export function UIProvider({ children }: UIProviderProps) {
     localStorage.setItem('autoCommitEnabled', String(autoCommitEnabled));
   }, [autoCommitEnabled]);
 
-  // Reset function
+  // Reset function - also increments resetCounter to signal components
   const resetUIState = useCallback(() => {
     setSuggestions(null);
     setIsGenerating(false);
+    setResetCounter(c => c + 1);
   }, []);
 
   // Memoized context value
@@ -111,6 +117,7 @@ export function UIProvider({ children }: UIProviderProps) {
     autoCommitEnabled,
     setAutoCommitEnabled,
     resetUIState,
+    resetCounter,
   }), [
     activeTab,
     isGenerating,
@@ -120,6 +127,7 @@ export function UIProvider({ children }: UIProviderProps) {
     diffModeEnabled,
     autoCommitEnabled,
     resetUIState,
+    resetCounter,
   ]);
 
   return (

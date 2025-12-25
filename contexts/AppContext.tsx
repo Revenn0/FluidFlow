@@ -57,7 +57,7 @@ export interface AppContextValue {
   isInitialized: boolean;
 
   // Project operations
-  createProject: (name: string, description?: string) => Promise<ProjectMeta | null>;
+  createProject: (name: string, description?: string, initialFiles?: FileSystem) => Promise<ProjectMeta | null>;
   openProject: (id: string) => Promise<{ success: boolean; files: FileSystem; context?: AppUIContext }>;
   deleteProject: (id: string) => Promise<boolean>;
   duplicateProject: (id: string, newName?: string) => Promise<ProjectMeta | null>;
@@ -419,8 +419,10 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
   }, [project.currentProject, activeFile, resetFiles, project.refreshGitStatus]);
 
   // Project operations with WIP handling
-  const createProject = useCallback(async (name: string, description?: string) => {
-    const result = await project.createProject(name, description, files);
+  const createProject = useCallback(async (name: string, description?: string, initialFiles?: FileSystem) => {
+    // Use provided initialFiles or fall back to current files state
+    const filesToUse = initialFiles ?? files;
+    const result = await project.createProject(name, description, filesToUse);
     if (result) {
       // Clear scratch WIP when project is created (scratch work is now part of project)
       clearWIP(SCRATCH_WIP_ID).catch(console.warn);

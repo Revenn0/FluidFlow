@@ -96,6 +96,7 @@ export const PreviewPanel = memo(function PreviewPanel({
     selectedModel,
     activeTab: externalActiveTab,
     setActiveTab: externalSetActiveTab,
+    resetCounter,
   } = ui;
 
   // Get StatusBar context for updating status bar state
@@ -116,6 +117,16 @@ export const PreviewPanel = memo(function PreviewPanel({
 
   // Console logs state (shared between useAutoFix and useIframeMessaging)
   const [logs, setLogs] = useState<LogEntry[]>([]);
+
+  // Clear logs when resetCounter changes (Start Fresh triggered)
+  const prevResetCounterRef = useRef(resetCounter);
+  useEffect(() => {
+    if (resetCounter !== prevResetCounterRef.current) {
+      prevResetCounterRef.current = resetCounter;
+      setLogs([]);
+      console.log('[PreviewPanel] Cleared logs on reset');
+    }
+  }, [resetCounter]);
 
   // Track preview errors for auto-commit feature
   const prevHasErrorsRef = useRef<boolean>(false);
@@ -264,6 +275,14 @@ export const PreviewPanel = memo(function PreviewPanel({
     logs,
     setLogs,
   });
+
+  // Clear network logs when resetCounter changes (Start Fresh triggered)
+  useEffect(() => {
+    if (resetCounter !== prevResetCounterRef.current) {
+      setNetworkLogs([]);
+      console.log('[PreviewPanel] Cleared network logs on reset');
+    }
+  }, [resetCounter, setNetworkLogs]);
 
   // Inspect mode hook
   const {

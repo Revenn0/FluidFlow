@@ -4,7 +4,7 @@ import { FileSystem, ChatMessage, ChatAttachment, FileChange } from '../../types
 import { estimateTokenCount } from './utils';
 import { restoreFromHistoryEntries, getEntriesUpToTimestamp, restoreFromSingleEntry } from './utils/restoreHistory';
 import { executeConsultantMode } from './utils/consultantMode';
-import { debugLog } from '../../hooks/useDebugStore';
+import { debugLog, resetDebugState } from '../../hooks/useDebugStore';
 import { useTechStack } from '../../hooks/useTechStack';
 import { useGenerationState } from '../../hooks/useGenerationState';
 import { useContinuationGeneration } from '../../hooks/useContinuationGeneration';
@@ -33,6 +33,7 @@ import { ModeToggle } from './ModeToggle';
 import { ResetConfirmModal } from './ResetConfirmModal';
 import { runnerApi } from '@/services/projectApi';
 import { getChatMessages, saveChatMessages, clearChatMessages, SCRATCH_WIP_ID } from '@/services/wipStorage';
+import { DEFAULT_FILES } from '@/constants/defaultFiles';
 
 // Local hooks
 import { useContextSync, useControlPanelModals } from './hooks';
@@ -99,6 +100,7 @@ export const ControlPanel = forwardRef<ControlPanelRef, ControlPanelProps>(({
     isSyncing,
     lastSyncedAt,
     isLoadingProjects,
+    isInitialized,
     createProject: onCreateProject,
     openProject,
     deleteProject: onDeleteProject,
@@ -141,8 +143,10 @@ export const ControlPanel = forwardRef<ControlPanelRef, ControlPanelProps>(({
   const previousProjectIdRef = useRef<string | undefined>(currentProject?.id);
 
   // ============ Chat Persistence Effects ============
-  // Restore chat messages on mount (from project or scratch)
+  // Restore chat messages once project is initialized
   useEffect(() => {
+    // Wait for project initialization to complete
+    if (!isInitialized) return;
     if (hasRestoredChatRef.current) return;
     hasRestoredChatRef.current = true;
 
@@ -161,7 +165,7 @@ export const ControlPanel = forwardRef<ControlPanelRef, ControlPanelProps>(({
     };
 
     restoreChat();
-  }, []); // Only run once on mount
+  }, [isInitialized, currentProject?.id]); // Wait for initialization
 
   // Save chat messages when they change
   useEffect(() => {
@@ -557,15 +561,46 @@ Fix the error in src/App.tsx.`;
     lastSavedMessagesRef.current = '';
     const chatId = currentProject?.id || SCRATCH_WIP_ID;
     clearChatMessages(chatId).catch(console.warn);
+    // Also clear scratch chat to ensure clean slate
+    if (chatId !== SCRATCH_WIP_ID) {
+      clearChatMessages(SCRATCH_WIP_ID).catch(console.warn);
+    }
 
     // Clear ALL AI contexts (main-chat, prompt-improver, git-commit, quick-edit, etc.)
     contextManager.clearAllContexts();
+
+    // Clear debug logs
+    resetDebugState();
 
     // Reset app state (files, project, WIP, UI)
     resetApp();
 
     // Close the modal
     modals.closeResetConfirm();
+
+    // If backend is online, automatically create a new empty project
+    // Pass DEFAULT_FILES explicitly to ensure clean slate (not stale closure files)
+    if (isServerOnline) {
+      const timestamp = new Date().toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).replace(',', '');
+      const projectName = `Untitled ${timestamp}`;
+
+      // Create project with explicit default files (avoid stale closure)
+      onCreateProject(projectName, undefined, DEFAULT_FILES)
+        .then(newProject => {
+          if (newProject) {
+            console.log('[ControlPanel] Auto-created new project:', newProject.name);
+          }
+        })
+        .catch(err => {
+          console.warn('[ControlPanel] Failed to auto-create project:', err);
+        });
+    }
 
     console.log('[ControlPanel] Start Fresh completed - all contexts cleared');
   };

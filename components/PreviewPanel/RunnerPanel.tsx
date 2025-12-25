@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { runnerApi, RunningProjectInfo } from '@/services/projectApi';
 import { useLogStream } from '@/hooks/useLogStream';
+import { useUI } from '@/contexts/UIContext';
 
 // Valid status values for the runner
 type RunnerStatus = 'installing' | 'starting' | 'running' | 'error' | 'stopped';
@@ -84,6 +85,10 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
   const [consoleLogs, setConsoleLogs] = useState<ConsoleLogEntry[]>([]);
   const [networkLogs, setNetworkLogs] = useState<NetworkEntry[]>([]);
 
+  // Get resetCounter to clear logs on Start Fresh
+  const { resetCounter } = useUI();
+  const prevResetCounterRef = useRef(resetCounter);
+
   // Determine effective project ID (use '_temp' for VFS-only runs)
   const effectiveProjectId = projectId || (files && Object.keys(files).length > 0 ? '_temp' : null);
 
@@ -103,6 +108,19 @@ export const RunnerPanel: React.FC<RunnerPanelProps> = ({
     enabled: isRunning,
     onStatusChange: handleStatusChange
   });
+
+  // Clear all logs when reset is triggered (Start Fresh)
+  useEffect(() => {
+    if (resetCounter !== prevResetCounterRef.current) {
+      prevResetCounterRef.current = resetCounter;
+      setConsoleLogs([]);
+      setNetworkLogs([]);
+      clearTerminalLogs();
+      setError(null);
+      setStatus(null);
+      console.log('[RunnerPanel] Cleared all logs on reset');
+    }
+  }, [resetCounter, clearTerminalLogs]);
 
   // Listen for postMessage from iframe (console/network)
   useEffect(() => {
