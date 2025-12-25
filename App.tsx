@@ -156,10 +156,9 @@ export default function App() {
   // Handler for inspect edit from PreviewPanel
   const handleInspectEdit = useCallback(async (prompt: string, element: InspectedElement, scope: EditScope) => {
     // Ensure left panel is visible before sending inspect edit
+    // Panel is always mounted (CSS hidden), so ref is always available
     if (!ui.leftPanelVisible) {
       ui.setLeftPanelVisible(true);
-      // Wait for panel to mount before calling
-      await new Promise(resolve => setTimeout(resolve, 50));
     }
     if (controlPanelRef.current) {
       await controlPanelRef.current.handleInspectEdit(prompt, element, scope);
@@ -228,26 +227,28 @@ export default function App() {
           showStatusBar={true}
         >
           <div className="flex flex-col md:flex-row h-full w-full overflow-hidden">
-          {/* ControlPanel - now consumes contexts directly, minimal props */}
-          {ui.leftPanelVisible && <ControlPanel
-            ref={controlPanelRef}
-            key={resetKey}
-            // App.tsx callbacks
-            resetApp={handleResetApp}
-            onModelChange={handleModelChange}
-            // Modal open handlers
-            onOpenAISettings={() => modals.open('aiSettings')}
-            onOpenMegaSettings={() => modals.open('megaSettings')}
-            onOpenCodeMap={() => modals.open('codeMap')}
-            onOpenGitTab={() => ui.setActiveTab('git')}
-            onOpenPromptHistory={() => setShowPromptHistory(true)}
-            // Auto-commit
-            onToggleAutoCommit={handleToggleAutoCommit}
-            isAutoCommitting={isAutoCommitting}
-            // Local state
-            hasRunningServer={hasRunningServer}
-            historyPrompt={historyPrompt}
-          />}
+          {/* ControlPanel - CSS-based hiding to preserve state during hide/show */}
+          <div className={ui.leftPanelVisible ? '' : 'hidden'}>
+            <ControlPanel
+              ref={controlPanelRef}
+              key={resetKey}
+              // App.tsx callbacks
+              resetApp={handleResetApp}
+              onModelChange={handleModelChange}
+              // Modal open handlers
+              onOpenAISettings={() => modals.open('aiSettings')}
+              onOpenMegaSettings={() => modals.open('megaSettings')}
+              onOpenCodeMap={() => modals.open('codeMap')}
+              onOpenGitTab={() => ui.setActiveTab('git')}
+              onOpenPromptHistory={() => setShowPromptHistory(true)}
+              // Auto-commit
+              onToggleAutoCommit={handleToggleAutoCommit}
+              isAutoCommitting={isAutoCommitting}
+              // Local state
+              hasRunningServer={hasRunningServer}
+              historyPrompt={historyPrompt}
+            />
+          </div>
           {/* PreviewPanel - now consumes contexts directly, minimal props */}
           <PreviewPanel
             // Only App.tsx-specific callbacks remain

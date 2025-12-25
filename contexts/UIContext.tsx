@@ -12,7 +12,7 @@
  * - Preferences (autoAcceptChanges, diffModeEnabled)
  * - Suggestions
  */
-import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { TabType } from '../types';
 
 // ============ Types ============
@@ -104,11 +104,14 @@ export function UIProvider({ children }: UIProviderProps) {
     localStorage.setItem('autoCommitEnabled', String(autoCommitEnabled));
   }, [autoCommitEnabled]);
 
-  // Auto-open left panel when generation starts
+  // Auto-open left panel when generation starts (only once, not continuously)
+  const prevIsGeneratingRef = useRef(false);
   useEffect(() => {
-    if (isGenerating && !leftPanelVisible) {
+    // Only open when isGenerating transitions from false to true
+    if (isGenerating && !prevIsGeneratingRef.current && !leftPanelVisible) {
       setLeftPanelVisible(true);
     }
+    prevIsGeneratingRef.current = isGenerating;
   }, [isGenerating, leftPanelVisible]);
 
   // Reset function - also increments resetCounter to signal components
