@@ -3,21 +3,25 @@ import {
   Zap,
   MessageSquare,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Sparkles
 } from 'lucide-react';
 import { getContextManager } from '@/services/conversationContext';
-import { ContextIndicatorProps } from './types';
+import { getProjectContext } from '@/services/projectContext';
+import { ContextIndicatorProps, ProjectContextInfo } from './types';
 import { getMinRemainingTokens, getModelContextSize, getRemainingContext, needsCompaction } from './utils';
 import { ContextManagerModal } from './ContextManagerModal';
 
 export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
   contextId,
+  projectId,
   showLabel: _showLabel = true,
   onCompact,
   className = ''
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [stats, setStats] = useState<{ messages: number; tokens: number } | null>(null);
+  const [projectContextInfo, setProjectContextInfo] = useState<ProjectContextInfo | null>(null);
 
   const contextManager = getContextManager();
   const minRemainingTokens = getMinRemainingTokens();
@@ -31,6 +35,20 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
       if (s) {
         setStats({ messages: s.messages, tokens: s.tokens });
       }
+
+      // Check project context
+      if (projectId) {
+        const projectCtx = getProjectContext(projectId);
+        if (projectCtx) {
+          setProjectContextInfo({
+            exists: true,
+            generatedAt: projectCtx.generatedAt,
+            tokens: Math.ceil(projectCtx.combinedPrompt.length / 4)
+          });
+        } else {
+          setProjectContextInfo({ exists: false });
+        }
+      }
     };
 
     updateStats();
@@ -39,7 +57,7 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
     return () => clearInterval(interval);
     // Note: contextManager is a singleton that doesn't change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [contextId]);
+  }, [contextId, projectId]);
 
   if (!stats) {
     // Initialize with default stats while loading
@@ -121,6 +139,25 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
 
         {/* Stats */}
         <div className="flex items-center gap-3 text-xs text-slate-500 font-mono whitespace-nowrap">
+          {/* Project Context Badge */}
+          {projectContextInfo && (
+            <span
+              className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${
+                projectContextInfo.exists
+                  ? 'bg-purple-500/20 text-purple-400'
+                  : 'bg-slate-700/50 text-slate-500'
+              }`}
+              title={projectContextInfo.exists && projectContextInfo.generatedAt
+                ? `AI Context active: ~${projectContextInfo.tokens}tok (generated ${new Date(projectContextInfo.generatedAt).toLocaleDateString()})`
+                : 'No AI Context generated'
+              }
+            >
+              <Sparkles className="w-3 h-3" />
+              {projectContextInfo.exists && (
+                <span className="text-[10px]">~{projectContextInfo.tokens}</span>
+              )}
+            </span>
+          )}
           <span className="flex items-center gap-1.5">
             <MessageSquare className="w-4 h-4" />
             <span className="text-slate-400">Msg:</span>
@@ -167,6 +204,7 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
       {showModal && (
         <ContextManagerModal
           contextId={contextId}
+          projectId={projectId}
           onClose={() => setShowModal(false)}
           onCompact={onCompact}
         />

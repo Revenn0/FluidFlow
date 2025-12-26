@@ -17,6 +17,7 @@ import type { AIResponseFormat } from '../services/fluidflowConfig';
 import { getFileContextTracker, type FileContextDelta } from '../services/context/fileContextTracker';
 import { FILE_CONTEXT_PREVIEW_LENGTH, STORAGE_KEYS } from '../constants';
 import type { FileContextInfo } from '../services/ai/types';
+import { getContextForPrompt } from '../services/projectContext';
 
 /**
  * Check if file context delta mode is enabled
@@ -104,6 +105,7 @@ export function createTokenUsage(
 /**
  * Build system instruction for code generation
  * @param responseFormat - Optional override for response format (json or marker)
+ * @param projectId - Optional project ID for style guide lookup
  */
 export function buildSystemInstruction(
   existingApp: boolean,
@@ -111,10 +113,20 @@ export function buildSystemInstruction(
   isEducationMode: boolean,
   diffModeEnabled: boolean,
   techStackInstruction: string,
-  responseFormat?: AIResponseFormat
+  responseFormat?: AIResponseFormat,
+  projectId?: string
 ): string {
   // Use format-aware base generation prompt
   let systemInstruction = getGenerationPrompt(responseFormat);
+
+  // Include project context if available (style guide + project summary)
+  if (projectId) {
+    const projectContext = getContextForPrompt(projectId);
+    if (projectContext) {
+      systemInstruction += '\n\n' + projectContext;
+      console.log(`[SystemInstruction] Including project context for: ${projectId}`);
+    }
+  }
 
   if (hasBrand) {
     systemInstruction += `\n\n**BRANDING**: Extract the PRIMARY DOMINANT COLOR from the brand logo and use it for primary actions/accents.`;

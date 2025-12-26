@@ -13,24 +13,30 @@ import {
   Loader2,
   BarChart3,
   Layers,
-  Scissors
+  Scissors,
+  Sparkles,
+  Palette,
+  FolderTree
 } from 'lucide-react';
 import { getContextManager, ConversationContext } from '@/services/conversationContext';
 import { getFluidFlowConfig, CompactionLog } from '@/services/fluidflowConfig';
 import { getProviderManager } from '@/services/ai';
+import { getProjectContext, deleteProjectContext, type ProjectContext } from '@/services/projectContext';
 import { ContextManagerModalProps } from './types';
 import { ConfirmModal } from './ConfirmModal';
 import { getModelContextSize } from './utils';
 
 export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
   contextId,
+  projectId,
   onClose,
   onCompact
 }) => {
   const [isCompacting, setIsCompacting] = useState(false);
   const [allContexts, setAllContexts] = useState<ConversationContext[]>([]);
   const [compactionLogs, setCompactionLogs] = useState<CompactionLog[]>([]);
-  const [activeTab, setActiveTab] = useState<'current' | 'all' | 'logs'>('current');
+  const [projectContext, setProjectContext] = useState<ProjectContext | null>(null);
+  const [activeTab, setActiveTab] = useState<'current' | 'project' | 'all' | 'logs'>('current');
 
   // Confirmation modal state
   const [confirmModal, setConfirmModal] = useState<{
@@ -52,9 +58,12 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
   useEffect(() => {
     setAllContexts(contextManager.listContexts());
     setCompactionLogs(fluidflowConfig.getCompactionLogs());
+    if (projectId) {
+      setProjectContext(getProjectContext(projectId));
+    }
     // Note: contextManager and fluidflowConfig are singletons that do not change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [projectId]);
 
   const handleCompact = async () => {
     if (!onCompact) return;
@@ -108,6 +117,21 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
     });
   };
 
+  const handleDeleteProjectContext = () => {
+    if (!projectId) return;
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete AI Context',
+      message: 'This will delete the generated style guide and project summary. You can regenerate it anytime from the AI Context button.',
+      confirmText: 'Delete',
+      variant: 'warning',
+      onConfirm: () => {
+        deleteProjectContext(projectId);
+        setProjectContext(null);
+      }
+    });
+  };
+
   const usagePercent = stats ? Math.min(100, (stats.tokens / maxTokens) * 100) : 0;
   const isWarning = usagePercent > 60;
   const isCritical = usagePercent > 80;
@@ -143,21 +167,22 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
         {/* Tabs */}
         <div className="flex border-b border-white/10">
           {[
-            { id: 'current', label: 'Current Context', icon: Layers },
+            { id: 'current', label: 'Conversation', icon: Layers },
+            { id: 'project', label: 'AI Context', icon: Sparkles, highlight: !!projectContext },
             { id: 'all', label: 'All Contexts', icon: Database },
-            { id: 'logs', label: 'Compaction Logs', icon: FileText }
+            { id: 'logs', label: 'Logs', icon: FileText }
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as 'current' | 'all' | 'logs')}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
+              onClick={() => setActiveTab(tab.id as 'current' | 'project' | 'all' | 'logs')}
+              className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab.id
-                  ? 'text-blue-400 border-b-2 border-blue-400 bg-blue-500/5'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  ? tab.id === 'project' ? 'text-purple-400 border-b-2 border-purple-400 bg-purple-500/5' : 'text-blue-400 border-b-2 border-blue-400 bg-blue-500/5'
+                  : 'highlight' in tab && tab.highlight ? 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/5' : 'text-slate-400 hover:text-white hover:bg-white/5'
               }`}
             >
               <tab.icon className="w-4 h-4" />
-              {tab.label}
+              <span className="hidden sm:inline">{tab.label}</span>
             </button>
           ))}
         </div>
@@ -302,6 +327,123 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
                   New Context
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* Project Context Tab */}
+          {activeTab === 'project' && (
+            <div className="space-y-4">
+              {projectContext ? (
+                <>
+                  {/* Status */}
+                  <div className="flex items-start gap-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                    <CheckCircle className="w-5 h-5 text-purple-400 shrink-0" />
+                    <div>
+                      <p className="text-sm text-purple-200 font-medium">AI Context Active</p>
+                      <p className="text-xs text-purple-200/70 mt-1">
+                        Generated on {new Date(projectContext.generatedAt).toLocaleDateString()} at {new Date(projectContext.generatedAt).toLocaleTimeString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Token Info */}
+                  <div className="bg-slate-800/50 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-slate-400">Context Size</span>
+                      <span className="text-sm font-mono text-purple-400">
+                        ~{Math.ceil(projectContext.combinedPrompt.length / 4)} tokens
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      This context is added to every AI prompt for consistent style and understanding.
+                    </p>
+                  </div>
+
+                  {/* Style Guide Preview */}
+                  <div className="bg-slate-800/50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-purple-400 mb-2">
+                      <Palette className="w-4 h-4" />
+                      <span className="text-sm font-medium">Style Guide</span>
+                    </div>
+                    <p className="text-xs text-slate-300 mb-2">{projectContext.styleGuide.summary}</p>
+                    {Object.keys(projectContext.styleGuide.colors).length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-2">
+                        {Object.entries(projectContext.styleGuide.colors)
+                          .filter(([_, v]) => v)
+                          .slice(0, 4)
+                          .map(([name, value]) => (
+                            <span
+                              key={name}
+                              className="flex items-center gap-1 px-1.5 py-0.5 bg-black/30 rounded text-[10px]"
+                            >
+                              <span
+                                className="w-2.5 h-2.5 rounded-full border border-white/20"
+                                style={{ backgroundColor: value?.startsWith('#') ? value : undefined }}
+                              />
+                              <span className="text-slate-400">{name}</span>
+                            </span>
+                          ))}
+                      </div>
+                    )}
+                    {projectContext.styleGuide.patterns.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {projectContext.styleGuide.patterns.slice(0, 3).map((pattern, i) => (
+                          <span key={i} className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 rounded text-[10px]">
+                            {pattern}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Project Summary Preview */}
+                  <div className="bg-slate-800/50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-blue-400 mb-2">
+                      <FolderTree className="w-4 h-4" />
+                      <span className="text-sm font-medium">Project Summary</span>
+                    </div>
+                    <p className="text-xs text-slate-300 mb-2">{projectContext.projectSummary.summary}</p>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-slate-500">Purpose:</span>
+                        <p className="text-slate-400 truncate">{projectContext.projectSummary.purpose}</p>
+                      </div>
+                      <div>
+                        <span className="text-slate-500">Architecture:</span>
+                        <p className="text-slate-400 truncate">{projectContext.projectSummary.architecture}</p>
+                      </div>
+                    </div>
+                    {projectContext.projectSummary.techStack.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {projectContext.projectSummary.techStack.slice(0, 5).map((tech, i) => (
+                          <span key={i} className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[10px]">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleDeleteProjectContext}
+                      className="flex items-center gap-2 px-4 py-2 bg-slate-700/50 hover:bg-red-500/20 text-slate-300 hover:text-red-400 rounded-lg text-sm transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete Context
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <Sparkles className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                  <p className="text-slate-400 mb-2">No AI Context Generated</p>
+                  <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                    Use the "AI Context" button in the control panel to generate a style guide and project summary for consistent AI responses.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 

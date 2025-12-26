@@ -7,6 +7,7 @@
 
 import { useCallback } from 'react';
 import { projectApi, ProjectMeta, ProjectContext } from '@/services/projectApi';
+import { deleteProjectContext } from '@/services/projectContext';
 import type { FileSystem } from '@/types';
 
 // ============================================================================
@@ -233,6 +234,9 @@ export function useProjectCrud(options: UseProjectCrudOptions): UseProjectCrudRe
 
       try {
         await projectApi.delete(id);
+
+        // Delete AI context (style guide + project summary)
+        deleteProjectContext(id);
 
         updateState((prev) => {
           // Clear localStorage if deleting current project

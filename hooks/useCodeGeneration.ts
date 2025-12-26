@@ -182,13 +182,17 @@ export function useCodeGeneration(options: UseCodeGenerationOptions): UseCodeGen
       activityLogger.info('generation', `Starting generation with ${providerName}`, `Model: ${currentModel}`);
       activityLogger.debug('generation', `Response format: ${responseFormat}`);
 
+      // Extract projectId from sessionId (format: main-chat-{projectId})
+      const projectId = sessionId?.replace('main-chat-', '') || undefined;
+
       const systemInstruction = buildSystemInstruction(
         !!existingApp,
         !!brandAtt,
         isEducationMode,
         !!diffModeEnabled,
         generateSystemInstruction(),
-        responseFormat
+        responseFormat,
+        projectId
       );
 
       // Build prompt parts with smart file context tracking
@@ -222,15 +226,51 @@ export function useCodeGeneration(options: UseCodeGenerationOptions): UseCodeGen
         setFileProgress(new Map());
       }
 
+      // Calculate prompt tokens for debug
+      const fullPromptText = request.prompt;
+      const promptTokens = Math.ceil(fullPromptText.length / 4);
+      const historyTokens = conversationHistory
+        ? Math.ceil(conversationHistory.reduce((sum, m) => sum + m.content.length, 0) / 4)
+        : 0;
+
+      // Build conversation history summary for debug
+      const historySummary = conversationHistory?.map((m, i) => {
+        const preview = m.content.length > 200
+          ? m.content.slice(0, 200) + `... (${m.content.length} chars total)`
+          : m.content;
+        return `[${i + 1}] ${m.role.toUpperCase()}: ${preview}`;
+      }).join('\n\n') || '(no history)';
+
       const genRequestId = debugLog.request('generation', {
         model: currentModel,
-        prompt: prompt || 'Generate/Update app',
+        prompt: `📤 AI Generation Request\n\n` +
+          `User prompt: ${prompt || '(from attachments)'}\n\n` +
+          `--- CONVERSATION HISTORY (${conversationHistory?.length || 0} messages, ~${historyTokens.toLocaleString()} tokens) ---\n\n` +
+          historySummary + '\n\n' +
+          `--- CURRENT PROMPT (${promptTokens.toLocaleString()} tokens) ---\n\n` +
+          fullPromptText,
         systemInstruction,
         attachments: attachments.map((a) => ({ type: a.type, size: a.file.size })),
         metadata: {
           mode: 'generator',
           hasExistingApp: !!existingApp,
           provider: providerName,
+          promptLength: fullPromptText.length,
+          promptTokens,
+          historyMessages: conversationHistory?.length || 0,
+          historyTokens,
+          totalInputTokens: promptTokens + historyTokens,
+          fileContext: fileContext ? {
+            totalFiles: fileContext.totalFiles,
+            filesInPrompt: fileContext.filesInPrompt,
+            filesInContext: fileContext.filesInContext,
+            tokensSaved: fileContext.tokensSaved,
+          } : null,
+        },
+        tokenCount: {
+          input: promptTokens + historyTokens,
+          output: 0,
+          isEstimated: true,
         },
       });
       const genStartTime = Date.now();

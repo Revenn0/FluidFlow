@@ -4,13 +4,21 @@
 
 export interface ContextIndicatorProps {
   contextId: string;
+  projectId?: string;
   showLabel?: boolean;
   onCompact?: () => Promise<void>;
   className?: string;
 }
 
+export interface ProjectContextInfo {
+  exists: boolean;
+  generatedAt?: number;
+  tokens?: number;
+}
+
 export interface ContextManagerModalProps {
   contextId: string;
+  projectId?: string;
   onClose: () => void;
   onCompact?: () => Promise<void>;
 }

@@ -5,6 +5,22 @@ All notable changes to FluidFlow will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2025-12-26
+
+### Added
+- AI Context system for consistent AI responses across sessions
+  - Style Guide generation (colors, typography, patterns, conventions)
+  - Project Summary generation (purpose, architecture, key files, tech stack)
+  - ~1K token context included in every prompt (vs 50K+ file tokens)
+  - Context Manager modal with AI Context tab for viewing/deleting
+- AI Context indicator in ContextIndicator component (purple sparkle badge)
+- "Generate AI Context" prompt banner when project has no context
+- Automatic AI Context cleanup on Start Fresh and project deletion
+
+### Changed
+- ContextIndicator now shows project context status and token count
+- ContextManagerModal has new "AI Context" tab with style guide and project summary preview
+
 ## [0.6.0] - 2025-12-25
 
 ### Added

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useImperativeHandle, forwardRef, useEffect, useRef } from 'react';
-import { Layers, RotateCcw, Settings, ChevronDown, SlidersHorizontal, Upload } from 'lucide-react';
+import { Layers, RotateCcw, Settings, ChevronDown, SlidersHorizontal, Sparkles } from 'lucide-react';
 import { FileSystem, ChatMessage, ChatAttachment, FileChange } from '../../types';
 import { estimateTokenCount } from './utils';
 import { restoreFromHistoryEntries, getEntriesUpToTimestamp, restoreFromSingleEntry } from './utils/restoreHistory';
@@ -21,6 +21,7 @@ import { BatchGenerationModal } from './BatchGenerationModal';
 import { ContextIndicator } from '../ContextIndicator';
 import { getFluidFlowConfig } from '../../services/fluidflowConfig';
 import { addPromptToHistory } from '@/services/promptHistory';
+import { getProjectContext, deleteProjectContext } from '@/services/projectContext';
 
 // Context hooks - direct consumption instead of prop drilling
 import { useAppContext } from '../../contexts/AppContext';
@@ -136,12 +137,27 @@ export const ControlPanel = forwardRef<ControlPanelRef, ControlPanelProps>(({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isConsultantMode, setIsConsultantMode] = useState(false);
   const [isEducationMode, setIsEducationMode] = useState(false);
+  const [hasProjectContext, setHasProjectContext] = useState(false);
   const [, forceUpdate] = useState({});
 
   // Refs for chat persistence
   const hasRestoredChatRef = useRef(false);
   const lastSavedMessagesRef = useRef<string>('');
   const previousProjectIdRef = useRef<string | undefined>(currentProject?.id);
+
+  // Check for project context periodically
+  useEffect(() => {
+    const checkContext = () => {
+      if (currentProject?.id) {
+        setHasProjectContext(!!getProjectContext(currentProject.id));
+      } else {
+        setHasProjectContext(false);
+      }
+    };
+    checkContext();
+    const interval = setInterval(checkContext, 2000);
+    return () => clearInterval(interval);
+  }, [currentProject?.id]);
 
   // ============ Chat Persistence Effects ============
   // Restore chat messages once project is initialized
@@ -573,6 +589,11 @@ Fix the error in src/App.tsx.`;
     // Clear file context trackers (smart delta tracking)
     clearAllFileTrackers();
 
+    // Clear AI project context (style guide + project summary)
+    if (currentProject?.id) {
+      deleteProjectContext(currentProject.id);
+    }
+
     // Clear debug logs
     resetDebugState();
 
@@ -691,11 +712,29 @@ Fix the error in src/App.tsx.`;
       <div className="px-4 py-2 border-b border-white/5 flex-shrink-0">
         <ContextIndicator
           contextId={sessionId}
+          projectId={currentProject?.id}
           showLabel={true}
           onCompact={handleCompaction}
           className="w-full"
         />
       </div>
+
+      {/* AI Context Missing Warning */}
+      {currentProject?.id && Object.keys(files).length > 0 && !hasProjectContext && (
+        <button
+          onClick={modals.openCodebaseSync}
+          className="mx-4 my-2 p-2.5 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center gap-2 text-left hover:bg-purple-500/20 transition-colors group"
+        >
+          <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-medium text-purple-300">Generate AI Context</p>
+            <p className="text-[10px] text-purple-400/70 truncate">
+              Create style guide for consistent AI responses
+            </p>
+          </div>
+          <ChevronDown className="w-4 h-4 text-purple-400/50 -rotate-90 group-hover:translate-x-0.5 transition-transform" />
+        </button>
+      )}
 
       {/* Chat Messages */}
       <ChatPanel
@@ -776,15 +815,15 @@ Fix the error in src/App.tsx.`;
           autoAcceptChanges={autoAcceptChanges}
           onAutoAcceptChange={onAutoAcceptChangesChange}
         />
-        {/* Sync Codebase Button */}
+        {/* Generate AI Context Button */}
         {Object.keys(files).length > 0 && (
           <button
             onClick={modals.openCodebaseSync}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 rounded-lg border border-blue-500/20 transition-all"
-            title="Sync current codebase to AI context"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 rounded-lg border border-purple-500/20 transition-all"
+            title="Generate project context for consistent AI responses"
           >
-            <Upload className="w-3.5 h-3.5" />
-            <span>Sync to AI</span>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>AI Context</span>
           </button>
         )}
       </div>
@@ -914,74 +953,12 @@ Fix the error in src/App.tsx.`;
         />
       )}
 
-      {/* Codebase Sync Modal */}
+      {/* Codebase Sync Modal - Now sends real AI requests */}
       <LazyCodebaseSyncModal
         isOpen={modals.showCodebaseSync}
         onClose={modals.closeCodebaseSync}
         files={files}
-        onSync={async (payload) => {
-          const { displayMessage, llmMessage, fileCount, tokenEstimate, batchIndex, totalBatches } = payload;
-
-          // Debug log - request
-          console.log(`[CodebaseSync] Batch ${batchIndex + 1}/${totalBatches}`, {
-            fileCount,
-            tokenEstimate,
-            displayMessageLength: displayMessage.length,
-            llmMessageLength: llmMessage.length
-          });
-          debugLog.request('other', {
-            model: 'codebase-sync',
-            prompt: `Sync batch ${batchIndex + 1}/${totalBatches}: ${fileCount} files, ~${tokenEstimate} tokens`,
-            metadata: { fileCount, tokenEstimate, batchIndex, totalBatches }
-          });
-
-          // Create message for chat UI (short display) but with full LLM content
-          const syncMessage: ChatMessage = {
-            id: crypto.randomUUID(),
-            role: 'user',
-            timestamp: Date.now(),
-            prompt: displayMessage,
-            // Store full content for LLM in a separate field
-            llmContent: llmMessage,
-            // Track precise token count from sync calculation
-            tokenUsage: {
-              inputTokens: tokenEstimate,
-              outputTokens: 0,
-              totalTokens: tokenEstimate,
-              isEstimated: false // This is calculated precisely from file sizes
-            }
-          };
-          setMessages(prev => [...prev, syncMessage]);
-
-          // If this is the last batch, add an AI acknowledgment
-          if (batchIndex === totalBatches - 1) {
-            const totalFiles = Object.keys(files).length;
-            const ackExplanation = `✅ **Codebase synced successfully!**\n\nI now have the complete and up-to-date view of your project (${totalFiles} files). I'll use this as the reference for all future requests.\n\nFeel free to ask me to make changes or improvements!`;
-            const ackTokens = estimateTokenCount(ackExplanation);
-            const ackMessage: ChatMessage = {
-              id: crypto.randomUUID(),
-              role: 'assistant',
-              timestamp: Date.now(),
-              explanation: ackExplanation,
-              tokenUsage: {
-                inputTokens: 0,
-                outputTokens: ackTokens,
-                totalTokens: ackTokens,
-                isEstimated: true
-              }
-            };
-            setMessages(prev => [...prev, ackMessage]);
-
-            // Debug log - complete
-            console.log('[CodebaseSync] Sync complete', { totalFiles, totalBatches });
-            debugLog.response('other', {
-              id: 'codebase-sync-complete',
-              model: 'codebase-sync',
-              duration: 0,
-              response: `Synced ${totalFiles} files in ${totalBatches} batch(es)`
-            });
-          }
-        }}
+        projectId={currentProject?.id}
       />
     </aside>
   );
