@@ -19,16 +19,17 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="p-5 border-b border-white/5 bg-slate-950 flex items-center justify-between">
-          <h3 className="font-bold text-white flex items-center gap-2">
-            <Package className="w-5 h-5 text-emerald-400" />
+    <div className="absolute inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-200" style={{ backgroundColor: 'var(--theme-modal-overlay)' }}>
+      <div className="w-full max-w-md rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
+        <div className="p-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-background)' }}>
+          <h3 className="font-bold flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+            <Package className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
             Export Project
           </h3>
           <button
             onClick={onClose}
-            className="text-slate-500 hover:text-white transition-colors"
+            className="transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             aria-label="Close export modal"
           >
             <X className="w-4 h-4" />
@@ -36,7 +37,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         </div>
 
         <div className="p-6 space-y-4">
-          <p className="text-sm text-slate-400">
+          <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>
             Export your generated project as a complete, ready-to-run application.
           </p>
 
@@ -44,35 +45,37 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           <button
             onClick={onDownloadZip}
             disabled={isDownloading}
-            className="w-full flex items-center gap-4 p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/5 transition-all group"
+            className="w-full flex items-center gap-4 p-4 rounded-xl transition-all group"
+            style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}
           >
-            <div className="p-3 rounded-lg bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform">
+            <div className="p-3 rounded-lg group-hover:scale-110 transition-transform" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
               <Download className="w-6 h-6" />
             </div>
             <div className="text-left flex-1">
-              <p className="font-semibold text-white">Download as ZIP</p>
-              <p className="text-xs text-slate-500">Complete project with Vite, Tailwind, TypeScript</p>
+              <p className="font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Download as ZIP</p>
+              <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Complete project with Vite, Tailwind, TypeScript</p>
             </div>
-            {isDownloading && <Loader2 className="w-5 h-5 animate-spin text-emerald-400" />}
+            {isDownloading && <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--color-success)' }} />}
           </button>
 
           {/* Push to GitHub Option */}
           <button
             onClick={onPushToGithub}
-            className="w-full flex items-center gap-4 p-4 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/5 transition-all group"
+            className="w-full flex items-center gap-4 p-4 rounded-xl transition-all group"
+            style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}
           >
-            <div className="p-3 rounded-lg bg-slate-700 text-white group-hover:scale-110 transition-transform">
+            <div className="p-3 rounded-lg group-hover:scale-110 transition-transform" style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-primary)' }}>
               <Github className="w-6 h-6" />
             </div>
             <div className="text-left flex-1">
-              <p className="font-semibold text-white">Push to GitHub</p>
-              <p className="text-xs text-slate-500">Create a new repository with your code</p>
+              <p className="font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Push to GitHub</p>
+              <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Create a new repository with your code</p>
             </div>
           </button>
         </div>
 
-        <div className="p-4 bg-slate-950/50 border-t border-white/5 text-center">
-          <p className="text-[10px] text-slate-600">
+        <div className="p-4 text-center" style={{ backgroundColor: 'var(--theme-glass-100)', borderTop: '1px solid var(--theme-border-light)' }}>
+          <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
             Project includes: package.json, vite.config, tsconfig, tailwind.config
           </p>
         </div>

@@ -123,17 +123,17 @@ export const BatchGenerationModal: React.FC<BatchGenerationModalProps> = ({
   const progressPercentage = Math.round((progress.current / progress.total) * 100);
 
   return createPortal(
-    <div className="fixed inset-0 z-[140] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-3xl bg-slate-950/98 backdrop-blur-xl rounded-2xl border border-white/10 animate-in zoom-in-95 duration-200 shadow-2xl p-8">
+    <div className="fixed inset-0 z-[140] flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200" style={{ backgroundColor: 'var(--theme-overlay)' }}>
+      <div className="w-full max-w-3xl backdrop-blur-xl rounded-2xl animate-in zoom-in-95 duration-200 shadow-2xl p-8" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg">
-              <FileCode className="w-8 h-8 text-blue-400" />
+            <div className="p-3 rounded-lg" style={{ background: 'linear-gradient(135deg, var(--color-info-subtle), var(--color-feature-subtle))' }}>
+              <FileCode className="w-8 h-8" style={{ color: 'var(--color-info)' }} />
             </div>
             <div>
-              <h2 className="text-2xl font-semibold text-white">Batch Generation</h2>
-              <p className="text-sm text-slate-400">
+              <h2 className="text-2xl font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Batch Generation</h2>
+              <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                 Generating {targetFiles.length} files in batches
               </p>
             </div>
@@ -141,54 +141,54 @@ export const BatchGenerationModal: React.FC<BatchGenerationModalProps> = ({
           <button
             onClick={onClose}
             disabled={isGenerating}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <X className="w-5 h-5 text-slate-400" />
+            <X className="w-5 h-5" style={{ color: 'var(--theme-text-muted)' }} />
           </button>
         </div>
 
         {/* Progress */}
         <div className="space-y-6">
           {/* Overall Progress */}
-          <div className="bg-slate-900/50 rounded-lg p-6">
+          <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                {progress.status === 'generating' && <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />}
-                {progress.status === 'complete' && <Check className="w-5 h-5 text-green-400" />}
-                {progress.status === 'error' && <AlertCircle className="w-5 h-5 text-red-400" />}
+                {progress.status === 'generating' && <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--color-info)' }} />}
+                {progress.status === 'complete' && <Check className="w-5 h-5" style={{ color: 'var(--color-success)' }} />}
+                {progress.status === 'error' && <AlertCircle className="w-5 h-5" style={{ color: 'var(--color-error)' }} />}
                 <div>
-                  <h3 className="text-white font-medium">
+                  <h3 className="font-medium" style={{ color: 'var(--theme-text-primary)' }}>
                     {progress.status === 'generating' && 'Generating...'}
                     {progress.status === 'complete' && 'Generation Complete!'}
                     {progress.status === 'error' && 'Generation Failed'}
                   </h3>
                   {progress.message && (
-                    <p className="text-sm text-slate-400 mt-1">{progress.message}</p>
+                    <p className="text-sm mt-1" style={{ color: 'var(--theme-text-muted)' }}>{progress.message}</p>
                   )}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-2xl font-bold text-white">{progressPercentage}%</div>
-                <div className="text-sm text-slate-400">
+                <div className="text-2xl font-bold" style={{ color: 'var(--theme-text-primary)' }}>{progressPercentage}%</div>
+                <div className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                   {progress.current}/{progress.total} files
                 </div>
               </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
+            <div className="h-3 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--theme-glass-300)' }}>
               <div
-                className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
-                style={{ width: `${progressPercentage}%` }}
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${progressPercentage}%`, background: 'linear-gradient(90deg, var(--color-info), var(--color-feature))' }}
               />
             </div>
 
             {/* Batch Info */}
             <div className="flex items-center justify-between mt-4 text-sm">
-              <span className="text-slate-400">
+              <span style={{ color: 'var(--theme-text-muted)' }}>
                 Batch {progress.currentBatch} of {progress.totalBatches}
               </span>
-              <span className="text-slate-400">
+              <span style={{ color: 'var(--theme-text-muted)' }}>
                 5 files per batch max
               </span>
             </div>
@@ -196,15 +196,15 @@ export const BatchGenerationModal: React.FC<BatchGenerationModalProps> = ({
 
           {/* Completed Files */}
           {completedFiles.length > 0 && (
-            <div className="bg-slate-900/50 rounded-lg p-4 max-h-40 overflow-y-auto">
-              <h4 className="text-sm font-medium text-white mb-2 flex items-center gap-2">
-                <Check className="w-4 h-4 text-green-400" />
+            <div className="rounded-lg p-4 max-h-40 overflow-y-auto" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+              <h4 className="text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+                <Check className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                 Completed Files ({completedFiles.length})
               </h4>
               <div className="space-y-1">
                 {completedFiles.map((file, index) => (
-                  <div key={index} className="text-xs text-slate-300 font-mono flex items-center gap-2">
-                    <FileCode className="w-3 h-3 text-green-400" />
+                  <div key={index} className="text-xs font-mono flex items-center gap-2" style={{ color: 'var(--theme-text-secondary)' }}>
+                    <FileCode className="w-3 h-3" style={{ color: 'var(--color-success)' }} />
                     {file}
                   </div>
                 ))}
@@ -214,8 +214,8 @@ export const BatchGenerationModal: React.FC<BatchGenerationModalProps> = ({
 
           {/* Error Display */}
           {progress.status === 'error' && progress.error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-              <p className="text-red-400 text-sm">{progress.error}</p>
+            <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)' }}>
+              <p className="text-sm" style={{ color: 'var(--color-error)' }}>{progress.error}</p>
             </div>
           )}
 
@@ -224,14 +224,16 @@ export const BatchGenerationModal: React.FC<BatchGenerationModalProps> = ({
             <div className="flex gap-3">
               <button
                 onClick={handleStart}
-                className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-purple-600 transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+                style={{ background: 'linear-gradient(90deg, var(--color-info), var(--color-feature))', color: 'var(--theme-text-primary)' }}
               >
                 <Zap className="w-4 h-4" />
                 Start Batch Generation
               </button>
               <button
                 onClick={onClose}
-                className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+                className="px-6 py-3 rounded-lg font-medium transition-colors"
+                style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-primary)' }}
               >
                 Cancel
               </button>

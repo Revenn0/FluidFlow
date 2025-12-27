@@ -118,13 +118,13 @@ export const ActivityLogPanel: React.FC = () => {
   const categories = Object.keys(CATEGORY_LABELS) as LogCategory[];
 
   return (
-    <div className="flex flex-col h-full bg-slate-950">
+    <div className="flex flex-col h-full" style={{ backgroundColor: 'var(--theme-background)' }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4 text-blue-400" />
-          <h3 className="text-sm font-medium text-white">Activity Log</h3>
-          <span className="text-xs text-slate-500">
+          <Activity className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
+          <h3 className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>Activity Log</h3>
+          <span className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
             {filteredLogs.length} {filteredLogs.length === 1 ? 'entry' : 'entries'}
           </span>
         </div>
@@ -134,7 +134,8 @@ export const ActivityLogPanel: React.FC = () => {
           <div className="relative" ref={filterRef}>
             <button
               onClick={() => setShowFilterMenu(!showFilterMenu)}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               <Filter className="w-3.5 h-3.5" />
               {filter === 'all' ? 'All' : CATEGORY_LABELS[filter]}
@@ -142,25 +143,23 @@ export const ActivityLogPanel: React.FC = () => {
             </button>
 
             {showFilterMenu && (
-              <div className="absolute right-0 top-full mt-1 w-40 bg-slate-800 border border-white/10 rounded-lg shadow-xl z-50 py-1">
+              <div className="absolute right-0 top-full mt-1 w-40 rounded-lg shadow-xl z-50 py-1" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
                 <button
                   onClick={() => { setFilter('all'); setShowFilterMenu(false); }}
-                  className={`w-full text-left px-3 py-1.5 text-xs hover:bg-white/5 ${
-                    filter === 'all' ? 'text-blue-400' : 'text-slate-300'
-                  }`}
+                  className="w-full text-left px-3 py-1.5 text-xs"
+                  style={{ color: filter === 'all' ? 'var(--color-info)' : 'var(--theme-text-secondary)' }}
                 >
                   All Categories
                 </button>
-                <div className="border-t border-white/5 my-1" />
+                <div className="my-1" style={{ borderTop: '1px solid var(--theme-border-light)' }} />
                 {categories.map(cat => (
                   <button
                     key={cat}
                     onClick={() => { setFilter(cat); setShowFilterMenu(false); }}
-                    className={`w-full text-left px-3 py-1.5 text-xs hover:bg-white/5 flex items-center gap-2 ${
-                      filter === cat ? 'text-blue-400' : 'text-slate-300'
-                    }`}
+                    className="w-full text-left px-3 py-1.5 text-xs flex items-center gap-2"
+                    style={{ color: filter === cat ? 'var(--color-info)' : 'var(--theme-text-secondary)' }}
                   >
-                    <span className={`w-2 h-2 rounded-full ${getCategoryColor(cat).replace('text-', 'bg-')}`} />
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: getCategoryColor(cat) }} />
                     {CATEGORY_LABELS[cat]}
                   </button>
                 ))}
@@ -171,7 +170,8 @@ export const ActivityLogPanel: React.FC = () => {
           {/* Clear Button */}
           <button
             onClick={handleClear}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Clear logs"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -186,13 +186,13 @@ export const ActivityLogPanel: React.FC = () => {
         className="flex-1 overflow-y-auto font-mono text-xs"
       >
         {filteredLogs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-2">
+          <div className="flex flex-col items-center justify-center h-full gap-2" style={{ color: 'var(--theme-text-dim)' }}>
             <Activity className="w-8 h-8 opacity-50" />
             <span>No activity logs yet</span>
             <span className="text-[10px]">Logs will appear as FluidFlow operates</span>
           </div>
         ) : (
-          <div className="divide-y divide-white/5">
+          <div>
             {filteredLogs.map(log => {
               const LevelIcon = LEVEL_ICONS[log.level];
               const levelStyle = getLevelStyle(log.level);
@@ -200,34 +200,38 @@ export const ActivityLogPanel: React.FC = () => {
               return (
                 <div
                   key={log.id}
-                  className="flex items-start gap-3 px-4 py-2 hover:bg-white/[0.02] transition-colors"
+                  className="flex items-start gap-3 px-4 py-2 transition-colors"
+                  style={{ borderBottom: '1px solid var(--theme-border-light)' }}
                 >
                   {/* Time */}
-                  <span className="text-slate-600 whitespace-nowrap shrink-0">
+                  <span className="whitespace-nowrap shrink-0" style={{ color: 'var(--theme-text-dim)' }}>
                     {formatLogTime(log.timestamp)}
                   </span>
 
                   {/* Level Icon */}
-                  <div className={`shrink-0 p-0.5 rounded ${levelStyle.bgColor}`}>
-                    <LevelIcon className={`w-3 h-3 ${levelStyle.color}`} />
+                  <div className="shrink-0 p-0.5 rounded" style={{ backgroundColor: levelStyle.bgColor }}>
+                    <LevelIcon className="w-3 h-3" style={{ color: levelStyle.color }} />
                   </div>
 
                   {/* Category Badge */}
-                  <span className={`shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide ${getCategoryColor(log.category)} bg-white/5`}>
+                  <span
+                    className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide"
+                    style={{ color: getCategoryColor(log.category), backgroundColor: 'var(--theme-glass-200)' }}
+                  >
                     {log.category}
                   </span>
 
                   {/* Message */}
-                  <span className="text-slate-300 flex-1 break-words">
+                  <span className="flex-1 break-words" style={{ color: 'var(--theme-text-secondary)' }}>
                     {log.message}
                     {log.details && (
-                      <span className="text-slate-500 ml-2">{log.details}</span>
+                      <span className="ml-2" style={{ color: 'var(--theme-text-dim)' }}>{log.details}</span>
                     )}
                   </span>
 
                   {/* Duration */}
                   {log.duration !== undefined && (
-                    <span className="shrink-0 flex items-center gap-1 text-slate-500">
+                    <span className="shrink-0 flex items-center gap-1" style={{ color: 'var(--theme-text-dim)' }}>
                       <Clock className="w-3 h-3" />
                       {log.duration}ms
                     </span>
@@ -249,7 +253,8 @@ export const ActivityLogPanel: React.FC = () => {
               containerRef.current.scrollTop = containerRef.current.scrollHeight;
             }
           }}
-          className="absolute bottom-4 right-4 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs rounded-lg shadow-lg flex items-center gap-1.5 transition-colors"
+          className="absolute bottom-4 right-4 px-3 py-1.5 text-xs rounded-lg shadow-lg flex items-center gap-1.5 transition-colors"
+          style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
         >
           <ChevronDown className="w-3 h-3" />
           Jump to latest

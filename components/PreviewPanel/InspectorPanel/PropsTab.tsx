@@ -20,17 +20,17 @@ interface JsonTreeProps {
   onCopy: (text: string) => void;
 }
 
-// Get type badge for a value
+// Get type badge for a value - using CSS variables
 function getTypeBadge(value: unknown): { label: string; color: string; icon: React.ReactNode } {
-  if (value === null) return { label: 'null', color: 'text-gray-400', icon: null };
-  if (value === undefined) return { label: 'undefined', color: 'text-gray-400', icon: null };
-  if (typeof value === 'string') return { label: 'string', color: 'text-green-400', icon: <Type className="w-3 h-3" /> };
-  if (typeof value === 'number') return { label: 'number', color: 'text-blue-400', icon: <Hash className="w-3 h-3" /> };
-  if (typeof value === 'boolean') return { label: 'boolean', color: 'text-purple-400', icon: <ToggleLeft className="w-3 h-3" /> };
-  if (typeof value === 'function') return { label: 'function', color: 'text-yellow-400', icon: <Zap className="w-3 h-3" /> };
-  if (Array.isArray(value)) return { label: `array[${value.length}]`, color: 'text-cyan-400', icon: <Braces className="w-3 h-3" /> };
-  if (typeof value === 'object') return { label: 'object', color: 'text-orange-400', icon: <Code2 className="w-3 h-3" /> };
-  return { label: typeof value, color: 'text-gray-400', icon: null };
+  if (value === null) return { label: 'null', color: 'var(--theme-text-muted)', icon: null };
+  if (value === undefined) return { label: 'undefined', color: 'var(--theme-text-muted)', icon: null };
+  if (typeof value === 'string') return { label: 'string', color: 'var(--color-success)', icon: <Type className="w-3 h-3" /> };
+  if (typeof value === 'number') return { label: 'number', color: 'var(--color-info)', icon: <Hash className="w-3 h-3" /> };
+  if (typeof value === 'boolean') return { label: 'boolean', color: 'var(--color-feature)', icon: <ToggleLeft className="w-3 h-3" /> };
+  if (typeof value === 'function') return { label: 'function', color: 'var(--color-warning)', icon: <Zap className="w-3 h-3" /> };
+  if (Array.isArray(value)) return { label: `array[${value.length}]`, color: 'var(--color-info)', icon: <Braces className="w-3 h-3" /> };
+  if (typeof value === 'object') return { label: 'object', color: 'var(--color-warning)', icon: <Code2 className="w-3 h-3" /> };
+  return { label: typeof value, color: 'var(--theme-text-muted)', icon: null };
 }
 
 // Format value for display
@@ -65,7 +65,7 @@ const JsonTreeNode: React.FC<JsonTreeProps> = ({ data, name, depth = 0, maxDepth
 
   if (depth > maxDepth) {
     return (
-      <div className="text-xs text-slate-500 italic pl-4">
+      <div className="text-xs italic pl-4" style={{ color: 'var(--theme-text-dim)' }}>
         Max depth reached
       </div>
     );
@@ -74,12 +74,12 @@ const JsonTreeNode: React.FC<JsonTreeProps> = ({ data, name, depth = 0, maxDepth
   return (
     <div className="text-xs">
       <div
-        className="flex items-center gap-1 py-0.5 hover:bg-white/5 rounded px-1 group cursor-pointer"
+        className="flex items-center gap-1 py-0.5 rounded px-1 group cursor-pointer"
         onClick={() => isExpandable && setIsExpanded(!isExpanded)}
       >
         {/* Expand/Collapse icon */}
         {isExpandable ? (
-          <span className="text-slate-500 flex-shrink-0">
+          <span className="flex-shrink-0" style={{ color: 'var(--theme-text-dim)' }}>
             {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
           </span>
         ) : (
@@ -88,18 +88,18 @@ const JsonTreeNode: React.FC<JsonTreeProps> = ({ data, name, depth = 0, maxDepth
 
         {/* Property name */}
         {name !== undefined && (
-          <span className="text-purple-300 flex-shrink-0">{name}:</span>
+          <span className="flex-shrink-0" style={{ color: 'var(--color-feature)' }}>{name}:</span>
         )}
 
         {/* Type badge */}
-        <span className={`flex items-center gap-0.5 ${typeBadge.color} flex-shrink-0`}>
+        <span className="flex items-center gap-0.5 flex-shrink-0" style={{ color: typeBadge.color }}>
           {typeBadge.icon}
           <span className="text-[10px] opacity-70">{typeBadge.label}</span>
         </span>
 
         {/* Value preview */}
         {displayValue && (
-          <span className="text-slate-300 truncate">{displayValue}</span>
+          <span className="truncate" style={{ color: 'var(--theme-text-secondary)' }}>{displayValue}</span>
         )}
 
         {/* Copy button */}
@@ -108,20 +108,20 @@ const JsonTreeNode: React.FC<JsonTreeProps> = ({ data, name, depth = 0, maxDepth
             e.stopPropagation();
             handleCopy();
           }}
-          className="ml-auto opacity-0 group-hover:opacity-100 p-0.5 hover:bg-white/10 rounded transition-opacity"
+          className="ml-auto opacity-0 group-hover:opacity-100 p-0.5 rounded transition-opacity"
           title="Copy value"
         >
           {copied ? (
-            <Check className="w-3 h-3 text-green-400" />
+            <Check className="w-3 h-3" style={{ color: 'var(--color-success)' }} />
           ) : (
-            <Copy className="w-3 h-3 text-slate-400" />
+            <Copy className="w-3 h-3" style={{ color: 'var(--theme-text-muted)' }} />
           )}
         </button>
       </div>
 
       {/* Children */}
       {isExpanded && isExpandable && (
-        <div className="ml-3 border-l border-white/10 pl-2">
+        <div className="ml-3 pl-2" style={{ borderLeft: '1px solid var(--theme-border-light)' }}>
           {Object.entries(data as object).map(([key, value]) => (
             <JsonTreeNode
               key={key}
@@ -154,7 +154,7 @@ export const PropsTab: React.FC<PropsTabProps> = ({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full text-slate-500 text-sm">
+      <div className="flex items-center justify-center h-full text-sm" style={{ color: 'var(--theme-text-dim)' }}>
         <div className="animate-pulse">Loading props...</div>
       </div>
     );
@@ -162,7 +162,7 @@ export const PropsTab: React.FC<PropsTabProps> = ({
 
   if (!props && !state) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-slate-500 text-sm gap-2 p-4">
+      <div className="flex flex-col items-center justify-center h-full text-sm gap-2 p-4" style={{ color: 'var(--theme-text-dim)' }}>
         <Code2 className="w-8 h-8 opacity-50" />
         <p className="text-center">Select a React component to inspect its props and state</p>
       </div>
@@ -176,37 +176,37 @@ export const PropsTab: React.FC<PropsTabProps> = ({
     <div className="h-full overflow-y-auto p-3 space-y-4">
       {/* Component Name */}
       {componentName && (
-        <div className="flex items-center gap-2 pb-2 border-b border-white/10">
-          <Code2 className="w-4 h-4 text-purple-400" />
-          <span className="text-sm font-medium text-purple-300">&lt;{componentName}&gt;</span>
+        <div className="flex items-center gap-2 pb-2" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+          <Code2 className="w-4 h-4" style={{ color: 'var(--color-feature)' }} />
+          <span className="text-sm font-medium" style={{ color: 'var(--color-feature)' }}>&lt;{componentName}&gt;</span>
         </div>
       )}
 
       {/* Props Section */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Props</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>Props</h3>
           {hasProps && props && (
-            <span className="text-[10px] text-slate-500">
+            <span className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
               {Object.keys(props).length} {Object.keys(props).length === 1 ? 'prop' : 'props'}
             </span>
           )}
         </div>
         {hasProps ? (
-          <div className="bg-slate-800/50 rounded-lg p-2">
+          <div className="rounded-lg p-2" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
             <JsonTreeNode data={props} onCopy={handleCopy} />
           </div>
         ) : (
-          <div className="text-xs text-slate-500 italic">No props</div>
+          <div className="text-xs italic" style={{ color: 'var(--theme-text-dim)' }}>No props</div>
         )}
       </div>
 
       {/* State Section */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">State (Hooks)</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>State (Hooks)</h3>
           {hasState && state && (
-            <span className="text-[10px] text-slate-500">
+            <span className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
               {state.length} {state.length === 1 ? 'hook' : 'hooks'}
             </span>
           )}
@@ -214,8 +214,8 @@ export const PropsTab: React.FC<PropsTabProps> = ({
         {hasState && state ? (
           <div className="space-y-2">
             {state.map((hookState) => (
-              <div key={hookState.index} className="bg-slate-800/50 rounded-lg p-2">
-                <div className="text-[10px] text-slate-500 mb-1">
+              <div key={hookState.index} className="rounded-lg p-2" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                <div className="text-[10px] mb-1" style={{ color: 'var(--theme-text-dim)' }}>
                   useState #{hookState.index}
                 </div>
                 <JsonTreeNode
@@ -226,13 +226,13 @@ export const PropsTab: React.FC<PropsTabProps> = ({
             ))}
           </div>
         ) : (
-          <div className="text-xs text-slate-500 italic">No state hooks</div>
+          <div className="text-xs italic" style={{ color: 'var(--theme-text-dim)' }}>No state hooks</div>
         )}
       </div>
 
       {/* Copy notification */}
       {copied && (
-        <div className="fixed bottom-4 right-4 bg-green-500/20 text-green-300 text-xs px-3 py-1.5 rounded-full">
+        <div className="fixed bottom-4 right-4 text-xs px-3 py-1.5 rounded-full" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
           Copied to clipboard
         </div>
       )}

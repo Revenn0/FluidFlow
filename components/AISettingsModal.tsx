@@ -202,60 +202,60 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
   const testResult = selectedProviderId ? testResults[selectedProviderId] : null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-5xl max-h-[90vh] bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto animate-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 backdrop-blur-sm animate-in fade-in duration-200" style={{ backgroundColor: 'var(--theme-overlay)' }}>
+      <div className="w-full max-w-5xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto animate-in slide-in-from-bottom-4 duration-300" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
         {/* Header */}
-        <div className="p-4 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+        <div className="p-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--theme-border-light)', background: 'linear-gradient(90deg, var(--color-info-subtle), var(--color-feature-subtle))' }}>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/20 rounded-lg">
-              <Settings2 className="w-5 h-5 text-blue-400" />
+            <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-info-subtle)' }}>
+              <Settings2 className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">AI Provider Settings</h2>
-              <p className="text-xs text-slate-400">Configure AI providers, models, and API keys</p>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>AI Provider Settings</h2>
+              <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Configure AI providers, models, and API keys</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors"
           >
-            <X className="w-5 h-5 text-slate-400" />
+            <X className="w-5 h-5" style={{ color: 'var(--theme-text-muted)' }} />
           </button>
         </div>
 
         {/* Content */}
         <div className="flex-1 flex overflow-hidden">
           {/* Provider List - Left Sidebar */}
-          <div className="w-64 border-r border-white/5 flex flex-col bg-slate-950/50">
-            <div className="p-3 border-b border-white/5">
-              <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">Providers</h3>
+          <div className="w-64 flex flex-col" style={{ borderRight: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-100)' }}>
+            <div className="p-3" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+              <h3 className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>Providers</h3>
             </div>
             <div className="flex-1 overflow-y-auto p-2 space-y-1">
               {providers.map(provider => (
                 <button
                   key={provider.id}
                   onClick={() => setSelectedProviderId(provider.id)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all ${
-                    selectedProviderId === provider.id
-                      ? 'bg-blue-500/20 border border-blue-500/30'
-                      : 'hover:bg-white/5 border border-transparent'
-                  }`}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg transition-all"
+                  style={{
+                    backgroundColor: selectedProviderId === provider.id ? 'var(--color-info-subtle)' : 'transparent',
+                    border: selectedProviderId === provider.id ? '1px solid var(--color-info-border)' : '1px solid transparent'
+                  }}
                 >
                   <ProviderIcon type={provider.type} />
                   <div className="flex-1 text-left min-w-0">
-                    <div className="text-sm text-white truncate">{provider.name}</div>
-                    <div className="text-[10px] text-slate-500 truncate">{provider.defaultModel}</div>
+                    <div className="text-sm truncate" style={{ color: 'var(--theme-text-primary)' }}>{provider.name}</div>
+                    <div className="text-[10px] truncate" style={{ color: 'var(--theme-text-dim)' }}>{provider.defaultModel}</div>
                   </div>
                   <div className="flex items-center gap-1">
                     {activeProviderId === provider.id && (
-                      <span className="text-[9px] px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded">ACTIVE</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>ACTIVE</span>
                     )}
                     {provider.isLocal ? (
-                      <Server className="w-3 h-3 text-purple-400" />
+                      <Server className="w-3 h-3" style={{ color: 'var(--color-feature)' }} />
                     ) : provider.apiKey ? (
-                      <Key className="w-3 h-3 text-green-400" />
+                      <Key className="w-3 h-3" style={{ color: 'var(--color-success)' }} />
                     ) : (
-                      <AlertCircle className="w-3 h-3 text-amber-400" />
+                      <AlertCircle className="w-3 h-3" style={{ color: 'var(--color-warning)' }} />
                     )}
                   </div>
                 </button>
@@ -263,35 +263,37 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
             </div>
 
             {/* Add Provider */}
-            <div className="p-2 border-t border-white/5">
+            <div className="p-2" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
               {showAddProvider ? (
-                <div className="p-3 bg-slate-800/50 rounded-lg space-y-2">
+                <div className="p-3 rounded-lg space-y-2" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                   <div className="grid grid-cols-2 gap-1">
                     {(Object.entries(DEFAULT_PROVIDERS) as [ProviderType, typeof DEFAULT_PROVIDERS.gemini][]).map(([type, config]) => (
                       <button
                         key={type}
                         onClick={() => setNewProviderType(type)}
-                        className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-colors ${
-                          newProviderType === type
-                            ? 'border-blue-500 bg-blue-500/10'
-                            : 'border-white/5 hover:border-white/20'
-                        }`}
+                        className="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors"
+                        style={{
+                          border: newProviderType === type ? '1px solid var(--color-info)' : '1px solid var(--theme-border-light)',
+                          backgroundColor: newProviderType === type ? 'var(--color-info-subtle)' : 'transparent'
+                        }}
                       >
                         <ProviderIcon type={type} className="w-4 h-4" />
-                        <span className="text-[9px] text-slate-400">{config.name.split(' ')[0]}</span>
+                        <span className="text-[9px]" style={{ color: 'var(--theme-text-muted)' }}>{config.name.split(' ')[0]}</span>
                       </button>
                     ))}
                   </div>
                   <div className="flex gap-1">
                     <button
                       onClick={addProvider}
-                      className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded transition-colors"
+                      className="flex-1 py-1.5 text-xs rounded transition-colors"
+                      style={{ backgroundColor: 'var(--color-success)', color: 'var(--theme-text-primary)' }}
                     >
                       Add
                     </button>
                     <button
                       onClick={() => setShowAddProvider(false)}
-                      className="px-3 py-1.5 hover:bg-white/10 text-slate-400 text-xs rounded transition-colors"
+                      className="px-3 py-1.5 text-xs rounded transition-colors"
+                      style={{ color: 'var(--theme-text-muted)' }}
                     >
                       Cancel
                     </button>
@@ -300,7 +302,8 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
               ) : (
                 <button
                   onClick={() => setShowAddProvider(true)}
-                  className="w-full flex items-center justify-center gap-2 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors text-sm"
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg transition-colors text-sm"
+                  style={{ color: 'var(--theme-text-muted)' }}
                 >
                   <Plus className="w-4 h-4" />
                   Add Provider
@@ -313,12 +316,12 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
           {selectedProvider ? (
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Provider Header */}
-              <div className="p-4 border-b border-white/5 flex items-center justify-between">
+              <div className="p-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                 <div className="flex items-center gap-3">
                   <ProviderIcon type={selectedProvider.type} className="w-8 h-8" />
                   <div>
-                    <h3 className="text-lg font-medium text-white">{selectedProvider.name}</h3>
-                    <p className="text-xs text-slate-500">
+                    <h3 className="text-lg font-medium" style={{ color: 'var(--theme-text-primary)' }}>{selectedProvider.name}</h3>
+                    <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                       {selectedProvider.isLocal ? 'Local Provider' : 'Cloud Provider'} • {selectedProvider.models.length} models
                     </p>
                   </div>
@@ -327,7 +330,8 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                   <button
                     onClick={() => testConnection(selectedProvider.id)}
                     disabled={testResult?.status === 'testing'}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-sm rounded-lg transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-primary)' }}
                   >
                     {testResult?.status === 'testing' ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -339,7 +343,8 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                   {activeProviderId !== selectedProvider.id && (
                     <button
                       onClick={() => setActiveProvider(selectedProvider.id)}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-colors"
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg transition-colors"
+                      style={{ backgroundColor: 'var(--color-info)', color: 'var(--theme-text-primary)' }}
                     >
                       <Check className="w-4 h-4" />
                       Set Active
@@ -348,10 +353,10 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                   {providers.length > 1 && (
                     <button
                       onClick={() => deleteProvider(selectedProvider.id)}
-                      className="p-1.5 hover:bg-red-500/20 rounded-lg transition-colors"
+                      className="p-1.5 rounded-lg transition-colors"
                       title="Delete provider"
                     >
-                      <Trash2 className="w-4 h-4 text-red-400" />
+                      <Trash2 className="w-4 h-4" style={{ color: 'var(--color-error)' }} />
                     </button>
                   )}
                 </div>
@@ -359,11 +364,15 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
 
               {/* Test Result */}
               {testResult && testResult.status !== 'idle' && (
-                <div className={`mx-4 mt-4 px-4 py-2 rounded-lg text-sm flex items-center gap-2 ${
-                  testResult.status === 'testing' ? 'bg-blue-500/10 text-blue-400' :
-                  testResult.status === 'success' ? 'bg-green-500/10 text-green-400' :
-                  'bg-red-500/10 text-red-400'
-                }`}>
+                <div
+                  className="mx-4 mt-4 px-4 py-2 rounded-lg text-sm flex items-center gap-2"
+                  style={{
+                    backgroundColor: testResult.status === 'testing' ? 'var(--color-info-subtle)' :
+                      testResult.status === 'success' ? 'var(--color-success-subtle)' : 'var(--color-error-subtle)',
+                    color: testResult.status === 'testing' ? 'var(--color-info)' :
+                      testResult.status === 'success' ? 'var(--color-success)' : 'var(--color-error)'
+                  }}
+                >
                   {testResult.status === 'testing' && <Loader2 className="w-4 h-4 animate-spin" />}
                   {testResult.status === 'success' && <CheckCircle2 className="w-4 h-4" />}
                   {testResult.status === 'error' && <AlertCircle className="w-4 h-4" />}
@@ -380,7 +389,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                   {/* API Key */}
                   {!selectedProvider.isLocal && (
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-sm text-slate-300">
+                      <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--theme-text-secondary)' }}>
                         <Key className="w-4 h-4" />
                         API Key
                       </label>
@@ -390,13 +399,14 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                           value={selectedProvider.apiKey || ''}
                           onChange={(e) => updateProvider(selectedProvider.id, { apiKey: e.target.value })}
                           placeholder={`Enter your ${selectedProvider.name} API key`}
-                          className="flex-1 px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+                          className="flex-1 px-3 py-2 rounded-lg text-sm outline-none"
+                          style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                         />
                         <button
                           onClick={() => setShowApiKey(prev => ({ ...prev, [selectedProvider.id]: !prev[selectedProvider.id] }))}
-                          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                          className="p-2 rounded-lg transition-colors"
                         >
-                          {showApiKey[selectedProvider.id] ? <EyeOff className="w-4 h-4 text-slate-400" /> : <Eye className="w-4 h-4 text-slate-400" />}
+                          {showApiKey[selectedProvider.id] ? <EyeOff className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} /> : <Eye className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />}
                         </button>
                       </div>
                     </div>
@@ -404,7 +414,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
 
                   {/* Base URL */}
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-sm text-slate-300">
+                    <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--theme-text-secondary)' }}>
                       <Link2 className="w-4 h-4" />
                       Base URL
                     </label>
@@ -413,7 +423,8 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                       value={selectedProvider.baseUrl || ''}
                       onChange={(e) => updateProvider(selectedProvider.id, { baseUrl: e.target.value })}
                       placeholder="https://api.example.com"
-                      className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 font-mono"
+                      className="w-full px-3 py-2 rounded-lg text-sm outline-none font-mono"
+                      style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                     />
                   </div>
                 </div>
@@ -421,7 +432,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                 {/* Default Model */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="flex items-center gap-2 text-sm text-slate-300">
+                    <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--theme-text-secondary)' }}>
                       <Zap className="w-4 h-4" />
                       Default Model
                     </label>
@@ -429,7 +440,8 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                       <button
                         onClick={fetchModels}
                         disabled={fetchingModels}
-                        className="flex items-center gap-1.5 px-2 py-1 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors disabled:opacity-50"
+                        style={{ color: 'var(--color-info)' }}
                       >
                         {fetchingModels ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
                         Fetch from Server
@@ -439,7 +451,8 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                   <select
                     value={selectedProvider.defaultModel}
                     onChange={(e) => updateProvider(selectedProvider.id, { defaultModel: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-blue-500/50"
+                    className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                    style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                   >
                     {[...selectedProvider.models].sort((a, b) => a.name.localeCompare(b.name)).map(m => (
                       <option key={m.id} value={m.id}>{m.name} - {m.description}</option>
@@ -455,12 +468,14 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                         onChange={(e) => setCustomModelInput(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && addCustomModel()}
                         placeholder="Enter custom model name..."
-                        className="flex-1 px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 font-mono"
+                        className="flex-1 px-3 py-2 rounded-lg text-sm outline-none font-mono"
+                        style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                       />
                       <button
                         onClick={addCustomModel}
                         disabled={!customModelInput.trim()}
-                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
+                        className="px-4 py-2 disabled:opacity-50 text-sm rounded-lg transition-colors"
+                        style={{ backgroundColor: 'var(--color-success)', color: 'var(--theme-text-primary)' }}
                       >
                         <Plus className="w-4 h-4" />
                       </button>
@@ -471,15 +486,17 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                 {/* Models List */}
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-medium text-slate-300">
+                    <h4 className="text-sm font-medium" style={{ color: 'var(--theme-text-secondary)' }}>
                       Available Models ({selectedProvider.models.length})
                     </h4>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setEditingModels(!editingModels)}
-                        className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors ${
-                          editingModels ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/10 text-slate-400'
-                        }`}
+                        className="flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors"
+                        style={{
+                          backgroundColor: editingModels ? 'var(--color-info-subtle)' : 'transparent',
+                          color: editingModels ? 'var(--color-info)' : 'var(--theme-text-muted)'
+                        }}
                       >
                         <Pencil className="w-3 h-3" />
                         {editingModels ? 'Done Editing' : 'Edit Models'}
@@ -487,7 +504,8 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                       {editingModels && (
                         <button
                           onClick={() => setShowAddModel(true)}
-                          className="flex items-center gap-1.5 px-2 py-1 text-xs bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 rounded transition-colors"
+                          className="flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors"
+                          style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}
                         >
                           <Plus className="w-3 h-3" />
                           Add Model
@@ -498,33 +516,36 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
 
                   {/* Add Model Form */}
                   {showAddModel && (
-                    <div className="p-4 bg-slate-800/50 rounded-lg border border-white/10 space-y-3">
+                    <div className="p-4 rounded-lg space-y-3" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)' }}>
                       <div className="grid grid-cols-3 gap-3">
                         <input
                           type="text"
                           value={newModel.id || ''}
                           onChange={(e) => setNewModel(prev => ({ ...prev, id: e.target.value }))}
                           placeholder="Model ID (e.g., gpt-4o)"
-                          className="px-3 py-2 bg-slate-900 border border-white/10 rounded-lg text-sm text-white font-mono outline-none focus:border-blue-500/50"
+                          className="px-3 py-2 rounded-lg text-sm font-mono outline-none"
+                          style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                         />
                         <input
                           type="text"
                           value={newModel.name || ''}
                           onChange={(e) => setNewModel(prev => ({ ...prev, name: e.target.value }))}
                           placeholder="Display Name"
-                          className="px-3 py-2 bg-slate-900 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-blue-500/50"
+                          className="px-3 py-2 rounded-lg text-sm outline-none"
+                          style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                         />
                         <input
                           type="text"
                           value={newModel.description || ''}
                           onChange={(e) => setNewModel(prev => ({ ...prev, description: e.target.value }))}
                           placeholder="Description"
-                          className="px-3 py-2 bg-slate-900 border border-white/10 rounded-lg text-sm text-slate-400 outline-none focus:border-blue-500/50"
+                          className="px-3 py-2 rounded-lg text-sm outline-none"
+                          style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-muted)' }}
                         />
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <label className="flex items-center gap-2 text-sm text-slate-400">
+                          <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                             <input
                               type="checkbox"
                               checked={newModel.supportsVision || false}
@@ -533,7 +554,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                             />
                             Vision Support
                           </label>
-                          <label className="flex items-center gap-2 text-sm text-slate-400">
+                          <label className="flex items-center gap-2 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                             <input
                               type="checkbox"
                               checked={newModel.supportsStreaming !== false}
@@ -546,14 +567,16 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                         <div className="flex gap-2">
                           <button
                             onClick={() => { setShowAddModel(false); setNewModel({ id: '', name: '', description: '' }); }}
-                            className="px-3 py-1.5 hover:bg-white/10 text-slate-400 text-sm rounded-lg transition-colors"
+                            className="px-3 py-1.5 text-sm rounded-lg transition-colors"
+                            style={{ color: 'var(--theme-text-muted)' }}
                           >
                             Cancel
                           </button>
                           <button
                             onClick={addModel}
                             disabled={!newModel.id || !newModel.name}
-                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm rounded-lg transition-colors"
+                            className="px-4 py-1.5 disabled:opacity-50 text-sm rounded-lg transition-colors"
+                            style={{ backgroundColor: 'var(--color-success)', color: 'var(--theme-text-primary)' }}
                           >
                             Add Model
                           </button>
@@ -567,32 +590,34 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                     {[...selectedProvider.models].sort((a, b) => a.name.localeCompare(b.name)).map(model => (
                       <div
                         key={model.id}
-                        className={`p-3 rounded-lg border transition-colors ${
-                          selectedProvider.defaultModel === model.id
-                            ? 'bg-blue-500/10 border-blue-500/30'
-                            : 'bg-slate-800/50 border-white/5 hover:border-white/10'
-                        }`}
+                        className="p-3 rounded-lg transition-colors"
+                        style={{
+                          backgroundColor: selectedProvider.defaultModel === model.id ? 'var(--color-info-subtle)' : 'var(--theme-glass-200)',
+                          border: selectedProvider.defaultModel === model.id ? '1px solid var(--color-info-border)' : '1px solid var(--theme-border-light)'
+                        }}
                       >
                         {editingModels ? (
                           <div className="space-y-2">
-                            <div className="text-xs text-slate-500 font-mono">{model.id}</div>
+                            <div className="text-xs font-mono" style={{ color: 'var(--theme-text-dim)' }}>{model.id}</div>
                             <div className="flex gap-2">
                               <input
                                 type="text"
                                 value={model.name}
                                 onChange={(e) => updateModelInProvider(model.id, { name: e.target.value })}
-                                className="flex-1 px-2 py-1 bg-slate-900 border border-white/10 rounded text-sm text-white outline-none"
+                                className="flex-1 px-2 py-1 rounded text-sm outline-none"
+                                style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                               />
                               <input
                                 type="text"
                                 value={model.description || ''}
                                 onChange={(e) => updateModelInProvider(model.id, { description: e.target.value })}
-                                className="flex-1 px-2 py-1 bg-slate-900 border border-white/10 rounded text-sm text-slate-400 outline-none"
+                                className="flex-1 px-2 py-1 rounded text-sm outline-none"
+                                style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-muted)' }}
                               />
                             </div>
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3 text-xs">
-                                <label className="flex items-center gap-1 text-slate-400">
+                                <label className="flex items-center gap-1" style={{ color: 'var(--theme-text-muted)' }}>
                                   <input
                                     type="checkbox"
                                     checked={model.supportsVision || false}
@@ -601,7 +626,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                                   />
                                   Vision
                                 </label>
-                                <label className="flex items-center gap-1 text-slate-400">
+                                <label className="flex items-center gap-1" style={{ color: 'var(--theme-text-muted)' }}>
                                   <input
                                     type="checkbox"
                                     checked={model.supportsStreaming !== false}
@@ -614,9 +639,9 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                               {selectedProvider.models.length > 1 && (
                                 <button
                                   onClick={() => deleteModel(model.id)}
-                                  className="p-1 hover:bg-red-500/20 rounded transition-colors"
+                                  className="p-1 rounded transition-colors"
                                 >
-                                  <Trash2 className="w-3 h-3 text-red-400" />
+                                  <Trash2 className="w-3 h-3" style={{ color: 'var(--color-error)' }} />
                                 </button>
                               )}
                             </div>
@@ -624,18 +649,18 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                         ) : (
                           <div className="flex items-start justify-between">
                             <div className="min-w-0">
-                              <div className="text-sm font-medium text-white truncate">{model.name}</div>
-                              <div className="text-xs text-slate-500 font-mono truncate">{model.id}</div>
+                              <div className="text-sm font-medium truncate" style={{ color: 'var(--theme-text-primary)' }}>{model.name}</div>
+                              <div className="text-xs font-mono truncate" style={{ color: 'var(--theme-text-dim)' }}>{model.id}</div>
                               {model.description && (
-                                <div className="text-xs text-slate-400 mt-1">{model.description}</div>
+                                <div className="text-xs mt-1" style={{ color: 'var(--theme-text-muted)' }}>{model.description}</div>
                               )}
                             </div>
-                            <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                            <div className="flex items-center gap-1 ml-2 shrink-0">
                               {model.supportsVision && (
-                                <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded">Vision</span>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>Vision</span>
                               )}
                               {model.supportsStreaming && (
-                                <span className="text-[10px] px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded">Stream</span>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>Stream</span>
                               )}
                             </div>
                           </div>
@@ -647,9 +672,9 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
               </div>
 
               {/* Help Links Footer */}
-              <div className="p-4 border-t border-white/5 bg-slate-950/50">
+              <div className="p-4" style={{ borderTop: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-100)' }}>
                 <div className="flex items-center justify-between">
-                  <div className="text-xs text-slate-500">Get API Keys:</div>
+                  <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Get API Keys:</div>
                   <div className="flex gap-4">
                     {[
                       { name: 'Google AI Studio', url: 'https://aistudio.google.com/apikey' },
@@ -663,7 +688,8 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                        className="flex items-center gap-1 text-xs transition-colors"
+                        style={{ color: 'var(--color-info)' }}
                       >
                         {link.name}
                         <ExternalLink className="w-3 h-3" />
@@ -674,7 +700,7 @@ export const AISettingsModal: React.FC<AISettingsModalProps> = ({ isOpen, onClos
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-slate-500">
+            <div className="flex-1 flex items-center justify-center" style={{ color: 'var(--theme-text-dim)' }}>
               Select a provider to configure
             </div>
           )}

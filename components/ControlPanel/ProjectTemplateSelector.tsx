@@ -61,27 +61,30 @@ export const ProjectTemplateSelector: React.FC<ProjectTemplateSelectorProps> = (
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-150"
+      className="fixed inset-0 z-[200] flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-150"
+      style={{ backgroundColor: 'var(--theme-overlay)' }}
       onClick={handleClose}
     >
       <div
-        className="w-full max-w-4xl max-h-[85vh] bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col mx-4"
+        className="w-full max-w-4xl max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col mx-4"
+        style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
-              <Sparkles className="w-5 h-5 text-white" />
+              <Sparkles className="w-5 h-5" style={{ color: 'var(--theme-text-primary)' }} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Start from Template</h2>
-              <p className="text-xs text-slate-400">Choose a pre-built template to get started quickly</p>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Start from Template</h2>
+              <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Choose a pre-built template to get started quickly</p>
             </div>
           </div>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
           >
             <X className="w-5 h-5" />
           </button>
@@ -100,40 +103,41 @@ export const ProjectTemplateSelector: React.FC<ProjectTemplateSelectorProps> = (
                   <button
                     key={template.id}
                     onClick={() => handleSelectTemplate(template)}
-                    className={`group relative p-5 rounded-xl border-2 transition-all text-left ${
-                      isSelected
-                        ? 'border-blue-500 bg-blue-500/10'
-                        : 'border-white/5 bg-slate-800/30 hover:border-white/20 hover:bg-slate-800/50'
-                    }`}
+                    className="group relative p-5 rounded-xl border-2 transition-all text-left"
+                    style={{
+                      borderColor: isSelected ? 'var(--color-info)' : 'var(--theme-border-light)',
+                      backgroundColor: isSelected ? 'var(--color-info-subtle)' : 'var(--theme-glass-100)'
+                    }}
                   >
                     {/* Selected Indicator */}
                     {isSelected && (
-                      <div className="absolute top-3 right-3 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                        <Check className="w-4 h-4 text-white" />
+                      <div className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-info)' }}>
+                        <Check className="w-4 h-4" style={{ color: 'var(--theme-text-primary)' }} />
                       </div>
                     )}
 
                     {/* Icon */}
                     <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${template.previewColor} flex items-center justify-center mb-4`}>
-                      <Icon className="w-6 h-6 text-white" />
+                      <Icon className="w-6 h-6" style={{ color: 'var(--theme-text-primary)' }} />
                     </div>
 
                     {/* Info */}
-                    <h3 className="text-base font-semibold text-white mb-1">{template.name}</h3>
-                    <p className="text-xs text-slate-400 mb-4 line-clamp-2">{template.description}</p>
+                    <h3 className="text-base font-semibold mb-1" style={{ color: 'var(--theme-text-primary)' }}>{template.name}</h3>
+                    <p className="text-xs mb-4 line-clamp-2" style={{ color: 'var(--theme-text-muted)' }}>{template.description}</p>
 
                     {/* Features */}
                     <div className="flex flex-wrap gap-1.5">
                       {template.features.slice(0, 3).map((feature) => (
                         <span
                           key={feature}
-                          className="text-[10px] px-2 py-0.5 bg-slate-700/50 text-slate-400 rounded-full"
+                          className="text-[10px] px-2 py-0.5 rounded-full"
+                          style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}
                         >
                           {feature}
                         </span>
                       ))}
                       {template.features.length > 3 && (
-                        <span className="text-[10px] px-2 py-0.5 bg-slate-700/50 text-slate-500 rounded-full">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-dim)' }}>
                           +{template.features.length - 3}
                         </span>
                       )}
@@ -145,42 +149,43 @@ export const ProjectTemplateSelector: React.FC<ProjectTemplateSelectorProps> = (
               {/* Empty/Blank Project Option */}
               <button
                 onClick={handleClose}
-                className="group p-5 rounded-xl border-2 border-dashed border-white/10 hover:border-white/20 bg-slate-800/10 hover:bg-slate-800/30 transition-all text-left"
+                className="group p-5 rounded-xl border-2 border-dashed transition-all text-left"
+                style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-glass-100)' }}
               >
-                <div className="w-12 h-12 rounded-xl bg-slate-700/50 flex items-center justify-center mb-4">
-                  <FileCode className="w-6 h-6 text-slate-500" />
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                  <FileCode className="w-6 h-6" style={{ color: 'var(--theme-text-dim)' }} />
                 </div>
-                <h3 className="text-base font-semibold text-slate-400 group-hover:text-white mb-1">Start Blank</h3>
-                <p className="text-xs text-slate-500">Create an empty project and build from scratch</p>
+                <h3 className="text-base font-semibold mb-1" style={{ color: 'var(--theme-text-muted)' }}>Start Blank</h3>
+                <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Create an empty project and build from scratch</p>
               </button>
             </div>
           </div>
 
           {/* Preview Panel */}
           {selectedTemplate && (
-            <div className="w-80 border-l border-white/5 bg-slate-950/50 flex flex-col">
+            <div className="w-80 flex flex-col" style={{ borderLeft: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-surface-dark)' }}>
               {/* Preview Header */}
-              <div className="p-4 border-b border-white/5">
+              <div className="p-4" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                 <div className="flex items-center gap-3 mb-4">
                   <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${selectedTemplate.previewColor} flex items-center justify-center`}>
                     {(() => {
                       const Icon = ICON_MAP[selectedTemplate.icon] || LayoutDashboard;
-                      return <Icon className="w-5 h-5 text-white" />;
+                      return <Icon className="w-5 h-5" style={{ color: 'var(--theme-text-primary)' }} />;
                     })()}
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-white">{selectedTemplate.name}</h3>
-                    <p className="text-[10px] text-slate-500">{selectedTemplate.category}</p>
+                    <h3 className="text-sm font-semibold" style={{ color: 'var(--theme-text-primary)' }}>{selectedTemplate.name}</h3>
+                    <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>{selectedTemplate.category}</p>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-400 mb-4">{selectedTemplate.description}</p>
+                <p className="text-xs mb-4" style={{ color: 'var(--theme-text-muted)' }}>{selectedTemplate.description}</p>
 
                 {/* Features List */}
                 <div className="space-y-1.5">
                   {selectedTemplate.features.map((feature) => (
-                    <div key={feature} className="flex items-center gap-2 text-xs text-slate-300">
-                      <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+                    <div key={feature} className="flex items-center gap-2 text-xs" style={{ color: 'var(--theme-text-secondary)' }}>
+                      <Check className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--color-success)' }} />
                       {feature}
                     </div>
                   ))}
@@ -189,11 +194,11 @@ export const ProjectTemplateSelector: React.FC<ProjectTemplateSelectorProps> = (
 
               {/* File Preview */}
               <div className="flex-1 p-4 overflow-y-auto">
-                <h4 className="text-[10px] text-slate-500 uppercase tracking-wide mb-2">Included Files</h4>
+                <h4 className="text-[10px] uppercase tracking-wide mb-2" style={{ color: 'var(--theme-text-dim)' }}>Included Files</h4>
                 <div className="space-y-1">
                   {Object.keys(selectedTemplate.files).map((file) => (
-                    <div key={file} className="flex items-center gap-2 text-xs text-slate-400 py-1">
-                      <FileCode className="w-3.5 h-3.5 text-slate-500" />
+                    <div key={file} className="flex items-center gap-2 text-xs py-1" style={{ color: 'var(--theme-text-muted)' }}>
+                      <FileCode className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-dim)' }} />
                       <span className="truncate font-mono">{file}</span>
                     </div>
                   ))}
@@ -201,25 +206,27 @@ export const ProjectTemplateSelector: React.FC<ProjectTemplateSelectorProps> = (
               </div>
 
               {/* Create Form */}
-              <div className="p-4 border-t border-white/5 space-y-3">
+              <div className="p-4 space-y-3" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
                 <div>
-                  <label className="block text-xs text-slate-400 mb-1.5">Project Name</label>
+                  <label className="block text-xs mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>Project Name</label>
                   <input
                     type="text"
                     value={projectName}
                     onChange={(e) => setProjectName(e.target.value)}
                     placeholder="My Project"
-                    className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-blue-500/50"
+                    className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+                    style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                   />
                 </div>
                 <button
                   onClick={handleCreate}
                   disabled={!projectName.trim() || isCreating || isLoading}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-medium rounded-lg transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 font-medium rounded-lg transition-colors disabled:opacity-50"
+                  style={{ backgroundColor: 'var(--color-info)', color: 'var(--theme-text-primary)' }}
                 >
                   {isCreating || isLoading ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--theme-glass-300)', borderTopColor: 'var(--theme-text-primary)' }} />
                       Creating...
                     </>
                   ) : (

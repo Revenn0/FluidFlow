@@ -53,25 +53,37 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
     return codeMap.files.flatMap(f => f.components);
   }, [codeMap]);
 
-  const getFileIcon = (file: FileInfo) => {
-    switch (file.type) {
-      case 'component': return <Icons.Package className="w-3.5 h-3.5 text-green-400" />;
-      case 'hook': return <Icons.GitBranch className="w-3.5 h-3.5 text-purple-400" />;
-      case 'style': return <Icons.Palette className="w-3.5 h-3.5 text-pink-400" />;
-      case 'data': return <Icons.Database className="w-3.5 h-3.5 text-yellow-400" />;
-      case 'config': return <Icons.Settings className="w-3.5 h-3.5 text-orange-400" />;
-      default: return <Icons.FileCode className="w-3.5 h-3.5 text-blue-400" />;
+  const getFileIconColor = (type: string) => {
+    switch (type) {
+      case 'component': return 'var(--color-success)';
+      case 'hook': return 'var(--color-feature)';
+      case 'style': return 'var(--color-accent)';
+      case 'data': return 'var(--color-warning)';
+      case 'config': return 'var(--color-warning)';
+      default: return 'var(--color-info)';
     }
   };
 
-  const getTypeColor = (type: string) => {
+  const getFileIcon = (file: FileInfo) => {
+    const color = getFileIconColor(file.type);
+    switch (file.type) {
+      case 'component': return <Icons.Package className="w-3.5 h-3.5" style={{ color }} />;
+      case 'hook': return <Icons.GitBranch className="w-3.5 h-3.5" style={{ color }} />;
+      case 'style': return <Icons.Palette className="w-3.5 h-3.5" style={{ color }} />;
+      case 'data': return <Icons.Database className="w-3.5 h-3.5" style={{ color }} />;
+      case 'config': return <Icons.Settings className="w-3.5 h-3.5" style={{ color }} />;
+      default: return <Icons.FileCode className="w-3.5 h-3.5" style={{ color }} />;
+    }
+  };
+
+  const getTypeStyle = (type: string) => {
     switch (type) {
-      case 'component': return 'bg-green-500/20 text-green-300';
-      case 'hook': return 'bg-purple-500/20 text-purple-300';
-      case 'style': return 'bg-pink-500/20 text-pink-300';
-      case 'data': return 'bg-yellow-500/20 text-yellow-300';
-      case 'config': return 'bg-orange-500/20 text-orange-300';
-      default: return 'bg-blue-500/20 text-blue-300';
+      case 'component': return { backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' };
+      case 'hook': return { backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' };
+      case 'style': return { backgroundColor: 'var(--color-accent-subtle)', color: 'var(--color-accent)' };
+      case 'data': return { backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' };
+      case 'config': return { backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' };
+      default: return { backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' };
     }
   };
 
@@ -81,11 +93,11 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
 
   if (!codeMap || Object.keys(files).length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-slate-900">
+      <div className="flex-1 flex items-center justify-center" style={{ backgroundColor: 'var(--theme-surface)' }}>
         <div className="text-center">
-          <Icons.Map className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-          <p className="text-slate-400">No files to analyze</p>
-          <p className="text-xs text-slate-500 mt-1">Generate some code first</p>
+          <Icons.Map className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--theme-text-dim)' }} />
+          <p style={{ color: 'var(--theme-text-muted)' }}>No files to analyze</p>
+          <p className="text-xs mt-1" style={{ color: 'var(--theme-text-dim)' }}>Generate some code first</p>
         </div>
       </div>
     );
@@ -99,61 +111,61 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-slate-900 overflow-hidden">
+    <div className="flex-1 flex flex-col overflow-hidden" style={{ backgroundColor: 'var(--theme-surface)' }}>
       {/* Stats Bar */}
-      <div className="px-3 py-2 border-b border-white/5 bg-slate-800/50 flex items-center gap-4 text-xs">
+      <div className="px-3 py-2 flex items-center gap-4 text-xs" style={{ borderBottom: '1px solid var(--theme-border-subtle)', backgroundColor: 'var(--theme-glass-100)' }}>
         <div className="flex items-center gap-1.5">
-          <Icons.FileCode className="w-3.5 h-3.5 text-white/40" />
-          <span className="text-white font-medium">{stats.totalFiles}</span>
-          <span className="text-white/50">files</span>
+          <Icons.FileCode className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-dim)' }} />
+          <span className="font-medium" style={{ color: 'var(--theme-text-primary)' }}>{stats.totalFiles}</span>
+          <span style={{ color: 'var(--theme-text-dim)' }}>files</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Icons.Package className="w-3.5 h-3.5 text-green-400/60" />
-          <span className="text-green-400">{stats.components}</span>
+          <Icons.Package className="w-3.5 h-3.5" style={{ color: 'var(--color-success)', opacity: 0.6 }} />
+          <span style={{ color: 'var(--color-success)' }}>{stats.components}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Icons.GitBranch className="w-3.5 h-3.5 text-purple-400/60" />
-          <span className="text-purple-400">{stats.hooks}</span>
+          <Icons.GitBranch className="w-3.5 h-3.5" style={{ color: 'var(--color-feature)', opacity: 0.6 }} />
+          <span style={{ color: 'var(--color-feature)' }}>{stats.hooks}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Icons.Code className="w-3.5 h-3.5 text-blue-400/60" />
-          <span className="text-blue-400">{stats.utilities}</span>
+          <Icons.Code className="w-3.5 h-3.5" style={{ color: 'var(--color-info)', opacity: 0.6 }} />
+          <span style={{ color: 'var(--color-info)' }}>{stats.utilities}</span>
         </div>
       </div>
 
       {/* Toolbar */}
-      <div className="px-3 py-2 border-b border-white/5 flex items-center gap-2">
+      <div className="px-3 py-2 flex items-center gap-2" style={{ borderBottom: '1px solid var(--theme-border-subtle)' }}>
         {/* View Mode */}
-        <div className="flex items-center gap-0.5 bg-slate-800 rounded-lg p-0.5">
+        <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
           <button
             onClick={() => setViewMode('tree')}
-            className={`px-2 py-1 rounded text-[10px] font-medium transition-colors ${
-              viewMode === 'tree'
-                ? 'bg-blue-500 text-white'
-                : 'text-slate-400 hover:text-white'
-            }`}
+            className="px-2 py-1 rounded text-[10px] font-medium transition-colors"
+            style={{
+              backgroundColor: viewMode === 'tree' ? 'var(--theme-accent)' : 'transparent',
+              color: viewMode === 'tree' ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)',
+            }}
             title="File Tree"
           >
             <Icons.FolderTree className="w-3 h-3" />
           </button>
           <button
             onClick={() => setViewMode('components')}
-            className={`px-2 py-1 rounded text-[10px] font-medium transition-colors ${
-              viewMode === 'components'
-                ? 'bg-blue-500 text-white'
-                : 'text-slate-400 hover:text-white'
-            }`}
+            className="px-2 py-1 rounded text-[10px] font-medium transition-colors"
+            style={{
+              backgroundColor: viewMode === 'components' ? 'var(--theme-accent)' : 'transparent',
+              color: viewMode === 'components' ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)',
+            }}
             title="Components"
           >
             <Icons.Package className="w-3 h-3" />
           </button>
           <button
             onClick={() => setViewMode('graph')}
-            className={`px-2 py-1 rounded text-[10px] font-medium transition-colors ${
-              viewMode === 'graph'
-                ? 'bg-blue-500 text-white'
-                : 'text-slate-400 hover:text-white'
-            }`}
+            className="px-2 py-1 rounded text-[10px] font-medium transition-colors"
+            style={{
+              backgroundColor: viewMode === 'graph' ? 'var(--theme-accent)' : 'transparent',
+              color: viewMode === 'graph' ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)',
+            }}
             title="Dependency Graph"
           >
             <Icons.Network className="w-3 h-3" />
@@ -162,16 +174,16 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
 
         {/* Filter */}
         {viewMode === 'tree' && (
-          <div className="flex items-center gap-0.5 bg-slate-800 rounded-lg p-0.5">
+          <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
             {(['all', 'component', 'hook', 'utility'] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => setFilterType(type)}
-                className={`px-2 py-1 rounded text-[10px] font-medium transition-colors ${
-                  filterType === type
-                    ? 'bg-purple-500 text-white'
-                    : 'text-slate-400 hover:text-white'
-                }`}
+                className="px-2 py-1 rounded text-[10px] font-medium transition-colors"
+                style={{
+                  backgroundColor: filterType === type ? 'var(--color-feature)' : 'transparent',
+                  color: filterType === type ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)',
+                }}
               >
                 {type === 'all' ? 'All' : type.charAt(0).toUpperCase()}
               </button>
@@ -181,13 +193,14 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
 
         {/* Search */}
         <div className="flex-1 relative">
-          <Icons.Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-500" />
+          <Icons.Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3" style={{ color: 'var(--theme-text-dim)' }} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search..."
-            className="w-full pl-7 pr-2 py-1 bg-slate-800 border border-white/5 rounded text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
+            className="w-full pl-7 pr-2 py-1 rounded text-xs focus:outline-none"
+            style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
           />
         </div>
       </div>
@@ -197,34 +210,34 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
         {viewMode === 'tree' && (
           <>
             {/* File List */}
-            <div className="w-64 border-r border-white/5 overflow-y-auto">
+            <div className="w-64 overflow-y-auto" style={{ borderRight: '1px solid var(--theme-border-subtle)' }}>
               <div className="p-2 space-y-0.5">
                 {filteredFiles.length === 0 ? (
                   <div className="text-center py-4">
-                    <Icons.Search className="w-6 h-6 text-slate-600 mx-auto mb-1" />
-                    <p className="text-xs text-slate-500">No matching files</p>
+                    <Icons.Search className="w-6 h-6 mx-auto mb-1" style={{ color: 'var(--theme-text-dim)' }} />
+                    <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>No matching files</p>
                   </div>
                 ) : (
                   filteredFiles.map((file) => (
                     <button
                       key={file.path}
                       onClick={() => handleFileClick(file)}
-                      className={`w-full text-left p-2 rounded transition-colors ${
-                        selectedFile?.path === file.path
-                          ? 'bg-blue-500/20 border border-blue-500/30'
-                          : 'hover:bg-slate-800/50 border border-transparent'
-                      }`}
+                      className="w-full text-left p-2 rounded transition-colors"
+                      style={{
+                        backgroundColor: selectedFile?.path === file.path ? 'var(--color-info-subtle)' : 'transparent',
+                        border: selectedFile?.path === file.path ? '1px solid var(--color-info-border)' : '1px solid transparent',
+                      }}
                     >
                       <div className="flex items-center gap-1.5">
                         {getFileIcon(file)}
-                        <span className="flex-1 text-xs text-white truncate">
+                        <span className="flex-1 text-xs truncate" style={{ color: 'var(--theme-text-primary)' }}>
                           {file.path.split('/').pop()}
                         </span>
-                        <span className={`px-1 py-0.5 rounded text-[8px] ${getTypeColor(file.type)}`}>
+                        <span className="px-1 py-0.5 rounded text-[8px]" style={getTypeStyle(file.type)}>
                           {file.type.slice(0, 3)}
                         </span>
                       </div>
-                      <div className="text-[10px] text-slate-500 truncate mt-0.5 pl-5">
+                      <div className="text-[10px] truncate mt-0.5 pl-5" style={{ color: 'var(--theme-text-dim)' }}>
                         {file.path}
                       </div>
                     </button>
@@ -240,12 +253,12 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
                   <div className="mb-4">
                     <div className="flex items-center gap-2 mb-1">
                       {getFileIcon(selectedFile)}
-                      <h3 className="text-sm font-medium text-white">
+                      <h3 className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>
                         {selectedFile.path.split('/').pop()}
                       </h3>
                     </div>
-                    <p className="text-[10px] text-slate-500">{selectedFile.path}</p>
-                    <span className={`inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] ${getTypeColor(selectedFile.type)}`}>
+                    <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>{selectedFile.path}</p>
+                    <span className="inline-block mt-1 px-1.5 py-0.5 rounded text-[10px]" style={getTypeStyle(selectedFile.type)}>
                       {selectedFile.type}
                     </span>
                   </div>
@@ -253,12 +266,12 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
                   {/* Exports */}
                   {selectedFile.exports.length > 0 && (
                     <div className="mb-3">
-                      <h4 className="text-[10px] font-medium text-slate-400 mb-1.5 uppercase tracking-wide">
+                      <h4 className="text-[10px] font-medium mb-1.5 uppercase tracking-wide" style={{ color: 'var(--theme-text-muted)' }}>
                         Exports ({selectedFile.exports.length})
                       </h4>
                       <div className="flex flex-wrap gap-1">
                         {selectedFile.exports.map((exp) => (
-                          <span key={exp} className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[10px] font-mono">
+                          <span key={exp} className="px-1.5 py-0.5 rounded text-[10px] font-mono" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
                             {exp}
                           </span>
                         ))}
@@ -269,27 +282,27 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
                   {/* Components */}
                   {selectedFile.components.length > 0 && (
                     <div className="mb-3">
-                      <h4 className="text-[10px] font-medium text-slate-400 mb-1.5 uppercase tracking-wide">
+                      <h4 className="text-[10px] font-medium mb-1.5 uppercase tracking-wide" style={{ color: 'var(--theme-text-muted)' }}>
                         Components ({selectedFile.components.length})
                       </h4>
                       <div className="space-y-1.5">
                         {selectedFile.components.map((comp) => (
-                          <div key={comp.name} className="p-2 bg-slate-800/50 rounded">
-                            <div className="text-xs font-medium text-green-300">{comp.name}</div>
+                          <div key={comp.name} className="p-2 rounded" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+                            <div className="text-xs font-medium" style={{ color: 'var(--color-success)' }}>{comp.name}</div>
                             {comp.props.length > 0 && (
-                              <div className="mt-1 text-[10px] text-slate-400">
+                              <div className="mt-1 text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>
                                 Props: {comp.props.join(', ')}
                               </div>
                             )}
                             {comp.hooks.length > 0 && (
                               <div className="mt-0.5 flex flex-wrap gap-0.5">
                                 {comp.hooks.slice(0, 5).map((hook) => (
-                                  <span key={hook} className="px-1 py-0.5 bg-purple-500/20 text-purple-300 rounded text-[8px]">
+                                  <span key={hook} className="px-1 py-0.5 rounded text-[8px]" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>
                                     {hook}
                                   </span>
                                 ))}
                                 {comp.hooks.length > 5 && (
-                                  <span className="text-[8px] text-slate-500">+{comp.hooks.length - 5}</span>
+                                  <span className="text-[8px]" style={{ color: 'var(--theme-text-dim)' }}>+{comp.hooks.length - 5}</span>
                                 )}
                               </div>
                             )}
@@ -302,12 +315,12 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
                   {/* Functions */}
                   {selectedFile.functions.length > 0 && (
                     <div className="mb-3">
-                      <h4 className="text-[10px] font-medium text-slate-400 mb-1.5 uppercase tracking-wide">
+                      <h4 className="text-[10px] font-medium mb-1.5 uppercase tracking-wide" style={{ color: 'var(--theme-text-muted)' }}>
                         Functions ({selectedFile.functions.length})
                       </h4>
                       <div className="flex flex-wrap gap-1">
                         {selectedFile.functions.map((fn) => (
-                          <span key={fn} className="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-300 rounded text-[10px] font-mono">
+                          <span key={fn} className="px-1.5 py-0.5 rounded text-[10px] font-mono" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
                             {fn}()
                           </span>
                         ))}
@@ -318,18 +331,18 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
                   {/* Imports */}
                   {selectedFile.imports.length > 0 && (
                     <div>
-                      <h4 className="text-[10px] font-medium text-slate-400 mb-1.5 uppercase tracking-wide">
+                      <h4 className="text-[10px] font-medium mb-1.5 uppercase tracking-wide" style={{ color: 'var(--theme-text-muted)' }}>
                         Imports ({selectedFile.imports.length})
                       </h4>
                       <div className="space-y-1">
                         {selectedFile.imports.slice(0, 10).map((imp, idx) => (
-                          <div key={idx} className="text-[10px] text-slate-400">
-                            <span className="text-slate-500">from</span>
-                            <span className="text-slate-300 ml-1 font-mono">{imp.from}</span>
+                          <div key={idx} className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>
+                            <span style={{ color: 'var(--theme-text-dim)' }}>from</span>
+                            <span className="ml-1 font-mono" style={{ color: 'var(--theme-text-secondary)' }}>{imp.from}</span>
                           </div>
                         ))}
                         {selectedFile.imports.length > 10 && (
-                          <div className="text-[10px] text-slate-500">
+                          <div className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                             +{selectedFile.imports.length - 10} more
                           </div>
                         )}
@@ -340,8 +353,8 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
               ) : (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
-                    <Icons.MousePointer className="w-6 h-6 text-slate-600 mx-auto mb-1" />
-                    <p className="text-xs text-slate-500">Select a file</p>
+                    <Icons.MousePointer className="w-6 h-6 mx-auto mb-1" style={{ color: 'var(--theme-text-dim)' }} />
+                    <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Select a file</p>
                   </div>
                 </div>
               )}
@@ -353,29 +366,29 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
           <div className="flex-1 overflow-y-auto p-3">
             {allComponents.length === 0 ? (
               <div className="text-center py-8">
-                <Icons.Package className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                <p className="text-xs text-slate-500">No React components found</p>
+                <Icons.Package className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--theme-text-dim)' }} />
+                <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>No React components found</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-2">
                 {allComponents.map((comp) => (
-                  <div key={comp.name} className="p-2 bg-slate-800/50 rounded border border-white/5">
+                  <div key={comp.name} className="p-2 rounded" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-subtle)' }}>
                     <div className="flex items-center gap-1.5 mb-2">
-                      <Icons.Package className="w-3.5 h-3.5 text-green-400" />
-                      <span className="text-xs text-white font-medium">{comp.name}</span>
+                      <Icons.Package className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} />
+                      <span className="text-xs font-medium" style={{ color: 'var(--theme-text-primary)' }}>{comp.name}</span>
                     </div>
 
                     {comp.props.length > 0 && (
                       <div className="mb-1.5">
-                        <div className="text-[8px] text-slate-500 mb-0.5">Props</div>
+                        <div className="text-[8px] mb-0.5" style={{ color: 'var(--theme-text-dim)' }}>Props</div>
                         <div className="flex flex-wrap gap-0.5">
                           {comp.props.slice(0, 4).map((prop) => (
-                            <span key={prop} className="px-1 py-0.5 bg-slate-700 text-slate-300 rounded text-[8px]">
+                            <span key={prop} className="px-1 py-0.5 rounded text-[8px]" style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}>
                               {prop}
                             </span>
                           ))}
                           {comp.props.length > 4 && (
-                            <span className="text-[8px] text-slate-500">+{comp.props.length - 4}</span>
+                            <span className="text-[8px]" style={{ color: 'var(--theme-text-dim)' }}>+{comp.props.length - 4}</span>
                           )}
                         </div>
                       </div>
@@ -383,15 +396,15 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
 
                     {comp.hooks.length > 0 && (
                       <div className="mb-1.5">
-                        <div className="text-[8px] text-slate-500 mb-0.5">Hooks</div>
+                        <div className="text-[8px] mb-0.5" style={{ color: 'var(--theme-text-dim)' }}>Hooks</div>
                         <div className="flex flex-wrap gap-0.5">
                           {comp.hooks.slice(0, 3).map((hook) => (
-                            <span key={hook} className="px-1 py-0.5 bg-purple-500/20 text-purple-300 rounded text-[8px]">
+                            <span key={hook} className="px-1 py-0.5 rounded text-[8px]" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>
                               {hook}
                             </span>
                           ))}
                           {comp.hooks.length > 3 && (
-                            <span className="text-[8px] text-slate-500">+{comp.hooks.length - 3}</span>
+                            <span className="text-[8px]" style={{ color: 'var(--theme-text-dim)' }}>+{comp.hooks.length - 3}</span>
                           )}
                         </div>
                       </div>
@@ -399,15 +412,15 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
 
                     {comp.children.length > 0 && (
                       <div>
-                        <div className="text-[8px] text-slate-500 mb-0.5">Uses</div>
+                        <div className="text-[8px] mb-0.5" style={{ color: 'var(--theme-text-dim)' }}>Uses</div>
                         <div className="flex flex-wrap gap-0.5">
                           {comp.children.slice(0, 3).map((child) => (
-                            <span key={child} className="px-1 py-0.5 bg-green-500/20 text-green-300 rounded text-[8px]">
+                            <span key={child} className="px-1 py-0.5 rounded text-[8px]" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
                               {child}
                             </span>
                           ))}
                           {comp.children.length > 3 && (
-                            <span className="text-[8px] text-slate-500">+{comp.children.length - 3}</span>
+                            <span className="text-[8px]" style={{ color: 'var(--theme-text-dim)' }}>+{comp.children.length - 3}</span>
                           )}
                         </div>
                       </div>
@@ -421,8 +434,8 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
 
         {viewMode === 'graph' && (
           <div className="flex-1 overflow-auto p-3">
-            <div className="bg-slate-800/30 rounded-lg p-4 min-h-[400px]">
-              <h3 className="text-xs font-medium text-white mb-3">Component Dependency Graph</h3>
+            <div className="rounded-lg p-4 min-h-[400px]" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+              <h3 className="text-xs font-medium mb-3" style={{ color: 'var(--theme-text-primary)' }}>Component Dependency Graph</h3>
 
               {/* Simple text-based dependency visualization */}
               <div className="space-y-3">
@@ -430,14 +443,14 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
                   .filter(([_, children]) => children.length > 0)
                   .map(([parent, children]) => (
                     <div key={parent} className="flex items-start gap-2">
-                      <div className="flex items-center gap-1 px-2 py-1 bg-green-500/20 rounded text-xs text-green-300">
+                      <div className="flex items-center gap-1 px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
                         <Icons.Package className="w-3 h-3" />
                         {parent}
                       </div>
-                      <Icons.ArrowRight className="w-4 h-4 text-slate-500 mt-1" />
+                      <Icons.ArrowRight className="w-4 h-4 mt-1" style={{ color: 'var(--theme-text-dim)' }} />
                       <div className="flex flex-wrap gap-1">
                         {children.map(child => (
-                          <span key={child} className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-xs">
+                          <span key={child} className="px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
                             {child}
                           </span>
                         ))}
@@ -447,15 +460,15 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
 
                 {Object.entries(codeMap.componentTree).filter(([_, children]) => children.length > 0).length === 0 && (
                   <div className="text-center py-8">
-                    <Icons.Network className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                    <p className="text-xs text-slate-500">No component dependencies found</p>
+                    <Icons.Network className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--theme-text-dim)' }} />
+                    <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>No component dependencies found</p>
                   </div>
                 )}
               </div>
 
               {/* File dependencies */}
-              <div className="mt-6 pt-4 border-t border-white/5">
-                <h3 className="text-xs font-medium text-white mb-3">File Import Dependencies</h3>
+              <div className="mt-6 pt-4" style={{ borderTop: '1px solid var(--theme-border-subtle)' }}>
+                <h3 className="text-xs font-medium mb-3" style={{ color: 'var(--theme-text-primary)' }}>File Import Dependencies</h3>
                 <div className="space-y-2">
                   {codeMap.files
                     .filter(f => f.imports.filter(i => i.from.startsWith('.')).length > 0)
@@ -464,9 +477,9 @@ export const CodeMapTab: React.FC<CodeMapTabProps> = ({ files }) => {
                       const localImports = file.imports.filter(i => i.from.startsWith('.'));
                       return (
                         <div key={file.path} className="text-[10px]">
-                          <span className="text-slate-300 font-mono">{file.path.split('/').pop()}</span>
-                          <span className="text-slate-500 mx-1">imports</span>
-                          <span className="text-slate-400">
+                          <span className="font-mono" style={{ color: 'var(--theme-text-secondary)' }}>{file.path.split('/').pop()}</span>
+                          <span className="mx-1" style={{ color: 'var(--theme-text-dim)' }}>imports</span>
+                          <span style={{ color: 'var(--theme-text-muted)' }}>
                             {localImports.map(i => i.from.split('/').pop()).join(', ')}
                           </span>
                         </div>

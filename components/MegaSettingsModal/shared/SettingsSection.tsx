@@ -15,10 +15,10 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
 }) => {
   return (
     <div className={`space-y-4 ${className}`}>
-      <div className="border-b border-white/5 pb-2">
-        <h3 className="text-sm font-medium text-white">{title}</h3>
+      <div className="pb-2" style={{ borderBottom: '1px solid var(--theme-border)' }}>
+        <h3 className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>{title}</h3>
         {description && (
-          <p className="text-xs text-slate-500 mt-0.5">{description}</p>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{description}</p>
         )}
       </div>
       <div className="space-y-3">

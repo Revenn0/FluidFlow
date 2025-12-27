@@ -15,6 +15,47 @@ export function getBootstrapScript(files: FileSystem): string {
   return `
     (async () => {
       const files = JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(files))}"));
+
+      // ═══════════════════════════════════════════════════════════
+      // BLOB URL MEMORY MANAGEMENT
+      // Tracks and cleans up blob URLs to prevent memory leaks
+      // ═══════════════════════════════════════════════════════════
+      window.__SANDBOX_BLOB_URLS__ = [];
+
+      // Wrapper for URL.createObjectURL that tracks URLs
+      const createTrackedBlobURL = (blob) => {
+        const url = URL.createObjectURL(blob);
+        window.__SANDBOX_BLOB_URLS__.push(url);
+        return url;
+      };
+
+      // Cleanup function to revoke all blob URLs
+      const cleanupBlobURLs = () => {
+        const urls = window.__SANDBOX_BLOB_URLS__ || [];
+        console.log('[Sandbox] Cleaning up ' + urls.length + ' blob URLs');
+        urls.forEach(url => {
+          try {
+            URL.revokeObjectURL(url);
+          } catch (e) {
+            // Ignore errors from already-revoked URLs
+          }
+        });
+        window.__SANDBOX_BLOB_URLS__ = [];
+      };
+
+      // Register cleanup on page unload/before refresh
+      window.addEventListener('beforeunload', cleanupBlobURLs);
+      window.addEventListener('pagehide', cleanupBlobURLs);
+
+      // Listen for cleanup message from parent
+      window.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'CLEANUP_BLOB_URLS') {
+          cleanupBlobURLs();
+        }
+      });
+
+      // Expose cleanup function globally for manual invocation
+      window.__SANDBOX_CLEANUP__ = cleanupBlobURLs;
       // Create a custom react-router-dom wrapper that makes BrowserRouter work in sandbox
       const routerShimCode = \`
         import * as ReactRouterDom from 'https://esm.sh/react-router-dom@6.28.0?external=react,react-dom';
@@ -471,7 +512,7 @@ export function getBootstrapScript(files: FileSystem): string {
           }, typeof children === 'function' ? children({ isActive, isPending: false }) : children);
         }
       \`;
-      const routerShimUrl = URL.createObjectURL(new Blob([routerShimCode], { type: 'application/javascript' }));
+      const routerShimUrl = createTrackedBlobURL(new Blob([routerShimCode], { type: 'application/javascript' }));
 
       // Dynamic imports detected from user code (proactive resolution)
       const dynamicImports = __DYNAMIC_IMPORTS_PLACEHOLDER__;
@@ -575,6 +616,55 @@ export function getBootstrapScript(files: FileSystem): string {
       // Bare specifier directories that need resolution
       const bareSpecifierDirs = ['src/', 'components/', 'hooks/', 'utils/', 'services/', 'contexts/', 'types/', 'lib/', 'pages/', 'features/', 'modules/', 'assets/', 'styles/', 'api/'];
 
+      // ═══════════════════════════════════════════════════════════
+      // CSS MODULES PROCESSOR
+      // Scopes class names for .module.css files
+      // ═══════════════════════════════════════════════════════════
+
+      function processCssModule(cssContent, filename) {
+        // Simple hash function
+        function hashStr(str) {
+          let hash = 5381;
+          for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) + hash) ^ str.charCodeAt(i);
+          }
+          return Math.abs(hash).toString(36).substring(0, 5);
+        }
+
+        // Find class names in CSS using matchAll
+        const classNames = [];
+        const matches = cssContent.matchAll(/\\.([a-zA-Z_][a-zA-Z0-9_-]*)/g);
+        const pseudoClasses = ['hover', 'focus', 'active', 'visited', 'disabled', 'first-child', 'last-child',
+          'nth-child', 'before', 'after', 'placeholder', 'checked', 'required', 'valid', 'invalid',
+          'empty', 'not', 'is', 'where', 'has', 'focus-visible', 'focus-within', 'first-of-type',
+          'last-of-type', 'only-child', 'root', 'target', 'enabled', 'selection', 'backdrop'];
+        const seen = {};
+
+        for (const match of matches) {
+          const className = match[1];
+          if (!pseudoClasses.includes(className) && !seen[className]) {
+            classNames.push(className);
+            seen[className] = true;
+          }
+        }
+
+        // Generate scoped names and replace in CSS
+        const basename = filename.split('/').pop().replace(/\\.module\\.css$/, '');
+        const mapping = {};
+        let scopedCss = cssContent;
+
+        for (const className of classNames) {
+          const scopedName = basename + '_' + className + '__' + hashStr(filename + className);
+          mapping[className] = scopedName;
+
+          // Replace .className with .scopedName in CSS
+          const regex = new RegExp('\\\\.(' + className.replace(/[-]/g, '\\\\-') + ')(?=[^a-zA-Z0-9_-]|$)', 'g');
+          scopedCss = scopedCss.replace(regex, '.' + scopedName);
+        }
+
+        return { scopedCss: scopedCss, mapping: mapping };
+      }
+
       // Transform imports in code to use absolute paths
       function transformImports(code, fromFile) {
         // First transform lucide imports
@@ -607,7 +697,7 @@ export function getBootstrapScript(files: FileSystem): string {
           return importPath;
         }
 
-        return code.replace(
+        let result = code.replace(
           /(import\\s+(?:[\\w{},\\s*]+\\s+from\\s+)?['"])([^'"]+)(['"])/g,
           (match, prefix, importPath, suffix) => {
             const resolved = resolveImport(importPath);
@@ -626,6 +716,25 @@ export function getBootstrapScript(files: FileSystem): string {
             return match;
           }
         );
+
+        // ═══════════════════════════════════════════════════════════
+        // ENVIRONMENT VARIABLE TRANSFORMATION
+        // Replace import.meta.env with window.__VITE_ENV__
+        // ═══════════════════════════════════════════════════════════
+
+        // Pattern 1: import.meta.env.VARIABLE_NAME
+        result = result.replace(
+          /import\\.meta\\.env\\.([A-Z_][A-Z0-9_]*)/g,
+          'window.__VITE_ENV__.$1'
+        );
+
+        // Pattern 2: import.meta.env (the whole object)
+        result = result.replace(
+          /import\\.meta\\.env(?![.\\w])/g,
+          'window.__VITE_ENV__'
+        );
+
+        return result;
       }
 
       // Process all files
@@ -964,7 +1073,7 @@ export function getBootstrapScript(files: FileSystem): string {
         if (/\\.(tsx|ts|jsx|js)$/.test(filename)) {
           const result = tryTranspile(content, filename);
           if (result.success) {
-            const url = URL.createObjectURL(new Blob([result.code], { type: 'application/javascript' }));
+            const url = createTrackedBlobURL(new Blob([result.code], { type: 'application/javascript' }));
 
             // Add multiple import map entries for flexibility
             importMap.imports[filename] = url;
@@ -998,15 +1107,46 @@ export function getBootstrapScript(files: FileSystem): string {
             console.error('[Sandbox] Transpilation failed for ' + filename + ': ' + result.error);
             errors.push({ file: filename, error: result.error });
           }
+        } else if (/\\.module\\.css$/.test(filename)) {
+          // Handle CSS Modules - scope class names and export mapping
+          const processedCss = processCssModule(content, filename);
+
+          // Inject scoped CSS
+          const style = document.createElement('style');
+          style.textContent = processedCss.scopedCss;
+          style.setAttribute('data-file', filename);
+          style.setAttribute('data-css-module', 'true');
+          document.head.appendChild(style);
+
+          // Create module that exports the class name mapping
+          const mappingJson = JSON.stringify(processedCss.mapping);
+          const cssModuleCode = 'const styles = ' + mappingJson + ';\\nexport default styles;\\n' +
+            Object.keys(processedCss.mapping).map(function(key) {
+              return 'export const ' + key + ' = ' + JSON.stringify(processedCss.mapping[key]) + ';';
+            }).join('\\n');
+
+          const url = createTrackedBlobURL(new Blob([cssModuleCode], { type: 'application/javascript' }));
+          importMap.imports[filename] = url;
+          importMap.imports[filename.replace(/\\.module\\.css$/, '.module')] = url;
+          importMap.imports[filename.replace(/\\.module\\.css$/, '')] = url;
+
+          // Also support relative imports
+          if (filename.startsWith('src/')) {
+            const relativePath = './' + filename.substring(4);
+            importMap.imports[relativePath] = url;
+            importMap.imports[relativePath.replace(/\\.module\\.css$/, '.module')] = url;
+          }
+
+          console.log('[Sandbox] Loaded CSS Module: ' + filename + ' (scoped ' + Object.keys(processedCss.mapping).length + ' classes)');
         } else if (/\\.css$/.test(filename)) {
-          // Handle CSS files - inject as style tag
+          // Handle regular CSS files - inject as style tag
           const style = document.createElement('style');
           style.textContent = content;
           style.setAttribute('data-file', filename);
           document.head.appendChild(style);
           // Create dummy module for CSS imports
           const cssModule = 'export default {};';
-          const url = URL.createObjectURL(new Blob([cssModule], { type: 'application/javascript' }));
+          const url = createTrackedBlobURL(new Blob([cssModule], { type: 'application/javascript' }));
           importMap.imports[filename] = url;
           importMap.imports[filename.replace(/\\.css$/, '')] = url;
           console.log('[Sandbox] Loaded CSS: ' + filename);
@@ -1014,7 +1154,7 @@ export function getBootstrapScript(files: FileSystem): string {
           // Handle JSON files
           try {
             const jsonModule = 'export default ' + content + ';';
-            const url = URL.createObjectURL(new Blob([jsonModule], { type: 'application/javascript' }));
+            const url = createTrackedBlobURL(new Blob([jsonModule], { type: 'application/javascript' }));
             importMap.imports[filename] = url;
             importMap.imports[filename.replace(/\\.json$/, '')] = url;
           } catch (err) {
@@ -1189,12 +1329,26 @@ export function getBootstrapScript(files: FileSystem): string {
 
         // Render the app with ErrorBoundary
         try {
-          const root = createRoot(document.getElementById('root'));
+          const rootEl = document.getElementById('root');
+
+          // Create scroll container for app content
+          // This allows internal scrolling while keeping outer elements locked
+          let scrollContainer = document.getElementById('__app_scroll_container__');
+          if (!scrollContainer) {
+            scrollContainer = document.createElement('div');
+            scrollContainer.id = '__app_scroll_container__';
+            // Use textContent to clear loading state atomically
+            // This is safer than removeChild which can conflict with animation libraries
+            rootEl.textContent = '';
+            rootEl.appendChild(scrollContainer);
+          }
+
+          const root = createRoot(scrollContainer);
+          // Note: StrictMode disabled because it causes issues with animation libraries
+          // like framer-motion (double renders confuse AnimatePresence exit animations)
           root.render(
-            React.createElement(React.StrictMode, null,
-              React.createElement(ErrorBoundary, null,
-                React.createElement(App)
-              )
+            React.createElement(ErrorBoundary, null,
+              React.createElement(App)
             )
           );
           window.__SANDBOX_READY__ = true;
@@ -1212,7 +1366,7 @@ export function getBootstrapScript(files: FileSystem): string {
           presets: ['react', ['env', { modules: false }], 'typescript'],
           filename: 'bootstrap.tsx'
         }).code;
-        script.src = URL.createObjectURL(new Blob([transpiledBootstrap], { type: 'application/javascript' }));
+        script.src = createTrackedBlobURL(new Blob([transpiledBootstrap], { type: 'application/javascript' }));
 
         // Handle script loading errors (module resolution failures)
         script.onerror = function(event) {

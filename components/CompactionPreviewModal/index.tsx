@@ -40,65 +40,67 @@ export const CompactionPreviewModal: React.FC<CompactionPreviewModalProps> = ({
   const percentSaved = ((tokensSaved / stats.beforeTokens) * 100).toFixed(0);
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-200" style={{ backgroundColor: 'var(--theme-modal-overlay)' }}>
+      <div className="w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom-4 duration-300" style={{ backgroundColor: 'var(--theme-modal-bg)', border: '1px solid var(--theme-border)' }}>
         {/* Header */}
-        <div className="p-6 border-b border-white/5 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+        <div className="p-6" style={{ borderBottom: '1px solid var(--theme-border)', background: 'linear-gradient(to right, var(--theme-accent-subtle), var(--theme-tertiary-subtle))' }}>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/20 rounded-lg">
-              <MessageSquare className="w-5 h-5 text-blue-400" />
+            <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-accent-subtle)' }}>
+              <MessageSquare className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Context Compaction Preview</h2>
-              <p className="text-xs text-slate-400">Review messages before compacting</p>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Context Compaction Preview</h2>
+              <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Review messages before compacting</p>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-6 max-h-[60vh] overflow-y-auto">
+        <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
           {/* Stats Summary */}
-          <div className="mb-6 p-4 bg-slate-800/50 border border-white/5 rounded-lg">
+          <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div>
-                <div className="text-xs text-slate-500 mb-1">Before</div>
-                <div className="text-lg font-semibold text-white">{stats.beforeTokens.toLocaleString()}</div>
-                <div className="text-xs text-slate-500">tokens</div>
+                <div className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>Before</div>
+                <div className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>{stats.beforeTokens.toLocaleString()}</div>
+                <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>tokens</div>
               </div>
               <div>
-                <div className="text-xs text-slate-500 mb-1">After</div>
-                <div className="text-lg font-semibold text-emerald-400">{stats.afterTokens.toLocaleString()}</div>
-                <div className="text-xs text-slate-500">tokens</div>
+                <div className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>After</div>
+                <div className="text-lg font-semibold" style={{ color: 'var(--color-success)' }}>{stats.afterTokens.toLocaleString()}</div>
+                <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>tokens</div>
               </div>
               <div>
-                <div className="text-xs text-slate-500 mb-1">Saved</div>
-                <div className="text-lg font-semibold text-blue-400">{tokensSaved.toLocaleString()}</div>
-                <div className="text-xs text-slate-500">tokens ({percentSaved}%)</div>
+                <div className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>Saved</div>
+                <div className="text-lg font-semibold" style={{ color: 'var(--theme-accent)' }}>{tokensSaved.toLocaleString()}</div>
+                <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>tokens ({percentSaved}%)</div>
               </div>
               <div>
-                <div className="text-xs text-slate-500 mb-1">Messages</div>
-                <div className="text-lg font-semibold text-amber-400">{stats.messagesToSummarize}</div>
-                <div className="text-xs text-slate-500">to summarize</div>
+                <div className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>Messages</div>
+                <div className="text-lg font-semibold" style={{ color: 'var(--color-warning)' }}>{stats.messagesToSummarize}</div>
+                <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>to summarize</div>
               </div>
             </div>
           </div>
 
           {/* Messages to Compact */}
           <div className="mb-4">
-            <h3 className="text-sm font-medium text-white mb-3 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-400" />
+            <h3 className="text-sm font-medium mb-3 flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+              <AlertTriangle className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
               Messages to be Summarized ({messagesToCompact.length})
             </h3>
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
               {messagesToCompact.map((msg, index) => (
                 <div
                   key={msg.id}
-                  className="p-3 bg-slate-800/30 border border-amber-500/20 rounded-lg"
+                  className="p-3 rounded-lg"
+                  style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--color-warning-border)' }}
                 >
                   <div className="flex items-start gap-3">
-                    <div className={`p-1.5 rounded ${
-                      msg.role === 'user' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'
-                    }`}>
+                    <div className="p-1.5 rounded" style={{
+                      backgroundColor: msg.role === 'user' ? 'var(--theme-accent-subtle)' : 'var(--theme-tertiary-subtle)',
+                      color: msg.role === 'user' ? 'var(--theme-accent)' : 'var(--theme-tertiary)'
+                    }}>
                       {msg.role === 'user' ? (
                         <MessageSquare className="w-3 h-3" />
                       ) : (
@@ -107,10 +109,10 @@ export const CompactionPreviewModal: React.FC<CompactionPreviewModalProps> = ({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-xs font-medium text-white capitalize">{msg.role}</span>
-                        <span className="text-xs text-slate-500">#{index + 1}</span>
+                        <span className="text-xs font-medium capitalize" style={{ color: 'var(--theme-text-primary)' }}>{msg.role}</span>
+                        <span className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>#{index + 1}</span>
                       </div>
-                      <p className="text-sm text-slate-400 line-clamp-2">
+                      <p className="text-sm line-clamp-2" style={{ color: 'var(--theme-text-muted)' }}>
                         {msg.preview}
                       </p>
                     </div>
@@ -121,9 +123,9 @@ export const CompactionPreviewModal: React.FC<CompactionPreviewModalProps> = ({
           </div>
 
           {/* Info */}
-          <div className="flex items-start gap-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-            <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-400">
+          <div className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-accent-subtle)', border: '1px solid var(--theme-border)' }}>
+            <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--theme-accent)' }} />
+            <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
               These messages will be summarized by AI to save tokens while preserving important context.
               The summary will replace all selected messages.
             </p>
@@ -131,10 +133,11 @@ export const CompactionPreviewModal: React.FC<CompactionPreviewModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/5 bg-slate-950/50 flex items-center justify-between">
+        <div className="p-4 flex items-center justify-between" style={{ borderTop: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-glass-100)' }}>
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
           >
             Cancel
           </button>
@@ -143,7 +146,8 @@ export const CompactionPreviewModal: React.FC<CompactionPreviewModalProps> = ({
               onConfirm();
               onClose();
             }}
-            className="px-6 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-lg transition-colors flex items-center gap-2"
+            className="px-6 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2"
+            style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
           >
             <CheckCircle className="w-4 h-4" />
             Confirm Compaction

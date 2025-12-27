@@ -100,6 +100,12 @@ If more needed: `isComplete: false`, list in `remaining:`, add `nextBatchHint:`.
 
 Responsive: `sm:` 640px, `md:` 768px, `lg:` 1024px
 
+**FORBIDDEN (causes layout bugs):**
+- NO negative positioning: `bottom-[-20%]`, `top-[-10%]`, `left-[-5%]`, `right-[-15%]`
+- NO decorative blur circles outside viewport
+- NO elements positioned outside container bounds
+- Instead: use CSS gradients, inline SVG patterns, or elements within bounds
+
 ## INTERACTIVITY ATTRIBUTES
 
 Add to ALL interactive elements:

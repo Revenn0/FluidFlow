@@ -95,11 +95,11 @@ export const UploadCards: React.FC<UploadCardsProps> = ({
     <div className="grid grid-cols-2 gap-3 p-3">
       {/* Sketch/Mockup Upload */}
       <div
-        className={`relative group rounded-xl border-2 border-dashed transition-all overflow-hidden ${
-          sketchAttachment
-            ? 'border-blue-500/50 bg-blue-500/5'
-            : 'border-white/10 hover:border-blue-500/30 bg-slate-800/30 hover:bg-slate-800/50'
-        } ${disabled ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
+        className={`relative group rounded-xl border-2 border-dashed transition-all overflow-hidden ${disabled ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
+        style={{
+          borderColor: sketchAttachment ? 'var(--color-info-border)' : 'var(--theme-border)',
+          backgroundColor: sketchAttachment ? 'var(--color-info-subtle)' : 'var(--theme-glass-100)'
+        }}
         onClick={() => !sketchAttachment && sketchInputRef.current?.click()}
         onDrop={(e) => handleDrop('sketch', e)}
         onDragOver={handleDragOver}
@@ -113,37 +113,38 @@ export const UploadCards: React.FC<UploadCardsProps> = ({
                 className="w-full h-24 object-cover"
               />
             ) : (
-              <div className="w-full h-24 bg-slate-800 flex items-center justify-center">
-                <Image className="w-10 h-10 text-blue-400" />
+              <div className="w-full h-24 flex items-center justify-center" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                <Image className="w-10 h-10" style={{ color: 'var(--color-info)' }} />
               </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-2 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-white" />
+                <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-info)' }}>
+                  <Check className="w-3 h-3" style={{ color: 'var(--theme-text-primary)' }} />
                 </div>
-                <span className="text-xs font-medium text-white">Sketch</span>
+                <span className="text-xs font-medium" style={{ color: 'var(--theme-text-primary)' }}>Sketch</span>
               </div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onRemove('sketch');
                 }}
-                className="w-6 h-6 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center transition-colors"
+                className="w-6 h-6 rounded-full flex items-center justify-center transition-colors"
+                style={{ backgroundColor: 'var(--color-error)' }}
               >
-                <X className="w-3.5 h-3.5 text-white" />
+                <X className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-primary)' }} />
               </button>
             </div>
           </>
         ) : (
           <div className="h-24 flex flex-col items-center justify-center gap-2 p-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Image className="w-5 h-5 text-blue-400" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform" style={{ backgroundColor: 'var(--color-info-subtle)', border: '1px solid var(--color-info-border)' }}>
+              <Image className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
             </div>
             <div className="text-center">
-              <p className="text-xs font-medium text-slate-300">Sketch / Mockup</p>
-              <p className="text-[10px] text-slate-500">Drop or click</p>
+              <p className="text-xs font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Sketch / Mockup</p>
+              <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>Drop or click</p>
             </div>
           </div>
         )}
@@ -159,18 +160,18 @@ export const UploadCards: React.FC<UploadCardsProps> = ({
 
       {/* Brand Logo Upload */}
       <div
-        className={`relative group rounded-xl border-2 border-dashed transition-all overflow-hidden ${
-          brandAttachment
-            ? 'border-purple-500/50 bg-purple-500/5'
-            : 'border-white/10 hover:border-purple-500/30 bg-slate-800/30 hover:bg-slate-800/50'
-        } ${disabled ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
+        className={`relative group rounded-xl border-2 border-dashed transition-all overflow-hidden ${disabled ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
+        style={{
+          borderColor: brandAttachment ? 'var(--color-feature-border)' : 'var(--theme-border)',
+          backgroundColor: brandAttachment ? 'var(--color-feature-subtle)' : 'var(--theme-glass-100)'
+        }}
         onClick={() => !brandAttachment && brandInputRef.current?.click()}
         onDrop={(e) => handleDrop('brand', e)}
         onDragOver={handleDragOver}
       >
         {brandAttachment ? (
           <>
-            <div className="w-full h-24 flex items-center justify-center bg-white/5 p-2">
+            <div className="w-full h-24 flex items-center justify-center p-2" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
               {brandAttachment.preview && brandAttachment.preview.trim() ? (
                 <img
                   src={brandAttachment.preview}
@@ -179,37 +180,38 @@ export const UploadCards: React.FC<UploadCardsProps> = ({
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <Palette className="w-10 h-10 text-purple-400" />
+                  <Palette className="w-10 h-10" style={{ color: 'var(--color-feature)' }} />
                 </div>
               )}
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-2 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <div className="w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-white" />
+                <div className="w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-feature)' }}>
+                  <Check className="w-3 h-3" style={{ color: 'var(--theme-text-primary)' }} />
                 </div>
-                <span className="text-xs font-medium text-white">Brand</span>
+                <span className="text-xs font-medium" style={{ color: 'var(--theme-text-primary)' }}>Brand</span>
               </div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onRemove('brand');
                 }}
-                className="w-6 h-6 rounded-full bg-red-500/80 hover:bg-red-500 flex items-center justify-center transition-colors"
+                className="w-6 h-6 rounded-full flex items-center justify-center transition-colors"
+                style={{ backgroundColor: 'var(--color-error)' }}
               >
-                <X className="w-3.5 h-3.5 text-white" />
+                <X className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-primary)' }} />
               </button>
             </div>
           </>
         ) : (
           <div className="h-24 flex flex-col items-center justify-center gap-2 p-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <Palette className="w-5 h-5 text-purple-400" />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform" style={{ backgroundColor: 'var(--color-feature-subtle)', border: '1px solid var(--color-feature-border)' }}>
+              <Palette className="w-5 h-5" style={{ color: 'var(--color-feature)' }} />
             </div>
             <div className="text-center">
-              <p className="text-xs font-medium text-slate-300">Brand Logo</p>
-              <p className="text-[10px] text-slate-500">Optional</p>
+              <p className="text-xs font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Brand Logo</p>
+              <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>Optional</p>
             </div>
           </div>
         )}

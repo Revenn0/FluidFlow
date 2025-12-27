@@ -60,7 +60,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   }, [shouldClose, isOpen, onClosed]);
 
   return (
-    <div className="border-t border-white/5 pt-2 flex-none">
+    <div className="pt-2 flex-none" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
       <button
         onClick={() => {
           const newOpenState = !isOpen;
@@ -69,7 +69,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             onOpened?.();
           }
         }}
-        className="flex items-center justify-between w-full p-2 text-slate-400 hover:text-slate-200 transition-colors rounded-lg hover:bg-white/5"
+        className="flex items-center justify-between w-full p-2 transition-colors rounded-lg"
+        style={{ color: 'var(--theme-text-muted)' }}
         aria-expanded={isOpen}
         aria-controls="settings-panel"
       >
@@ -81,24 +82,25 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200" style={{ backgroundColor: 'var(--theme-modal-overlay)' }}>
           <div
             id="settings-panel"
-            className="w-full max-w-sm bg-slate-950/98 backdrop-blur-xl rounded-2xl border border-white/10 animate-in zoom-in-95 duration-200 shadow-2xl overflow-hidden mx-4"
+            className="w-full max-w-sm backdrop-blur-xl rounded-2xl animate-in zoom-in-95 duration-200 shadow-2xl overflow-hidden mx-4"
+            style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-3 border-b border-white/5">
+            <div className="flex items-center justify-between p-3" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
               <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-blue-400" />
-                <span className="text-sm font-medium text-white">Quick Settings</span>
+                <SlidersHorizontal className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
+                <span className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>Quick Settings</span>
               </div>
               <button
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-1.5 rounded-lg transition-colors"
                 title="Close settings"
               >
-                <X className="w-4 h-4 text-slate-400" />
+                <X className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
               </button>
             </div>
 
@@ -111,18 +113,18 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                     setIsOpen(false);
                     onOpenMegaSettings();
                   }}
-                  className="w-full flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors group"
+                  className="w-full flex items-center justify-between p-2.5 rounded-lg transition-colors group"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-colors">
-                      <SlidersHorizontal className="w-4 h-4 text-blue-400" />
+                    <div className="p-1.5 rounded-lg transition-colors" style={{ background: 'linear-gradient(to bottom right, var(--color-info-subtle), var(--color-feature-subtle))' }}>
+                      <SlidersHorizontal className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
                     </div>
                     <div className="text-left">
-                      <span className="text-sm text-slate-200 font-medium block">All Settings</span>
-                      <span className="text-[10px] text-slate-500">AI, Editor, Appearance & more</span>
+                      <span className="text-sm font-medium block" style={{ color: 'var(--theme-text-secondary)' }}>All Settings</span>
+                      <span className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>AI, Editor, Appearance & more</span>
                     </div>
                   </div>
-                  <ChevronRight className="w-4 h-4 text-slate-500" />
+                  <ChevronRight className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                 </button>
               )}
 
@@ -131,49 +133,48 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                   setIsOpen(false);
                   onOpenAISettings?.();
                 }}
-                className="w-full flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors group"
+                className="w-full flex items-center justify-between p-2.5 rounded-lg transition-colors group"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="p-1.5 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors">
-                    <Settings2 className="w-4 h-4 text-blue-400" />
+                  <div className="p-1.5 rounded-lg transition-colors" style={{ backgroundColor: 'var(--color-info-subtle)' }}>
+                    <Settings2 className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
                   </div>
                   <div className="text-left">
-                    <span className="text-sm text-slate-200 font-medium block">AI Provider Settings</span>
-                    <span className="text-[10px] text-slate-500">API keys, models, endpoints</span>
+                    <span className="text-sm font-medium block" style={{ color: 'var(--theme-text-secondary)' }}>AI Provider Settings</span>
+                    <span className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>API keys, models, endpoints</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {activeProvider?.apiKey || activeProvider?.isLocal ? (
-                    <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                    <CheckCircle className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} />
                   ) : (
-                    <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                    <AlertCircle className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)' }} />
                   )}
-                  <ChevronRight className="w-4 h-4 text-slate-500" />
+                  <ChevronRight className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                 </div>
               </button>
 
               {/* Divider */}
-              <div className="border-t border-white/5 my-2" />
+              <div className="my-2" style={{ borderTop: '1px solid var(--theme-border-light)' }} />
 
               {/* Toggle Options */}
               <div className="space-y-1">
                 {/* Auto-Accept Changes */}
                 {onAutoAcceptChangesChange && (
-                  <div className="flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors">
+                  <div className="flex items-center justify-between p-2.5 rounded-lg transition-colors">
                     <div className="flex items-center gap-2.5">
-                      <div className="p-1.5 bg-emerald-500/10 rounded-lg">
-                        <Zap className="w-4 h-4 text-emerald-400" />
+                      <div className="p-1.5 rounded-lg" style={{ backgroundColor: 'var(--color-success-subtle)' }}>
+                        <Zap className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                       </div>
                       <div>
-                        <span className="text-sm text-slate-200 font-medium block">Auto-Accept Changes</span>
-                        <span className="text-[10px] text-slate-500">Skip diff review</span>
+                        <span className="text-sm font-medium block" style={{ color: 'var(--theme-text-secondary)' }}>Auto-Accept Changes</span>
+                        <span className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Skip diff review</span>
                       </div>
                     </div>
                     <button
                       onClick={() => onAutoAcceptChangesChange(!autoAcceptChanges)}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                        autoAcceptChanges ? 'bg-emerald-600' : 'bg-slate-700'
-                      }`}
+                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                      style={{ backgroundColor: autoAcceptChanges ? 'var(--color-success)' : 'var(--theme-glass-300)' }}
                       role="switch"
                       aria-checked={autoAcceptChanges}
                     >
@@ -184,24 +185,23 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
 
                 {/* Search/Replace Mode (Beta) - Token-efficient updates */}
                 {onDiffModeChange && (
-                  <div className="flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors">
+                  <div className="flex items-center justify-between p-2.5 rounded-lg transition-colors">
                     <div className="flex items-center gap-2.5">
-                      <div className="p-1.5 bg-orange-500/10 rounded-lg">
-                        <GitBranch className="w-4 h-4 text-orange-400" />
+                      <div className="p-1.5 rounded-lg" style={{ backgroundColor: 'var(--color-warning-subtle)' }}>
+                        <GitBranch className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
                       </div>
                       <div>
-                        <span className="text-sm text-slate-200 font-medium block">
+                        <span className="text-sm font-medium block" style={{ color: 'var(--theme-text-secondary)' }}>
                           Search/Replace
-                          <span className="ml-1.5 text-[9px] px-1 py-0.5 bg-orange-500/20 text-orange-400 rounded font-medium">BETA</span>
+                          <span className="ml-1.5 text-[9px] px-1 py-0.5 rounded font-medium" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>BETA</span>
                         </span>
-                        <span className="text-[10px] text-slate-500">Token-efficient updates</span>
+                        <span className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Token-efficient updates</span>
                       </div>
                     </div>
                     <button
                       onClick={() => onDiffModeChange(!diffModeEnabled)}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                        diffModeEnabled ? 'bg-orange-600' : 'bg-slate-700'
-                      }`}
+                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                      style={{ backgroundColor: diffModeEnabled ? 'var(--color-warning)' : 'var(--theme-glass-300)' }}
                       role="switch"
                       aria-checked={diffModeEnabled}
                     >
@@ -211,21 +211,20 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 )}
 
                 {/* Education Mode */}
-                <div className="flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors">
+                <div className="flex items-center justify-between p-2.5 rounded-lg transition-colors">
                   <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 bg-yellow-500/10 rounded-lg">
-                      <GraduationCap className="w-4 h-4 text-yellow-400" />
+                    <div className="p-1.5 rounded-lg" style={{ backgroundColor: 'var(--color-warning-subtle)' }}>
+                      <GraduationCap className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
                     </div>
                     <div>
-                      <span className="text-sm text-slate-200 font-medium block">Education Mode</span>
-                      <span className="text-[10px] text-slate-500">Learn as you build</span>
+                      <span className="text-sm font-medium block" style={{ color: 'var(--theme-text-secondary)' }}>Education Mode</span>
+                      <span className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Learn as you build</span>
                     </div>
                   </div>
                   <button
                     onClick={() => onEducationModeChange(!isEducationMode)}
-                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                      isEducationMode ? 'bg-yellow-600' : 'bg-slate-700'
-                    }`}
+                    className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                    style={{ backgroundColor: isEducationMode ? 'var(--color-warning)' : 'var(--theme-glass-300)' }}
                     role="switch"
                     aria-checked={isEducationMode}
                   >
@@ -234,27 +233,26 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                 </div>
 
                 {/* Debug Mode */}
-                <div className="flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors">
+                <div className="flex items-center justify-between p-2.5 rounded-lg transition-colors">
                   <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 bg-purple-500/10 rounded-lg">
-                      <Bug className="w-4 h-4 text-purple-400" />
+                    <div className="p-1.5 rounded-lg" style={{ backgroundColor: 'var(--color-feature-subtle)' }}>
+                      <Bug className="w-4 h-4" style={{ color: 'var(--color-feature)' }} />
                     </div>
                     <div>
-                      <span className="text-sm text-slate-200 font-medium block">Debug Mode</span>
-                      <span className="text-[10px] text-slate-500">Log API calls</span>
+                      <span className="text-sm font-medium block" style={{ color: 'var(--theme-text-secondary)' }}>Debug Mode</span>
+                      <span className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Log API calls</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {debugEnabled && logs.length > 0 && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-400">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>
                         {logs.length}
                       </span>
                     )}
                     <button
                       onClick={() => setDebugEnabled(!debugEnabled)}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                        debugEnabled ? 'bg-purple-600' : 'bg-slate-700'
-                      }`}
+                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors"
+                      style={{ backgroundColor: debugEnabled ? 'var(--color-feature)' : 'var(--theme-glass-300)' }}
                       role="switch"
                       aria-checked={debugEnabled}
                     >
@@ -265,7 +263,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               </div>
 
               {/* Divider */}
-              <div className="border-t border-white/5 my-2" />
+              <div className="my-2" style={{ borderTop: '1px solid var(--theme-border-light)' }} />
 
               {/* Quick Links */}
               <div className="space-y-1">
@@ -276,15 +274,15 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       setIsOpen(false);
                       onOpenTechStack();
                     }}
-                    className="w-full flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors group"
+                    className="w-full flex items-center justify-between p-2.5 rounded-lg transition-colors group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="p-1.5 bg-indigo-500/10 rounded-lg group-hover:bg-indigo-500/20 transition-colors">
-                        <Package className="w-4 h-4 text-indigo-400" />
+                      <div className="p-1.5 rounded-lg transition-colors" style={{ backgroundColor: 'var(--color-info-subtle)' }}>
+                        <Package className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
                       </div>
-                      <span className="text-sm text-slate-200">Technology Stack</span>
+                      <span className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>Technology Stack</span>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-slate-500" />
+                    <ChevronRight className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                   </button>
                 )}
 
@@ -295,21 +293,21 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       setIsOpen(false);
                       onOpenAIHistory();
                     }}
-                    className="w-full flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors group"
+                    className="w-full flex items-center justify-between p-2.5 rounded-lg transition-colors group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="p-1.5 bg-cyan-500/10 rounded-lg group-hover:bg-cyan-500/20 transition-colors">
-                        <History className="w-4 h-4 text-cyan-400" />
+                      <div className="p-1.5 rounded-lg transition-colors" style={{ backgroundColor: 'var(--color-info-subtle)' }}>
+                        <History className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
                       </div>
-                      <span className="text-sm text-slate-200">AI History</span>
+                      <span className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>AI History</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {aiHistoryCount > 0 && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
                           {aiHistoryCount}
                         </span>
                       )}
-                      <ChevronRight className="w-4 h-4 text-slate-500" />
+                      <ChevronRight className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                     </div>
                   </button>
                 )}
@@ -321,19 +319,19 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
                       setIsOpen(false);
                       onOpenCodeMap();
                     }}
-                    className="w-full flex items-center justify-between p-2.5 hover:bg-white/5 rounded-lg transition-colors group"
+                    className="w-full flex items-center justify-between p-2.5 rounded-lg transition-colors group"
                   >
                     <div className="flex items-center gap-2.5">
-                      <div className="p-1.5 bg-emerald-500/10 rounded-lg group-hover:bg-emerald-500/20 transition-colors">
-                        <Map className="w-4 h-4 text-emerald-400" />
+                      <div className="p-1.5 rounded-lg transition-colors" style={{ backgroundColor: 'var(--color-success-subtle)' }}>
+                        <Map className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                       </div>
-                      <span className="text-sm text-slate-200">CodeMap</span>
+                      <span className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>CodeMap</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
                         AST
                       </span>
-                      <ChevronRight className="w-4 h-4 text-slate-500" />
+                      <ChevronRight className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                     </div>
                   </button>
                 )}

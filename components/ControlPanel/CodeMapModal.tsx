@@ -81,24 +81,33 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
   };
 
   const getFileIcon = (file: FileInfo) => {
+    const iconColors: Record<string, string> = {
+      component: 'var(--color-success)',
+      hook: 'var(--color-feature)',
+      style: 'var(--color-error)',
+      data: 'var(--color-warning)',
+      config: 'var(--color-warning)',
+      utility: 'var(--color-info)'
+    };
+    const color = iconColors[file.type] || 'var(--color-info)';
     switch (file.type) {
-      case 'component': return <Icons.Package className="w-4 h-4 text-green-400" />;
-      case 'hook': return <Icons.GitBranch className="w-4 h-4 text-purple-400" />;
-      case 'style': return <Icons.Palette className="w-4 h-4 text-pink-400" />;
-      case 'data': return <Icons.Database className="w-4 h-4 text-yellow-400" />;
-      case 'config': return <Icons.Settings className="w-4 h-4 text-orange-400" />;
-      default: return <Icons.FileCode className="w-4 h-4 text-blue-400" />;
+      case 'component': return <Icons.Package className="w-4 h-4" style={{ color }} />;
+      case 'hook': return <Icons.GitBranch className="w-4 h-4" style={{ color }} />;
+      case 'style': return <Icons.Palette className="w-4 h-4" style={{ color }} />;
+      case 'data': return <Icons.Database className="w-4 h-4" style={{ color }} />;
+      case 'config': return <Icons.Settings className="w-4 h-4" style={{ color }} />;
+      default: return <Icons.FileCode className="w-4 h-4" style={{ color }} />;
     }
   };
 
-  const getTypeColor = (type: string) => {
+  const getTypeStyles = (type: string): { backgroundColor: string; color: string } => {
     switch (type) {
-      case 'component': return 'bg-green-500/20 text-green-300';
-      case 'hook': return 'bg-purple-500/20 text-purple-300';
-      case 'style': return 'bg-pink-500/20 text-pink-300';
-      case 'data': return 'bg-yellow-500/20 text-yellow-300';
-      case 'config': return 'bg-orange-500/20 text-orange-300';
-      default: return 'bg-blue-500/20 text-blue-300';
+      case 'component': return { backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' };
+      case 'hook': return { backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' };
+      case 'style': return { backgroundColor: 'var(--color-error-subtle)', color: 'var(--color-error)' };
+      case 'data': return { backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' };
+      case 'config': return { backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' };
+      default: return { backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' };
     }
   };
 
@@ -112,95 +121,95 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-6xl max-h-[90vh] bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto animate-in slide-in-from-bottom-4 duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 backdrop-blur-sm animate-in fade-in duration-200" style={{ backgroundColor: 'var(--theme-overlay)' }}>
+      <div className="w-full max-w-6xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col my-auto animate-in slide-in-from-bottom-4 duration-300" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
         {/* Header */}
-        <div className="p-4 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+        <div className="p-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--theme-border-light)', background: 'linear-gradient(90deg, var(--color-info-subtle), var(--color-feature-subtle))' }}>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/20 rounded-lg">
-              <Icons.Map className="w-5 h-5 text-blue-400" />
+            <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-info-subtle)' }}>
+              <Icons.Map className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Code Map</h2>
-              <p className="text-xs text-slate-400">Project structure analysis</p>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Code Map</h2>
+              <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Project structure analysis</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={exportCodeMap}
               disabled={!codeMap}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
+              className="p-2 rounded-lg transition-colors disabled:opacity-50"
               title="Export as JSON"
             >
-              <Icons.Download className="w-4 h-4 text-slate-400" />
+              <Icons.Download className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
             </button>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-2 rounded-lg transition-colors"
             >
-              <Icons.X className="w-5 h-5 text-slate-400" />
+              <Icons.X className="w-5 h-5" style={{ color: 'var(--theme-text-muted)' }} />
             </button>
           </div>
         </div>
 
         {/* Stats Summary */}
         {codeMap && (
-          <div className="px-4 py-3 border-b border-white/5 bg-slate-800/30">
+          <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-200)' }}>
             <div className="grid grid-cols-4 gap-4 text-center">
               <div>
-                <div className="text-2xl font-bold text-white">{stats.totalFiles}</div>
-                <div className="text-xs text-slate-400">Files</div>
+                <div className="text-2xl font-bold" style={{ color: 'var(--theme-text-primary)' }}>{stats.totalFiles}</div>
+                <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Files</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-green-400">{stats.components}</div>
-                <div className="text-xs text-slate-400">Components</div>
+                <div className="text-2xl font-bold" style={{ color: 'var(--color-success)' }}>{stats.components}</div>
+                <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Components</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-purple-400">{stats.hooks}</div>
-                <div className="text-xs text-slate-400">Hooks</div>
+                <div className="text-2xl font-bold" style={{ color: 'var(--color-feature)' }}>{stats.hooks}</div>
+                <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Hooks</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-blue-400">{stats.utilities}</div>
-                <div className="text-xs text-slate-400">Utilities</div>
+                <div className="text-2xl font-bold" style={{ color: 'var(--color-info)' }}>{stats.utilities}</div>
+                <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Utilities</div>
               </div>
             </div>
           </div>
         )}
 
         {/* Toolbar */}
-        <div className="p-4 border-b border-white/5">
+        <div className="p-4" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
           <div className="flex items-center gap-3">
             {/* View Mode */}
-            <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
+            <div className="flex items-center gap-1 rounded-lg p-1" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
               <button
                 onClick={() => setViewMode('tree')}
-                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                  viewMode === 'tree'
-                    ? 'bg-blue-500 text-white'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                }`}
+                className="px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                style={{
+                  backgroundColor: viewMode === 'tree' ? 'var(--color-info)' : 'transparent',
+                  color: viewMode === 'tree' ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)'
+                }}
               >
                 <Icons.FolderTree className="w-3 h-3 inline mr-1" />
                 Files
               </button>
               <button
                 onClick={() => setViewMode('components')}
-                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                  viewMode === 'components'
-                    ? 'bg-blue-500 text-white'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                }`}
+                className="px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                style={{
+                  backgroundColor: viewMode === 'components' ? 'var(--color-info)' : 'transparent',
+                  color: viewMode === 'components' ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)'
+                }}
               >
                 <Icons.Package className="w-3 h-3 inline mr-1" />
                 Components
               </button>
               <button
                 onClick={() => setViewMode('summary')}
-                className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                  viewMode === 'summary'
-                    ? 'bg-blue-500 text-white'
-                    : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                }`}
+                className="px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                style={{
+                  backgroundColor: viewMode === 'summary' ? 'var(--color-info)' : 'transparent',
+                  color: viewMode === 'summary' ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)'
+                }}
               >
                 <Icons.FileText className="w-3 h-3 inline mr-1" />
                 Summary
@@ -209,16 +218,16 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
 
             {/* Filter */}
             {viewMode === 'tree' && (
-              <div className="flex items-center gap-1 bg-slate-800 rounded-lg p-1">
+              <div className="flex items-center gap-1 rounded-lg p-1" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                 {(['all', 'component', 'hook', 'utility'] as const).map((type) => (
                   <button
                     key={type}
                     onClick={() => setFilterType(type)}
-                    className={`px-3 py-1.5 rounded text-xs font-medium transition-colors ${
-                      filterType === type
-                        ? 'bg-purple-500 text-white'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-700'
-                    }`}
+                    className="px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                    style={{
+                      backgroundColor: filterType === type ? 'var(--color-feature)' : 'transparent',
+                      color: filterType === type ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)'
+                    }}
                   >
                     {type === 'all' ? 'All' : type.charAt(0).toUpperCase() + type.slice(1) + 's'}
                   </button>
@@ -228,18 +237,20 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
 
             {/* Search */}
             <div className="flex-1 relative">
-              <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Icons.Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search files, exports, functions..."
-                className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50"
+                className="w-full pl-10 pr-4 py-2 rounded-lg text-sm focus:outline-none"
+                style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  style={{ color: 'var(--theme-text-muted)' }}
                 >
                   <Icons.X className="w-4 h-4" />
                 </button>
@@ -253,46 +264,46 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
           {!codeMap ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <Icons.FolderX className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                <p className="text-slate-400">No files to analyze</p>
-                <p className="text-xs text-slate-500 mt-1">Generate some code first</p>
+                <Icons.FolderX className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--theme-text-dim)' }} />
+                <p style={{ color: 'var(--theme-text-muted)' }}>No files to analyze</p>
+                <p className="text-xs mt-1" style={{ color: 'var(--theme-text-dim)' }}>Generate some code first</p>
               </div>
             </div>
           ) : viewMode === 'tree' ? (
             <>
               {/* File List */}
-              <div className="w-80 border-r border-white/5 overflow-y-auto">
+              <div className="w-80 overflow-y-auto" style={{ borderRight: '1px solid var(--theme-border-light)' }}>
                 <div className="p-4 space-y-2">
                   {filteredFiles.length === 0 ? (
                     <div className="text-center py-8">
-                      <Icons.Search className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                      <p className="text-sm text-slate-400">No matching files</p>
+                      <Icons.Search className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--theme-text-dim)' }} />
+                      <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>No matching files</p>
                     </div>
                   ) : (
                     filteredFiles.map((file) => (
                       <button
                         key={file.path}
                         onClick={() => setSelectedFile(file)}
-                        className={`w-full text-left p-3 rounded-lg transition-colors ${
-                          selectedFile?.path === file.path
-                            ? 'bg-blue-500/20 border border-blue-500/50'
-                            : 'bg-slate-800/50 border border-white/5 hover:bg-slate-800 hover:border-white/10'
-                        }`}
+                        className="w-full text-left p-3 rounded-lg transition-colors"
+                        style={{
+                          backgroundColor: selectedFile?.path === file.path ? 'var(--color-info-subtle)' : 'var(--theme-glass-200)',
+                          border: selectedFile?.path === file.path ? '1px solid var(--color-info-border)' : '1px solid var(--theme-border-light)'
+                        }}
                       >
                         <div className="flex items-center gap-2">
                           {getFileIcon(file)}
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-white truncate">
+                            <div className="text-sm font-medium truncate" style={{ color: 'var(--theme-text-primary)' }}>
                               {file.path.split('/').pop()}
                             </div>
-                            <div className="text-xs text-slate-500 truncate">{file.path}</div>
+                            <div className="text-xs truncate" style={{ color: 'var(--theme-text-dim)' }}>{file.path}</div>
                           </div>
-                          <span className={`px-2 py-0.5 rounded text-[10px] ${getTypeColor(file.type)}`}>
+                          <span className="px-2 py-0.5 rounded text-[10px]" style={getTypeStyles(file.type)}>
                             {file.type}
                           </span>
                         </div>
                         {file.exports.length > 0 && (
-                          <div className="mt-2 text-xs text-slate-400 truncate">
+                          <div className="mt-2 text-xs truncate" style={{ color: 'var(--theme-text-muted)' }}>
                             Exports: {file.exports.slice(0, 3).join(', ')}
                             {file.exports.length > 3 && ` +${file.exports.length - 3}`}
                           </div>
@@ -308,11 +319,11 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
                 {selectedFile ? (
                   <div className="p-6">
                     <div className="mb-6">
-                      <h3 className="text-lg font-semibold text-white mb-2">
+                      <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--theme-text-primary)' }}>
                         {selectedFile.path.split('/').pop()}
                       </h3>
-                      <p className="text-sm text-slate-400">{selectedFile.path}</p>
-                      <span className={`inline-block mt-2 px-2 py-1 rounded text-xs ${getTypeColor(selectedFile.type)}`}>
+                      <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>{selectedFile.path}</p>
+                      <span className="inline-block mt-2 px-2 py-1 rounded text-xs" style={getTypeStyles(selectedFile.type)}>
                         {selectedFile.type}
                       </span>
                     </div>
@@ -320,13 +331,13 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
                     {/* Exports */}
                     {selectedFile.exports.length > 0 && (
                       <div className="mb-6">
-                        <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                          <Icons.FileOutput className="w-4 h-4 text-blue-400" />
+                        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+                          <Icons.FileOutput className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
                           Exports ({selectedFile.exports.length})
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           {selectedFile.exports.map((exp) => (
-                            <span key={exp} className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-xs font-mono">
+                            <span key={exp} className="px-2 py-1 rounded text-xs font-mono" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
                               {exp}
                             </span>
                           ))}
@@ -337,30 +348,30 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
                     {/* Components */}
                     {selectedFile.components.length > 0 && (
                       <div className="mb-6">
-                        <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                          <Icons.Package className="w-4 h-4 text-green-400" />
+                        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+                          <Icons.Package className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                           Components ({selectedFile.components.length})
                         </h4>
                         <div className="space-y-3">
                           {selectedFile.components.map((comp) => (
-                            <div key={comp.name} className="p-3 bg-slate-800/50 rounded-lg">
-                              <div className="text-sm font-medium text-green-300">{comp.name}</div>
+                            <div key={comp.name} className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                              <div className="text-sm font-medium" style={{ color: 'var(--color-success)' }}>{comp.name}</div>
                               {comp.props.length > 0 && (
-                                <div className="mt-2 text-xs text-slate-400">
+                                <div className="mt-2 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                                   Props: {comp.props.join(', ')}
                                 </div>
                               )}
                               {comp.hooks.length > 0 && (
                                 <div className="mt-1 flex flex-wrap gap-1">
                                   {comp.hooks.map((hook) => (
-                                    <span key={hook} className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded text-[10px]">
+                                    <span key={hook} className="px-2 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>
                                       {hook}
                                     </span>
                                   ))}
                                 </div>
                               )}
                               {comp.children.length > 0 && (
-                                <div className="mt-1 text-xs text-slate-500">
+                                <div className="mt-1 text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                                   Uses: {comp.children.join(', ')}
                                 </div>
                               )}
@@ -373,13 +384,13 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
                     {/* Functions */}
                     {selectedFile.functions.length > 0 && (
                       <div className="mb-6">
-                        <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                          <Icons.Code className="w-4 h-4 text-yellow-400" />
+                        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+                          <Icons.Code className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
                           Functions ({selectedFile.functions.length})
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           {selectedFile.functions.map((fn) => (
-                            <span key={fn} className="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-xs font-mono">
+                            <span key={fn} className="px-2 py-1 rounded text-xs font-mono" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
                               {fn}()
                             </span>
                           ))}
@@ -390,13 +401,13 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
                     {/* Constants */}
                     {selectedFile.constants.length > 0 && (
                       <div className="mb-6">
-                        <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                          <Icons.Hash className="w-4 h-4 text-orange-400" />
+                        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+                          <Icons.Hash className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
                           Constants ({selectedFile.constants.length})
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           {selectedFile.constants.map((c) => (
-                            <span key={c} className="px-2 py-1 bg-orange-500/20 text-orange-300 rounded text-xs font-mono">
+                            <span key={c} className="px-2 py-1 rounded text-xs font-mono" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
                               {c}
                             </span>
                           ))}
@@ -407,17 +418,17 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
                     {/* Imports */}
                     {selectedFile.imports.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
-                          <Icons.FileInput className="w-4 h-4 text-slate-400" />
+                        <h4 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+                          <Icons.FileInput className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                           Imports ({selectedFile.imports.length})
                         </h4>
                         <div className="space-y-2">
                           {selectedFile.imports.map((imp, idx) => (
-                            <div key={idx} className="p-2 bg-slate-800/30 rounded text-xs">
-                              <span className="text-slate-500">from</span>
-                              <span className="text-slate-300 ml-2 font-mono">{imp.from}</span>
+                            <div key={idx} className="p-2 rounded text-xs" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+                              <span style={{ color: 'var(--theme-text-dim)' }}>from</span>
+                              <span className="ml-2 font-mono" style={{ color: 'var(--theme-text-secondary)' }}>{imp.from}</span>
                               {imp.items.length > 0 && (
-                                <div className="mt-1 text-slate-400 ml-4">
+                                <div className="mt-1 ml-4" style={{ color: 'var(--theme-text-muted)' }}>
                                   {imp.items.join(', ')}
                                 </div>
                               )}
@@ -430,8 +441,8 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
                 ) : (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                      <Icons.MousePointer className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                      <p className="text-slate-400">Select a file to view details</p>
+                      <Icons.MousePointer className="w-8 h-8 mx-auto mb-2" style={{ color: 'var(--theme-text-dim)' }} />
+                      <p style={{ color: 'var(--theme-text-muted)' }}>Select a file to view details</p>
                     </div>
                   </div>
                 )}
@@ -439,28 +450,28 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
             </>
           ) : viewMode === 'components' ? (
             <div className="flex-1 overflow-y-auto p-6">
-              <h3 className="text-lg font-semibold text-white mb-6">Component Hierarchy</h3>
+              <h3 className="text-lg font-semibold mb-6" style={{ color: 'var(--theme-text-primary)' }}>Component Hierarchy</h3>
 
               {allComponents.length === 0 ? (
                 <div className="text-center py-12">
-                  <Icons.Package className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                  <p className="text-slate-400">No React components found</p>
+                  <Icons.Package className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--theme-text-dim)' }} />
+                  <p style={{ color: 'var(--theme-text-muted)' }}>No React components found</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-4">
                   {allComponents.map((comp) => (
-                    <div key={comp.name} className="p-4 bg-slate-800/50 rounded-lg border border-white/5">
+                    <div key={comp.name} className="p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
                       <div className="flex items-center gap-2 mb-3">
-                        <Icons.Package className="w-5 h-5 text-green-400" />
-                        <span className="text-white font-medium">{comp.name}</span>
+                        <Icons.Package className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+                        <span className="font-medium" style={{ color: 'var(--theme-text-primary)' }}>{comp.name}</span>
                       </div>
 
                       {comp.props.length > 0 && (
                         <div className="mb-3">
-                          <div className="text-xs text-slate-500 mb-1">Props</div>
+                          <div className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>Props</div>
                           <div className="flex flex-wrap gap-1">
                             {comp.props.map((prop) => (
-                              <span key={prop} className="px-2 py-0.5 bg-slate-700 text-slate-300 rounded text-[10px]">
+                              <span key={prop} className="px-2 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}>
                                 {prop}
                               </span>
                             ))}
@@ -470,10 +481,10 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
 
                       {comp.hooks.length > 0 && (
                         <div className="mb-3">
-                          <div className="text-xs text-slate-500 mb-1">Hooks</div>
+                          <div className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>Hooks</div>
                           <div className="flex flex-wrap gap-1">
                             {comp.hooks.map((hook) => (
-                              <span key={hook} className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded text-[10px]">
+                              <span key={hook} className="px-2 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>
                                 {hook}
                               </span>
                             ))}
@@ -483,10 +494,10 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
 
                       {comp.children.length > 0 && (
                         <div>
-                          <div className="text-xs text-slate-500 mb-1">Uses Components</div>
+                          <div className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>Uses Components</div>
                           <div className="flex flex-wrap gap-1">
                             {comp.children.map((child) => (
-                              <span key={child} className="px-2 py-0.5 bg-green-500/20 text-green-300 rounded text-[10px]">
+                              <span key={child} className="px-2 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
                                 {child}
                               </span>
                             ))}
@@ -502,7 +513,7 @@ export const CodeMapModal: React.FC<CodeMapModalProps> = ({ isOpen, onClose, fil
             /* Summary View */
             <div className="flex-1 overflow-y-auto p-6">
               <div className="prose prose-invert max-w-none">
-                <pre className="bg-slate-800/50 p-4 rounded-lg text-sm text-slate-300 whitespace-pre-wrap">
+                <pre className="p-4 rounded-lg text-sm whitespace-pre-wrap" style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-secondary)' }}>
                   {codeMap.summary}
                 </pre>
               </div>

@@ -42,20 +42,20 @@ const CategorySection: React.FC<CategorySectionProps> = ({
   };
 
   return (
-    <div className="border-b border-white/5 last:border-0">
+    <div style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
       <button
         onClick={onToggle}
-        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/5 transition-colors"
+        className="w-full flex items-center gap-2 px-3 py-2 transition-colors"
       >
         {isExpanded ? (
-          <ChevronDown className="w-3 h-3 text-slate-500" />
+          <ChevronDown className="w-3 h-3" style={{ color: 'var(--theme-text-dim)' }} />
         ) : (
-          <ChevronRight className="w-3 h-3 text-slate-500" />
+          <ChevronRight className="w-3 h-3" style={{ color: 'var(--theme-text-dim)' }} />
         )}
-        <span className={`text-xs font-medium ${getCategoryColor(category)}`}>
+        <span className="text-xs font-medium" style={{ color: getCategoryColor(category) }}>
           {getCategoryDisplayName(category)}
         </span>
-        <span className="text-[10px] text-slate-600 ml-auto">{entries.length}</span>
+        <span className="text-[10px] ml-auto" style={{ color: 'var(--theme-text-dim)' }}>{entries.length}</span>
       </button>
 
       {isExpanded && (
@@ -63,15 +63,15 @@ const CategorySection: React.FC<CategorySectionProps> = ({
           {entries.map(([key, value]) => (
             <div
               key={key}
-              className="flex items-center gap-2 py-1 px-2 rounded hover:bg-white/5 group cursor-pointer"
+              className="flex items-center gap-2 py-1 px-2 rounded group cursor-pointer"
               onClick={() => handleCopy(key, value)}
             >
-              <span className="text-[11px] text-slate-400 font-mono min-w-[120px]">{key}:</span>
-              <span className="text-[11px] text-slate-300 font-mono flex-1 truncate">{value}</span>
+              <span className="text-[11px] font-mono min-w-[120px]" style={{ color: 'var(--theme-text-muted)' }}>{key}:</span>
+              <span className="text-[11px] font-mono flex-1 truncate" style={{ color: 'var(--theme-text-secondary)' }}>{value}</span>
               {copiedKey === key ? (
-                <Check className="w-3 h-3 text-green-400" />
+                <Check className="w-3 h-3" style={{ color: 'var(--color-success)' }} />
               ) : (
-                <Copy className="w-3 h-3 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Copy className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--theme-text-dim)' }} />
               )}
             </div>
           ))}
@@ -106,19 +106,19 @@ const TailwindSection: React.FC<TailwindSectionProps> = ({
   };
 
   return (
-    <div className="border-b border-white/5">
+    <div style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
       <button
         onClick={onToggle}
-        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-white/5 transition-colors"
+        className="w-full flex items-center gap-2 px-3 py-2 transition-colors"
       >
         {isExpanded ? (
-          <ChevronDown className="w-3 h-3 text-slate-500" />
+          <ChevronDown className="w-3 h-3" style={{ color: 'var(--theme-text-dim)' }} />
         ) : (
-          <ChevronRight className="w-3 h-3 text-slate-500" />
+          <ChevronRight className="w-3 h-3" style={{ color: 'var(--theme-text-dim)' }} />
         )}
-        <Palette className="w-3 h-3 text-cyan-400" />
-        <span className="text-xs font-medium text-cyan-400">Tailwind Classes</span>
-        <span className="text-[10px] text-slate-600 ml-auto">{totalClasses}</span>
+        <Palette className="w-3 h-3" style={{ color: 'var(--color-info)' }} />
+        <span className="text-xs font-medium" style={{ color: 'var(--color-info)' }}>Tailwind Classes</span>
+        <span className="text-[10px] ml-auto" style={{ color: 'var(--theme-text-dim)' }}>{totalClasses}</span>
       </button>
 
       {isExpanded && (
@@ -128,7 +128,7 @@ const TailwindSection: React.FC<TailwindSectionProps> = ({
 
             return (
               <div key={category} className="mb-2 last:mb-0">
-                <div className={`text-[10px] font-medium mb-1 ${getCategoryColor(category as TailwindCategory)}`}>
+                <div className="text-[10px] font-medium mb-1" style={{ color: getCategoryColor(category as TailwindCategory) }}>
                   {getCategoryDisplayName(category as TailwindCategory)}
                 </div>
                 <div className="flex flex-wrap gap-1">
@@ -136,12 +136,16 @@ const TailwindSection: React.FC<TailwindSectionProps> = ({
                     <button
                       key={info.className}
                       onClick={() => handleCopyClass(info.className)}
-                      className="group relative px-1.5 py-0.5 bg-slate-800/50 hover:bg-slate-700/50 rounded text-[10px] font-mono text-slate-300 hover:text-white transition-colors"
+                      className="group relative px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors"
+                      style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-secondary)' }}
                       title={`${info.description}\n${info.cssEquivalent}`}
                     >
                       {info.className}
                       {copiedClass === info.className && (
-                        <span className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-green-500/90 text-white text-[9px] rounded whitespace-nowrap">
+                        <span
+                          className="absolute -top-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 text-[9px] rounded whitespace-nowrap"
+                          style={{ backgroundColor: 'var(--color-success)', color: 'white' }}
+                        >
                           Copied!
                         </span>
                       )}
@@ -186,7 +190,7 @@ export const StylesTab: React.FC<StylesTabProps> = ({
 
   if (isLoading) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-slate-600 py-10">
+      <div className="h-full flex flex-col items-center justify-center py-10" style={{ color: 'var(--theme-text-dim)' }}>
         <Loader2 className="w-5 h-5 mb-2 animate-spin" />
         <span className="text-xs">Loading styles...</span>
       </div>
@@ -195,7 +199,7 @@ export const StylesTab: React.FC<StylesTabProps> = ({
 
   if (!styles) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-slate-600 italic py-10">
+      <div className="h-full flex flex-col items-center justify-center italic py-10" style={{ color: 'var(--theme-text-dim)' }}>
         <Palette className="w-5 h-5 mb-2 opacity-50" />
         <span className="text-xs">Select an element to view styles</span>
       </div>
@@ -220,17 +224,17 @@ export const StylesTab: React.FC<StylesTabProps> = ({
   return (
     <div className="h-full overflow-y-auto custom-scrollbar">
       {/* Element info header */}
-      <div className="px-3 py-2 bg-slate-900/50 border-b border-white/5 sticky top-0 z-10">
+      <div className="px-3 py-2 sticky top-0 z-10" style={{ backgroundColor: 'var(--theme-surface-dark)', borderBottom: '1px solid var(--theme-border-light)' }}>
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[10px] font-mono">
+          <span className="px-2 py-0.5 rounded text-[10px] font-mono" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
             &lt;{styles.tagName}&gt;
           </span>
           {styles.id && (
-            <span className="px-2 py-0.5 bg-amber-500/20 text-amber-300 rounded text-[10px] font-mono">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
               #{styles.id}
             </span>
           )}
-          <span className="text-[10px] text-slate-500">
+          <span className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
             {styles.boxModel.width} × {styles.boxModel.height}
           </span>
         </div>
@@ -261,7 +265,7 @@ export const StylesTab: React.FC<StylesTabProps> = ({
 
       {/* No styles message */}
       {Object.keys(stylesByCategory || {}).length === 0 && tailwindClasses.length === 0 && (
-        <div className="px-3 py-4 text-center text-slate-500 text-xs">
+        <div className="px-3 py-4 text-center text-xs" style={{ color: 'var(--theme-text-dim)' }}>
           No computed styles available
         </div>
       )}

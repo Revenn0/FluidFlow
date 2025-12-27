@@ -6,7 +6,7 @@
  * Extracted from PreviewPanel/index.tsx to reduce complexity.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   RefreshCw,
   Loader2,
@@ -177,6 +177,67 @@ export const PreviewContent: React.FC<PreviewContentProps> = (props) => {
   // Local state for URL input
   const [urlInput, setUrlInput] = useState(currentUrl);
 
+  // Convert HTML string to blob URL for complete iframe isolation
+  // This prevents any CSS/JS from the generated content affecting the parent layout
+  const blobUrl = useMemo(() => {
+    if (!iframeSrc) return '';
+    const blob = new Blob([iframeSrc], { type: 'text/html' });
+    return URL.createObjectURL(blob);
+  }, [iframeSrc]);
+
+  // Clean up blob URL when it changes or component unmounts
+  useEffect(() => {
+    // Copy ref to variable for cleanup function (React hooks lint rule)
+    const iframe = iframeRef.current;
+
+    return () => {
+      // Send cleanup message to iframe before revoking URL
+      // This allows the sandbox to revoke its internal blob URLs
+      if (iframe?.contentWindow) {
+        try {
+          iframe.contentWindow.postMessage({ type: 'CLEANUP_BLOB_URLS' }, '*');
+        } catch {
+          // Ignore errors if iframe is already destroyed
+        }
+      }
+      if (blobUrl) {
+        URL.revokeObjectURL(blobUrl);
+      }
+    };
+  }, [blobUrl]);
+
+  // Ref for the preview container
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+
+  // Scroll prevention as safety net (main fix is in sandbox HTML)
+  useEffect(() => {
+    const preventScroll = () => {
+      if (window.scrollY !== 0 || window.scrollX !== 0) {
+        window.scrollTo(0, 0);
+      }
+    };
+
+    window.addEventListener('scroll', preventScroll, { passive: false });
+
+    // Aggressive interval-based scroll reset for first 5 seconds after iframe load
+    const intervalId = setInterval(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    }, 100);
+
+    // Stop interval after 5 seconds
+    const timeoutId = setTimeout(() => {
+      clearInterval(intervalId);
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('scroll', preventScroll);
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
+  }, [iframeKey]); // Re-run when iframe reloads
+
   // Sync URL input with current URL
   useEffect(() => {
     setUrlInput(currentUrl);
@@ -197,7 +258,16 @@ export const PreviewContent: React.FC<PreviewContentProps> = (props) => {
   };
 
   return (
-    <div className="flex-1 min-h-0 h-full overflow-hidden relative">
+    <div
+      ref={previewContainerRef}
+      className="flex-1 min-h-0 h-full relative"
+      style={{
+        // Use overflow: clip for absolute isolation - stronger than hidden
+        overflow: 'clip',
+        // Prevent layout influence from children
+        contain: 'layout paint',
+      }}
+    >
       <div
         className="absolute inset-0 opacity-[0.15] pointer-events-none z-0"
         style={{
@@ -209,30 +279,32 @@ export const PreviewContent: React.FC<PreviewContentProps> = (props) => {
 
       {/* Auto-fix Confirmation Dialog - AI assistance (simple fix already tried) */}
       {pendingAutoFix && !isAutoFixing && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-3 rounded-xl shadow-lg backdrop-blur-xl border bg-orange-500/10 border-orange-500/30 animate-in slide-in-from-top-2 duration-300 max-w-md">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-3 rounded-xl shadow-lg backdrop-blur-xl animate-in slide-in-from-top-2 duration-300 max-w-md" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)' }}>
           <div className="flex items-start gap-3">
-            <div className="p-1.5 bg-orange-500/20 rounded-lg flex-shrink-0">
-              <AlertTriangle className="w-4 h-4 text-orange-400" />
+            <div className="p-1.5 rounded-lg shrink-0" style={{ backgroundColor: 'var(--color-warning-subtle)' }}>
+              <AlertTriangle className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <p className="text-sm font-medium text-orange-300">Error Detected</p>
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300">
+                <p className="text-sm font-medium" style={{ color: 'var(--color-warning)' }}>Error Detected</p>
+                <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-ai-subtle)', color: 'var(--theme-ai-accent)' }}>
                   AI Fix
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mb-3 line-clamp-2">{pendingAutoFix}</p>
+              <p className="text-xs mb-3 line-clamp-2" style={{ color: 'var(--theme-text-muted)' }}>{pendingAutoFix}</p>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleConfirmAutoFix}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white text-xs font-medium rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+                  style={{ backgroundColor: 'var(--theme-ai-accent)', color: 'white' }}
                 >
                   <Zap className="w-3 h-3" />
                   Fix with AI
                 </button>
                 <button
                   onClick={handleDeclineAutoFix}
-                  className="px-3 py-1.5 text-slate-400 hover:text-slate-300 text-xs font-medium transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium transition-colors"
+                  style={{ color: 'var(--theme-text-muted)' }}
                 >
                   Dismiss
                 </button>
@@ -245,15 +317,30 @@ export const PreviewContent: React.FC<PreviewContentProps> = (props) => {
       {/* Auto-fix Toast Notification */}
       {autoFixToast && (
         <div
-          className={`absolute top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-full shadow-lg backdrop-blur-xl border animate-in slide-in-from-top-2 duration-300 ${
-            isAutoFixing
-              ? 'bg-blue-500/20 border-blue-500/30 text-blue-300'
+          className="absolute top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-2 rounded-full shadow-lg backdrop-blur-xl animate-in slide-in-from-top-2 duration-300"
+          style={{
+            backgroundColor: isAutoFixing
+              ? 'var(--color-info-subtle)'
               : autoFixToast.includes('✅')
-                ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-300'
+                ? 'var(--color-success-subtle)'
                 : autoFixToast.includes('❌') || autoFixToast.includes('⚠️')
-                  ? 'bg-red-500/20 border-red-500/30 text-red-300'
-                  : 'bg-slate-500/20 border-slate-500/30 text-slate-300'
-          }`}
+                  ? 'var(--color-error-subtle)'
+                  : 'var(--theme-glass-200)',
+            border: `1px solid ${isAutoFixing
+              ? 'var(--color-info-border)'
+              : autoFixToast.includes('✅')
+                ? 'var(--color-success-border)'
+                : autoFixToast.includes('❌') || autoFixToast.includes('⚠️')
+                  ? 'var(--color-error-border)'
+                  : 'var(--theme-border)'}`,
+            color: isAutoFixing
+              ? 'var(--color-info)'
+              : autoFixToast.includes('✅')
+                ? 'var(--color-success)'
+                : autoFixToast.includes('❌') || autoFixToast.includes('⚠️')
+                  ? 'var(--color-error)'
+                  : 'var(--theme-text-secondary)'
+          }}
         >
           <div className="flex items-center gap-2 text-sm font-medium">
             {isAutoFixing && <Loader2 className="w-4 h-4 animate-spin" />}
@@ -264,16 +351,16 @@ export const PreviewContent: React.FC<PreviewContentProps> = (props) => {
 
       {/* Failed Auto-fix Notification - Persistent with Send to Chat option */}
       {failedAutoFixError && !autoFixToast && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[100] max-w-md w-full px-4 animate-in slide-in-from-top-2 duration-300">
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl shadow-2xl backdrop-blur-xl overflow-hidden">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-100 max-w-md w-full px-4 animate-in slide-in-from-top-2 duration-300">
+          <div className="rounded-xl shadow-2xl backdrop-blur-xl overflow-hidden" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)' }}>
             <div className="p-4">
               <div className="flex items-start gap-3">
-                <div className="p-2 bg-red-500/20 rounded-lg flex-shrink-0">
-                  <AlertTriangle className="w-5 h-5 text-red-400" />
+                <div className="p-2 rounded-lg shrink-0" style={{ backgroundColor: 'var(--color-error-subtle)' }}>
+                  <AlertTriangle className="w-5 h-5" style={{ color: 'var(--color-error)' }} />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-semibold text-red-300 mb-1">Auto-fix Failed</h4>
-                  <p className="text-xs text-red-300/70 line-clamp-2 mb-3">
+                  <h4 className="text-sm font-semibold mb-1" style={{ color: 'var(--color-error)' }}>Auto-fix Failed</h4>
+                  <p className="text-xs line-clamp-2 mb-3" style={{ color: 'var(--color-error)', opacity: 0.7 }}>
                     {failedAutoFixError.slice(0, 150)}
                     {failedAutoFixError.length > 150 ? '...' : ''}
                   </p>
@@ -281,7 +368,8 @@ export const PreviewContent: React.FC<PreviewContentProps> = (props) => {
                     {onSendErrorToChat && (
                       <button
                         onClick={handleSendErrorToChat}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-lg text-xs font-medium text-blue-300 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                        style={{ backgroundColor: 'var(--theme-accent-subtle)', border: '1px solid var(--theme-accent-muted)', color: 'var(--theme-accent)' }}
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
                         Send to Chat
@@ -289,7 +377,8 @@ export const PreviewContent: React.FC<PreviewContentProps> = (props) => {
                     )}
                     <button
                       onClick={handleDismissFailedError}
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-500/20 hover:bg-slate-500/30 border border-slate-500/30 rounded-lg text-xs font-medium text-slate-300 transition-colors"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                      style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-secondary)' }}
                     >
                       <X className="w-3.5 h-3.5" />
                       Dismiss
@@ -303,37 +392,60 @@ export const PreviewContent: React.FC<PreviewContentProps> = (props) => {
       )}
 
       <div
-        className="flex overflow-hidden relative z-10 transition-all duration-300"
-        style={contentStyle}
+        className="flex relative z-10 transition-all duration-300 min-h-0"
+        style={{
+          ...contentStyle,
+          // Use overflow: clip - stronger isolation
+          overflow: 'clip',
+        }}
       >
-        {/* Main preview area */}
-        <div className="flex-1 flex items-center justify-center overflow-hidden">
+        {/* Main preview area - min-h-0 prevents flex from growing based on content */}
+        <div
+          className="flex-1 flex items-center justify-center min-h-0"
+          style={{
+            // Use overflow: clip - stronger than hidden
+            overflow: 'clip',
+            // Contain all layout/paint within this element
+            contain: 'layout paint',
+          }}
+        >
         {appCode ? (
           <div
-            className={`relative z-10 transition-all duration-500 ease-in-out bg-slate-950 shadow-2xl overflow-hidden flex flex-col ${
+            className={`relative z-10 transition-all duration-500 ease-in-out shadow-2xl flex flex-col min-h-0 ${
               previewDevice === 'mobile'
-                ? 'w-[375px] h-[667px] max-h-full rounded-[40px] border-[8px] border-slate-800 ring-4 ring-black shadow-[0_0_50px_rgba(0,0,0,0.5)]'
+                ? 'w-[375px] h-[667px] max-h-full rounded-[40px] border-[8px] ring-4 ring-black shadow-[0_0_50px_rgba(0,0,0,0.5)]'
                 : previewDevice === 'tablet'
-                  ? 'w-[768px] h-[90%] max-h-[800px] rounded-[24px] border-[8px] border-slate-800 ring-4 ring-black shadow-[0_0_50px_rgba(0,0,0,0.5)]'
+                  ? 'w-[768px] h-[90%] max-h-[800px] rounded-[24px] border-[8px] ring-4 ring-black shadow-[0_0_50px_rgba(0,0,0,0.5)]'
                   : 'w-full h-full rounded-none border-none'
             }`}
+            style={{
+              // Use overflow: clip - stronger than hidden, absolutely prevents overflow
+              overflow: 'clip',
+              // Layout containment without size (size breaks flex)
+              contain: 'layout paint',
+              isolation: 'isolate',
+              backgroundColor: 'var(--theme-preview-bg)',
+              borderColor: previewDevice !== 'desktop' ? 'var(--theme-preview-device-border)' : undefined,
+            }}
           >
             {previewDevice === 'mobile' && (
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-black rounded-b-2xl z-50 flex items-center justify-center gap-2 pointer-events-none">
-                <div className="w-12 h-1.5 rounded-full bg-slate-800/50" />
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-800/80" />
+                <div className="w-12 h-1.5 rounded-full" style={{ backgroundColor: 'var(--theme-preview-device-notch)' }} />
+                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--theme-preview-device-notch)', opacity: 0.9 }} />
               </div>
             )}
 
             {/* URL Bar */}
             <div
-              className={`flex-none flex items-center gap-1.5 px-2 py-1.5 bg-slate-900/95 border-b border-white/5 ${previewDevice === 'mobile' ? 'pt-8' : ''}`}
+              className={`flex-none flex items-center gap-1.5 px-2 py-1.5 ${previewDevice === 'mobile' ? 'pt-8' : ''}`}
+              style={{ backgroundColor: 'var(--theme-preview-urlbar-bg)', borderBottom: '1px solid var(--theme-border-light)' }}
             >
               {/* Navigation Buttons */}
               <button
                 onClick={onGoBack}
                 disabled={!canGoBack}
-                className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-md disabled:opacity-30 disabled:cursor-not-allowed transition-colors nav-button-preview"
+                style={{ color: 'var(--theme-text-muted)' }}
                 title="Go Back"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -341,14 +453,16 @@ export const PreviewContent: React.FC<PreviewContentProps> = (props) => {
               <button
                 onClick={onGoForward}
                 disabled={!canGoForward}
-                className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                className="p-1.5 rounded-md disabled:opacity-30 disabled:cursor-not-allowed transition-colors nav-button-preview"
+                style={{ color: 'var(--theme-text-muted)' }}
                 title="Go Forward"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
               <button
                 onClick={onReload}
-                className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                className="p-1.5 rounded-md transition-colors nav-button-preview"
+                style={{ color: 'var(--theme-text-muted)' }}
                 title="Reload"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -356,14 +470,18 @@ export const PreviewContent: React.FC<PreviewContentProps> = (props) => {
 
               {/* URL Input */}
               <form onSubmit={handleUrlSubmit} className="flex-1 flex items-center">
-                <div className="flex-1 flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 border border-white/5 rounded-lg">
-                  <Globe className="w-3.5 h-3.5 text-slate-500 flex-none" />
+                <div
+                  className="flex-1 flex items-center gap-2 px-3 py-1.5 rounded-lg"
+                  style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-border-light)' }}
+                >
+                  <Globe className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--theme-text-dim)' }} />
                   <input
                     type="text"
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Escape' && setUrlInput(currentUrl)}
-                    className="flex-1 bg-transparent text-xs text-slate-300 placeholder-slate-500 outline-none font-mono"
+                    className="flex-1 bg-transparent text-xs outline-none font-mono"
+                    style={{ color: 'var(--theme-text-secondary)' }}
                     placeholder="/"
                     spellCheck={false}
                   />
@@ -377,16 +495,53 @@ export const PreviewContent: React.FC<PreviewContentProps> = (props) => {
               isFixing={isFixingResp}
             />
 
-            {/* iframe container with inspect overlay */}
-            <div className="flex-1 relative overflow-hidden">
-              <iframe
-                ref={iframeRef}
-                key={iframeKey}
-                srcDoc={iframeSrc}
-                title="Preview"
-                className={`w-full h-full bg-white transition-opacity duration-500 ${isGenerating ? 'opacity-40' : 'opacity-100'}`}
-                sandbox="allow-scripts allow-same-origin"
-              />
+            {/* iframe container with inspect overlay - fully isolated using blob URL */}
+            <div
+              className="flex-1 relative min-h-0"
+              style={{
+                // Use overflow: clip - stronger than hidden, doesn't create scroll container
+                overflow: 'clip',
+                // Layout containment (no size - breaks flex)
+                contain: 'layout paint',
+                isolation: 'isolate',
+              }}
+            >
+              {/* Absolute wrapper - can use strict because it has explicit dimensions from inset-0 */}
+              <div
+                className="absolute inset-0"
+                style={{
+                  // Use overflow: clip for stronger isolation
+                  overflow: 'clip',
+                  // Strict containment is safe here because dimensions are explicit
+                  contain: 'strict',
+                }}
+              >
+                <iframe
+                  ref={iframeRef}
+                  key={iframeKey}
+                  src={blobUrl}
+                  title="Preview"
+                  className={`bg-white transition-opacity duration-500 ${isGenerating ? 'opacity-40' : 'opacity-100'}`}
+                  sandbox="allow-scripts"
+                  onLoad={() => {
+                    // Reset parent scroll when iframe loads - prevents jump
+                    window.scrollTo(0, 0);
+                    document.documentElement.scrollTop = 0;
+                    document.body.scrollTop = 0;
+                  }}
+                  style={{
+                    display: 'block',
+                    border: 'none',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    // Prevent any scroll behavior from iframe affecting parent
+                    overscrollBehavior: 'contain',
+                  }}
+                />
+              </div>
 
               {/* Inspect Mode Overlay - positioned relative to iframe only */}
               <InspectionOverlay
@@ -410,13 +565,19 @@ export const PreviewContent: React.FC<PreviewContentProps> = (props) => {
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <div className="relative transition-all duration-500 ease-out transform scale-90 opacity-60">
-              <div className="relative w-[375px] h-[812px] bg-black rounded-[48px] border-[8px] border-slate-800 shadow-2xl overflow-hidden ring-1 ring-white/10 z-10">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-7 bg-slate-900 rounded-b-2xl z-20 flex items-center justify-center gap-3">
-                  <div className="w-10 h-1 rounded-full bg-slate-800/50" />
-                  <div className="w-2 h-2 rounded-full bg-slate-800/80" />
+              <div
+                className="relative w-[375px] h-[812px] bg-black rounded-[48px] border-8 shadow-2xl overflow-hidden z-10"
+                style={{ borderColor: 'var(--theme-preview-device-border)', boxShadow: '0 0 0 1px var(--theme-border-light)' }}
+              >
+                <div
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-36 h-7 rounded-b-2xl z-20 flex items-center justify-center gap-3"
+                  style={{ backgroundColor: 'var(--theme-preview-urlbar-bg)' }}
+                >
+                  <div className="w-10 h-1 rounded-full" style={{ backgroundColor: 'var(--theme-preview-device-notch)' }} />
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--theme-preview-device-notch)', opacity: 0.9 }} />
                 </div>
-                <div className="w-full h-full bg-slate-950 flex flex-col items-center justify-center">
-                  <p className="text-slate-700 font-medium text-sm">
+                <div className="w-full h-full flex flex-col items-center justify-center" style={{ backgroundColor: 'var(--theme-preview-bg)' }}>
+                  <p className="font-medium text-sm" style={{ color: 'var(--theme-text-dim)' }}>
                     Upload a sketch to generate app
                   </p>
                 </div>

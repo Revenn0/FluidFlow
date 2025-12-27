@@ -18,9 +18,9 @@ export const SettingsToggle: React.FC<SettingsToggleProps> = ({
   return (
     <label className={`flex items-center justify-between py-2 ${disabled ? 'opacity-50' : ''}`}>
       <div className="flex-1 min-w-0 pr-4">
-        <span className="text-sm text-white block">{label}</span>
+        <span className="text-sm block" style={{ color: 'var(--theme-text-primary)' }}>{label}</span>
         {description && (
-          <span className="text-xs text-slate-500 block mt-0.5">{description}</span>
+          <span className="text-xs block mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{description}</span>
         )}
       </div>
       <button
@@ -29,9 +29,8 @@ export const SettingsToggle: React.FC<SettingsToggleProps> = ({
         aria-checked={checked}
         disabled={disabled}
         onClick={() => !disabled && onChange(!checked)}
-        className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${
-          checked ? 'bg-blue-500' : 'bg-slate-700'
-        } ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+        className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+        style={{ backgroundColor: checked ? 'var(--theme-accent)' : 'var(--theme-glass-300)' }}
       >
         <div
           className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${

@@ -23,20 +23,21 @@ export function ResetConfirmModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-md bg-slate-950/98 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden mx-4 animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-200 flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200" style={{ backgroundColor: 'var(--theme-modal-overlay)' }}>
+      <div className="w-full max-w-md backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden mx-4 animate-in zoom-in-95 duration-200" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
         {/* Header */}
-        <div className="flex items-center gap-3 p-5 border-b border-white/10 bg-red-500/5">
-          <div className="p-2 bg-red-500/20 rounded-xl">
-            <AlertTriangle className="w-6 h-6 text-red-400" />
+        <div className="flex items-center gap-3 p-5" style={{ borderBottom: '1px solid var(--theme-border)', backgroundColor: 'var(--color-error-subtle)' }}>
+          <div className="p-2 rounded-xl" style={{ backgroundColor: 'var(--color-error-subtle)' }}>
+            <AlertTriangle className="w-6 h-6" style={{ color: 'var(--color-error)' }} />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-white">Start Fresh?</h3>
-            <p className="text-sm text-slate-400">This action cannot be undone</p>
+            <h3 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Start Fresh?</h3>
+            <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>This action cannot be undone</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
           >
             <X className="w-5 h-5" />
           </button>
@@ -44,61 +45,61 @@ export function ResetConfirmModal({
 
         {/* Content */}
         <div className="p-5 space-y-4">
-          <p className="text-sm text-slate-300">
+          <p className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>
             Starting fresh will clear the following:
           </p>
 
           <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-white/5">
-              <MessageSquare className="w-5 h-5 text-blue-400 flex-shrink-0" />
+            <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}>
+              <MessageSquare className="w-5 h-5 shrink-0" style={{ color: 'var(--theme-accent)' }} />
               <div>
-                <p className="text-sm font-medium text-white">Chat History</p>
-                <p className="text-xs text-slate-500">All messages and conversation context</p>
+                <p className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>Chat History</p>
+                <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>All messages and conversation context</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-white/5">
-              <FileCode className="w-5 h-5 text-purple-400 flex-shrink-0" />
+            <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}>
+              <FileCode className="w-5 h-5 shrink-0" style={{ color: 'var(--theme-ai-accent)' }} />
               <div>
-                <p className="text-sm font-medium text-white">Generated Code</p>
-                <p className="text-xs text-slate-500">All files and the preview will be cleared</p>
+                <p className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>Generated Code</p>
+                <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>All files and the preview will be cleared</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-white/5">
-              <History className="w-5 h-5 text-green-400 flex-shrink-0" />
+            <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}>
+              <History className="w-5 h-5 shrink-0" style={{ color: 'var(--color-success)' }} />
               <div>
-                <p className="text-sm font-medium text-white">Version History</p>
-                <p className="text-xs text-slate-500">All undo/redo states will be lost</p>
+                <p className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>Version History</p>
+                <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>All undo/redo states will be lost</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg border border-white/5">
-              <Database className="w-5 h-5 text-orange-400 flex-shrink-0" />
+            <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}>
+              <Database className="w-5 h-5 shrink-0" style={{ color: 'var(--color-warning)' }} />
               <div>
-                <p className="text-sm font-medium text-white">AI Contexts</p>
-                <p className="text-xs text-slate-500">All conversation contexts (main, prompt improver, git, etc.)</p>
+                <p className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>AI Contexts</p>
+                <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>All conversation contexts (main, prompt improver, git, etc.)</p>
               </div>
             </div>
 
             {/* Running Server */}
             {hasRunningServer && (
-              <div className="flex items-center gap-3 p-3 bg-orange-500/10 rounded-lg border border-orange-500/20">
-                <Server className="w-5 h-5 text-orange-400 flex-shrink-0" />
+              <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)' }}>
+                <Server className="w-5 h-5 shrink-0" style={{ color: 'var(--color-warning)' }} />
                 <div>
-                  <p className="text-sm font-medium text-orange-300">Running Server</p>
-                  <p className="text-xs text-orange-400/70">Development server will be stopped</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--color-warning)' }}>Running Server</p>
+                  <p className="text-xs" style={{ color: 'var(--color-warning)', opacity: 0.7 }}>Development server will be stopped</p>
                 </div>
               </div>
             )}
 
             {/* Current Project */}
             {currentProjectName && (
-              <div className="flex items-center gap-3 p-3 bg-cyan-500/10 rounded-lg border border-cyan-500/20">
-                <FolderOpen className="w-5 h-5 text-cyan-400 flex-shrink-0" />
+              <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-info-subtle)', border: '1px solid var(--color-info-border)' }}>
+                <FolderOpen className="w-5 h-5 shrink-0" style={{ color: 'var(--color-info)' }} />
                 <div>
-                  <p className="text-sm font-medium text-cyan-300">Project: {currentProjectName}</p>
-                  <p className="text-xs text-cyan-400/70">Project will be closed (saved changes preserved)</p>
+                  <p className="text-sm font-medium" style={{ color: 'var(--color-info)' }}>Project: {currentProjectName}</p>
+                  <p className="text-xs" style={{ color: 'var(--color-info)', opacity: 0.7 }}>Project will be closed (saved changes preserved)</p>
                 </div>
               </div>
             )}
@@ -106,12 +107,12 @@ export function ResetConfirmModal({
 
           {/* Uncommitted Changes Warning */}
           {currentProjectName && hasUncommittedChanges && (
-            <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg">
+            <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)' }}>
               <div className="flex items-start gap-3">
-                <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--color-warning)' }} />
                 <div>
-                  <p className="text-sm font-medium text-amber-300">Uncommitted Changes</p>
-                  <p className="text-xs text-amber-400/80 mt-1">
+                  <p className="text-sm font-medium" style={{ color: 'var(--color-warning)' }}>Uncommitted Changes</p>
+                  <p className="text-xs mt-1" style={{ color: 'var(--color-warning)', opacity: 0.8 }}>
                     You have unsaved changes in project "{currentProjectName}".
                     These changes will be lost if you reset.
                   </p>
@@ -120,7 +121,8 @@ export function ResetConfirmModal({
                       onClose();
                       onOpenGitTab?.();
                     }}
-                    className="text-xs text-amber-300 hover:text-amber-200 underline mt-2"
+                    className="text-xs underline mt-2"
+                    style={{ color: 'var(--color-warning)' }}
                   >
                     Review changes in Git tab
                   </button>
@@ -131,16 +133,18 @@ export function ResetConfirmModal({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3 p-5 border-t border-white/10 bg-slate-900/30">
+        <div className="flex gap-3 p-5" style={{ borderTop: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-glass-100)' }}>
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-300 bg-slate-800/50 hover:bg-slate-800 rounded-lg border border-white/10 transition-colors"
+            className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-secondary)', backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 hover:bg-red-500 rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+            style={{ backgroundColor: 'var(--color-error)', color: 'white' }}
           >
             <RotateCcw className="w-4 h-4" />
             Yes, Start Fresh

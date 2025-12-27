@@ -120,27 +120,31 @@ export const ActivityBar = memo(function ActivityBar({
     >
       <button
         onClick={() => handleClick(item)}
-        className={`relative p-2 rounded-md transition-all ${
-          isActive(item)
-            ? 'text-white bg-white/10'
-            : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
-        } ${item.hasIndicator && isRunnerActive ? 'text-emerald-400' : ''}`}
+        className="relative p-2 rounded-md transition-all"
+        style={{
+          color: isActive(item)
+            ? 'var(--theme-text-primary)'
+            : item.hasIndicator && isRunnerActive
+              ? 'var(--color-success)'
+              : 'var(--theme-text-muted)',
+          backgroundColor: isActive(item) ? 'var(--theme-glass-200)' : undefined
+        }}
       >
         <item.icon className="w-[18px] h-[18px]" />
 
         {/* Active indicator */}
         {isActive(item) && (
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-blue-500 rounded-r" />
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r" style={{ backgroundColor: 'var(--theme-accent)' }} />
         )}
 
         {/* Runner indicator */}
         {item.hasIndicator && isRunnerActive && (
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--color-success)' }} />
         )}
 
         {/* Badge for unread messages */}
         {item.id === 'chat' && chatUnread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 text-[9px] font-bold rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--theme-accent)', color: 'white' }}>
             {chatUnread > 9 ? '9+' : chatUnread}
           </span>
         )}
@@ -149,7 +153,7 @@ export const ActivityBar = memo(function ActivityBar({
   );
 
   const renderDivider = () => (
-    <div className="w-6 h-px bg-white/10 my-1" />
+    <div className="w-6 h-px my-1" style={{ backgroundColor: 'var(--theme-border)' }} />
   );
 
   return (
@@ -174,7 +178,14 @@ export const ActivityBar = memo(function ActivityBar({
         >
           <button
             onClick={onChatClick}
-            className="w-5 h-10 bg-slate-800 hover:bg-slate-700 border border-white/10 rounded-r-md flex items-center justify-center text-slate-400 hover:text-white transition-colors shadow-lg"
+            className="w-5 h-10 rounded-r-md flex items-center justify-center transition-colors shadow-lg"
+            style={{
+              backgroundColor: 'var(--theme-surface)',
+              borderWidth: '1px',
+              borderStyle: 'solid',
+              borderColor: 'var(--theme-border)',
+              color: 'var(--theme-text-secondary)'
+            }}
           >
             {leftPanelVisible ? (
               <ChevronLeft className="w-3.5 h-3.5" />
@@ -192,19 +203,19 @@ export const ActivityBar = memo(function ActivityBar({
       >
         <button
           onClick={onChatClick}
-          className={`relative p-2 rounded-md transition-all mb-1 ${
-            leftPanelVisible
-              ? 'text-white bg-white/10'
-              : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
-          }`}
+          className="relative p-2 rounded-md transition-all mb-1"
+          style={{
+            color: leftPanelVisible ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)',
+            backgroundColor: leftPanelVisible ? 'var(--theme-glass-200)' : undefined
+          }}
         >
           <MessageSquare className="w-[18px] h-[18px]" />
           {/* Active indicator */}
           {leftPanelVisible && (
-            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-blue-500 rounded-r" />
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-r" style={{ backgroundColor: 'var(--theme-accent)' }} />
           )}
           {chatUnread > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-blue-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 text-[9px] font-bold rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--theme-accent)', color: 'white' }}>
               {chatUnread > 9 ? '9+' : chatUnread}
             </span>
           )}
@@ -259,7 +270,8 @@ export const ActivityBar = memo(function ActivityBar({
           >
             <button
               onClick={() => handleClick(item)}
-              className="p-2 rounded-md text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all"
+              className="p-2 rounded-md transition-all"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               <item.icon className="w-[18px] h-[18px]" />
             </button>

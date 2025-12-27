@@ -274,7 +274,7 @@ ${changedFilesContext}`;
   // No project selected
   if (!projectId) {
     return (
-      <div className="p-4 text-center text-slate-500 text-sm">
+      <div className="p-4 text-center text-sm" style={{ color: 'var(--theme-text-muted)' }}>
         <GitBranch className="w-8 h-8 mx-auto mb-2 opacity-50" />
         <p>No project selected</p>
       </div>
@@ -286,16 +286,17 @@ ${changedFilesContext}`;
     return (
       <div className="p-4">
         <div className="text-center mb-4">
-          <AlertCircle className="w-10 h-10 mx-auto mb-3 text-red-400" />
-          <h3 className="text-sm font-medium text-white mb-1">Repository Corrupted</h3>
-          <p className="text-xs text-slate-400 mb-2">
+          <AlertCircle className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--color-error)' }} />
+          <h3 className="text-sm font-medium mb-1" style={{ color: 'var(--theme-text-primary)' }}>Repository Corrupted</h3>
+          <p className="text-xs mb-2" style={{ color: 'var(--theme-text-muted)' }}>
             {gitStatus.message || 'The git repository data is corrupted.'}
           </p>
         </div>
         <button
           onClick={() => handleInitGit(true)}
           disabled={isInitializing}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white rounded-lg text-sm font-medium transition-colors"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          style={{ backgroundColor: isInitializing ? 'var(--theme-surface)' : 'var(--color-error)', color: 'var(--theme-text-on-accent)' }}
         >
           {isInitializing ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -313,16 +314,17 @@ ${changedFilesContext}`;
     return (
       <div className="p-4">
         <div className="text-center mb-4">
-          <GitBranch className="w-10 h-10 mx-auto mb-3 text-slate-500" />
-          <h3 className="text-sm font-medium text-white mb-1">Initialize Git</h3>
-          <p className="text-xs text-slate-400">
+          <GitBranch className="w-10 h-10 mx-auto mb-3" style={{ color: 'var(--theme-text-muted)' }} />
+          <h3 className="text-sm font-medium mb-1" style={{ color: 'var(--theme-text-primary)' }}>Initialize Git</h3>
+          <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
             Start version control for this project
           </p>
         </div>
         <button
           onClick={() => handleInitGit(false)}
           disabled={isInitializing}
-          className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white rounded-lg text-sm font-medium transition-colors"
+          className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          style={{ backgroundColor: isInitializing ? 'var(--theme-surface)' : 'var(--color-success)', color: 'var(--theme-text-on-accent)' }}
         >
           {isInitializing ? (
             <Loader2 className="w-4 h-4 animate-spin" />
@@ -347,30 +349,31 @@ ${changedFilesContext}`;
   return (
     <div className="flex flex-col h-full relative">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/5 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 shrink-0" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
         <div className="flex items-center gap-2.5">
-          <GitBranch className="w-5 h-5 text-emerald-400" />
-          <span className="text-base font-medium text-white">
+          <GitBranch className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+          <span className="text-base font-medium" style={{ color: 'var(--theme-text-primary)' }}>
             {gitStatus?.branch || 'main'}
           </span>
           {hasUncommittedChanges ? (
-            <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs rounded flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span className="px-2 py-0.5 text-xs rounded flex items-center gap-1.5" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
+              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--color-warning)' }} />
               {localChangeCount} local
             </span>
           ) : gitStatus?.clean ? (
-            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 text-xs rounded">
+            <span className="px-2 py-0.5 text-xs rounded" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
               Clean
             </span>
           ) : (
-            <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 text-xs rounded">
+            <span className="px-2 py-0.5 text-xs rounded" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
               {totalChanges} change{totalChanges !== 1 ? 's' : ''}
             </span>
           )}
         </div>
         <button
           onClick={onRefreshStatus}
-          className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+          className="p-2 rounded-lg transition-colors"
+          style={{ color: 'var(--theme-text-muted)' }}
           title="Refresh git status"
         >
           <RefreshCw className="w-4 h-4" />
@@ -380,21 +383,22 @@ ${changedFilesContext}`;
       {/* Two Column Layout */}
       <div className="flex-1 flex min-h-0">
         {/* Left Column: Changes + Commit */}
-        <div className="flex-1 flex flex-col min-w-0 border-r border-white/5">
+        <div className="flex-1 flex flex-col min-w-0" style={{ borderRight: '1px solid var(--theme-border-light)' }}>
           {/* Changes Section */}
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             {/* Local Changes (WIP) */}
             {hasUncommittedChanges && localChanges.length > 0 && (
-              <div className="p-3 border-b border-amber-500/20 bg-amber-500/5">
+              <div className="p-3" style={{ borderBottom: '1px solid var(--color-warning-border)', backgroundColor: 'var(--color-warning-subtle)' }}>
                 <div className="flex items-center justify-between px-2 py-1.5">
-                  <div className="flex items-center gap-2 text-sm text-amber-400">
+                  <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-warning)' }}>
                     <AlertTriangle className="w-4 h-4" />
                     <span className="font-medium">Local Changes</span>
                   </div>
                   {onDiscardChanges && (
                     <button
                       onClick={() => setShowDiscardConfirm(true)}
-                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                      className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded transition-colors"
+                      style={{ color: 'var(--color-error)' }}
                       title="Discard all changes and restore from last commit"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
@@ -406,11 +410,12 @@ ${changedFilesContext}`;
                   {localChanges.map((change) => (
                     <div
                       key={change.path}
-                      className="flex items-center gap-2.5 px-2.5 py-1.5 ml-4 text-sm text-slate-400"
+                      className="flex items-center gap-2.5 px-2.5 py-1.5 ml-4 text-sm"
+                      style={{ color: 'var(--theme-text-muted)' }}
                     >
-                      {change.status === 'added' && <FilePlus className="w-4 h-4 text-emerald-400" />}
-                      {change.status === 'modified' && <FileText className="w-4 h-4 text-amber-400" />}
-                      {change.status === 'deleted' && <FileX className="w-4 h-4 text-red-400" />}
+                      {change.status === 'added' && <FilePlus className="w-4 h-4" style={{ color: 'var(--color-success)' }} />}
+                      {change.status === 'modified' && <FileText className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />}
+                      {change.status === 'deleted' && <FileX className="w-4 h-4" style={{ color: 'var(--color-error)' }} />}
                       <span className="truncate">{change.path}</span>
                     </div>
                   ))}
@@ -418,15 +423,16 @@ ${changedFilesContext}`;
 
                 {/* Discard Confirmation */}
                 {showDiscardConfirm && (
-                  <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                    <p className="text-xs text-red-300 mb-3">
+                  <div className="mt-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)' }}>
+                    <p className="text-xs mb-3" style={{ color: 'var(--color-error)' }}>
                       This will discard all local changes and restore to last commit. Are you sure?
                     </p>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={handleDiscardChanges}
                         disabled={isDiscarding}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 text-white rounded text-xs font-medium transition-colors"
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                        style={{ backgroundColor: isDiscarding ? 'var(--theme-surface)' : 'var(--color-error)', color: 'var(--theme-text-on-accent)' }}
                       >
                         {isDiscarding ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -437,7 +443,8 @@ ${changedFilesContext}`;
                       </button>
                       <button
                         onClick={() => setShowDiscardConfirm(false)}
-                        className="flex-1 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-medium transition-colors"
+                        className="flex-1 px-3 py-1.5 rounded text-xs font-medium transition-colors"
+                        style={{ backgroundColor: 'var(--theme-surface)', color: 'var(--theme-text-primary)' }}
                       >
                         Cancel
                       </button>
@@ -455,16 +462,16 @@ ${changedFilesContext}`;
                   <div>
                     <button
                       onClick={() => setExpandedSection(expandedSection === 'staged' ? null : 'staged')}
-                      className="w-full flex items-center justify-between px-2.5 py-2 hover:bg-white/5 rounded-lg transition-colors"
+                      className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors"
                     >
-                      <span className="flex items-center gap-2 text-sm text-emerald-400">
+                      <span className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-success)' }}>
                         <Check className="w-4 h-4" />
                         Staged ({stagedCount})
                       </span>
                       {expandedSection === 'staged' ? (
-                        <ChevronUp className="w-4 h-4 text-slate-500" />
+                        <ChevronUp className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                       ) : (
-                        <ChevronDown className="w-4 h-4 text-slate-500" />
+                        <ChevronDown className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                       )}
                     </button>
                     {expandedSection === 'staged' && (
@@ -482,16 +489,16 @@ ${changedFilesContext}`;
                   <div>
                     <button
                       onClick={() => setExpandedSection(expandedSection === 'modified' ? null : 'modified')}
-                      className="w-full flex items-center justify-between px-2.5 py-2 hover:bg-white/5 rounded-lg transition-colors"
+                      className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors"
                     >
-                      <span className="flex items-center gap-2 text-sm text-amber-400">
+                      <span className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-warning)' }}>
                         <FileText className="w-4 h-4" />
                         Modified ({modifiedCount})
                       </span>
                       {expandedSection === 'modified' ? (
-                        <ChevronUp className="w-4 h-4 text-slate-500" />
+                        <ChevronUp className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                       ) : (
-                        <ChevronDown className="w-4 h-4 text-slate-500" />
+                        <ChevronDown className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                       )}
                     </button>
                     {expandedSection === 'modified' && (
@@ -509,16 +516,16 @@ ${changedFilesContext}`;
                   <div>
                     <button
                       onClick={() => setExpandedSection(expandedSection === 'untracked' ? null : 'untracked')}
-                      className="w-full flex items-center justify-between px-2.5 py-2 hover:bg-white/5 rounded-lg transition-colors"
+                      className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg transition-colors"
                     >
-                      <span className="flex items-center gap-2 text-sm text-blue-400">
+                      <span className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-info)' }}>
                         <FilePlus className="w-4 h-4" />
                         Untracked ({untrackedCount})
                       </span>
                       {expandedSection === 'untracked' ? (
-                        <ChevronUp className="w-4 h-4 text-slate-500" />
+                        <ChevronUp className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                       ) : (
-                        <ChevronDown className="w-4 h-4 text-slate-500" />
+                        <ChevronDown className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                       )}
                     </button>
                     {expandedSection === 'untracked' && (
@@ -537,8 +544,8 @@ ${changedFilesContext}`;
                 ))}
               </div>
             ) : !hasUncommittedChanges ? (
-              <div className="p-4 text-center text-slate-500 text-sm">
-                <Check className="w-8 h-8 mx-auto mb-2 text-emerald-500 opacity-50" />
+              <div className="p-4 text-center text-sm" style={{ color: 'var(--theme-text-muted)' }}>
+                <Check className="w-8 h-8 mx-auto mb-2 opacity-50" style={{ color: 'var(--color-success)' }} />
                 <p>Working tree clean</p>
                 <p className="text-xs mt-1">No uncommitted changes</p>
               </div>
@@ -546,14 +553,19 @@ ${changedFilesContext}`;
           </div>
 
           {/* Commit Section */}
-          <div className="border-t border-white/5 p-3 flex-shrink-0">
+          <div className="p-3 shrink-0" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
             <div className="relative">
               <textarea
                 value={commitMessage}
                 onChange={(e) => setCommitMessage(e.target.value)}
                 placeholder="Commit message..."
                 rows={2}
-                className="w-full px-3 py-2 pr-10 bg-slate-800/50 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 resize-none"
+                className="w-full px-3 py-2 pr-10 rounded-lg text-sm outline-none resize-none"
+                style={{
+                  backgroundColor: 'var(--theme-input-bg)',
+                  border: '1px solid var(--theme-input-border)',
+                  color: 'var(--theme-text-primary)'
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                     handleCommit();
@@ -564,7 +576,8 @@ ${changedFilesContext}`;
               <button
                 onClick={generateCommitMessage}
                 disabled={isGeneratingMessage || (!hasChanges && localChanges.length === 0)}
-                className="absolute right-2 top-2 p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-purple-400 disabled:text-slate-600 disabled:hover:bg-transparent transition-colors"
+                className="absolute right-2 top-2 p-1.5 rounded-lg transition-colors"
+                style={{ color: isGeneratingMessage || (!hasChanges && localChanges.length === 0) ? 'var(--theme-text-dim)' : 'var(--theme-ai-accent)' }}
                 title="Generate commit message with AI"
               >
                 {isGeneratingMessage ? (
@@ -577,7 +590,11 @@ ${changedFilesContext}`;
             <button
               onClick={handleCommit}
               disabled={!commitMessage.trim() || (!hasChanges && localChanges.length === 0) || isCommitting}
-              className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg text-sm font-medium transition-colors"
+              className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: (!commitMessage.trim() || (!hasChanges && localChanges.length === 0) || isCommitting) ? 'var(--theme-surface)' : 'var(--theme-accent)',
+                color: (!commitMessage.trim() || (!hasChanges && localChanges.length === 0) || isCommitting) ? 'var(--theme-text-muted)' : 'var(--theme-text-on-accent)'
+              }}
             >
               {isCommitting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -590,22 +607,22 @@ ${changedFilesContext}`;
         </div>
 
         {/* Right Column: Commit History */}
-        <div className="w-1/2 flex flex-col min-w-0 bg-slate-950/30">
-          <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/5 flex-shrink-0">
-            <span className="flex items-center gap-2 text-sm text-slate-400 font-medium">
+        <div className="w-1/2 flex flex-col min-w-0" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+          <div className="flex items-center justify-between px-3 py-2.5 shrink-0" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+            <span className="flex items-center gap-2 text-sm font-medium" style={{ color: 'var(--theme-text-muted)' }}>
               <Clock className="w-4 h-4" />
               History
             </span>
-            <span className="text-xs text-slate-500">{commits.length} commits</span>
+            <span className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>{commits.length} commits</span>
           </div>
 
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             {isLoadingCommits ? (
               <div className="p-4 text-center">
-                <Loader2 className="w-5 h-5 mx-auto text-blue-400 animate-spin" />
+                <Loader2 className="w-5 h-5 mx-auto animate-spin" style={{ color: 'var(--theme-accent)' }} />
               </div>
             ) : commits.length === 0 ? (
-              <div className="p-4 text-center text-slate-500 text-xs">
+              <div className="p-4 text-center text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                 <GitCommit className="w-6 h-6 mx-auto mb-2 opacity-50" />
                 <p>No commits yet</p>
               </div>
@@ -627,24 +644,24 @@ ${changedFilesContext}`;
                   <button
                     key={commit.hash}
                     onClick={() => loadCommitDetails(commit.hash)}
-                    className="w-full flex items-start gap-2.5 p-2.5 hover:bg-white/5 rounded-lg text-left transition-colors group"
+                    className="w-full flex items-start gap-2.5 p-2.5 rounded-lg text-left transition-colors group"
                   >
-                    <div className="relative flex-shrink-0">
-                      <div className="w-2.5 h-2.5 rounded-full bg-blue-500 mt-1 group-hover:bg-blue-400 transition-colors" />
+                    <div className="relative shrink-0">
+                      <div className="w-2.5 h-2.5 rounded-full mt-1 transition-colors" style={{ backgroundColor: 'var(--theme-accent)' }} />
                       {index < commits.length - 1 && (
-                        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-px h-[calc(100%+0.25rem)] bg-slate-700" />
+                        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-px h-[calc(100%+0.25rem)]" style={{ backgroundColor: 'var(--theme-border)' }} />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white truncate group-hover:text-blue-300 transition-colors leading-snug">
+                      <p className="text-sm truncate transition-colors leading-snug" style={{ color: 'var(--theme-text-primary)' }}>
                         {commit.message}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-slate-500 font-mono">
+                        <span className="text-xs font-mono" style={{ color: 'var(--theme-text-muted)' }}>
                           {commit.hashShort}
                         </span>
-                        <span className="text-xs text-slate-600">·</span>
-                        <span className="text-xs text-slate-500">
+                        <span className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>·</span>
+                        <span className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                           {formatCommitDate(commit.date)}
                         </span>
                       </div>
@@ -674,23 +691,24 @@ ${changedFilesContext}`;
 
       {/* Revert Confirmation Modal */}
       {showRevertConfirm && revertTargetCommit && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-md bg-slate-950/98 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden mx-4 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-200 flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200" style={{ backgroundColor: 'var(--theme-modal-overlay)' }}>
+          <div className="w-full max-w-md backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden mx-4 animate-in zoom-in-95 duration-200" style={{ backgroundColor: 'var(--theme-modal-bg)', border: '1px solid var(--theme-modal-border)' }}>
             {/* Header */}
-            <div className="flex items-center gap-3 p-5 border-b border-white/10 bg-amber-500/5">
-              <div className="p-2 bg-amber-500/20 rounded-xl">
-                <RotateCcw className="w-6 h-6 text-amber-400" />
+            <div className="flex items-center gap-3 p-5" style={{ borderBottom: '1px solid var(--theme-border-light)', backgroundColor: 'var(--color-warning-subtle)' }}>
+              <div className="p-2 rounded-xl" style={{ backgroundColor: 'var(--color-warning-subtle)' }}>
+                <RotateCcw className="w-6 h-6" style={{ color: 'var(--color-warning)' }} />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-white">Restore to Commit?</h3>
-                <p className="text-sm text-slate-400">This will change your project files</p>
+                <h3 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Restore to Commit?</h3>
+                <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>This will change your project files</p>
               </div>
               <button
                 onClick={() => {
                   setShowRevertConfirm(false);
                   setRevertTargetCommit(null);
                 }}
-                className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-colors"
+                className="p-2 rounded-lg transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -698,24 +716,24 @@ ${changedFilesContext}`;
 
             {/* Content */}
             <div className="p-5 space-y-4">
-              <div className="p-3 bg-slate-900/50 rounded-lg border border-white/5">
-                <p className="text-sm font-medium text-white truncate">{revertTargetCommit.message}</p>
-                <p className="text-xs text-slate-500 mt-1 font-mono">{revertTargetCommit.hashShort}</p>
+              <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+                <p className="text-sm font-medium truncate" style={{ color: 'var(--theme-text-primary)' }}>{revertTargetCommit.message}</p>
+                <p className="text-xs mt-1 font-mono" style={{ color: 'var(--theme-text-muted)' }}>{revertTargetCommit.hashShort}</p>
               </div>
 
-              <p className="text-sm text-slate-300">
+              <p className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>
                 Your project files will be restored to this commit's state.
                 Any commits after this point will still exist in history.
               </p>
 
               {/* Uncommitted Changes Warning */}
               {hasUncommittedChanges && (
-                <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)' }}>
                   <div className="flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
+                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--color-error)' }} />
                     <div>
-                      <p className="text-sm font-medium text-red-300">Uncommitted Changes</p>
-                      <p className="text-xs text-red-400/80 mt-1">
+                      <p className="text-sm font-medium" style={{ color: 'var(--color-error)' }}>Uncommitted Changes</p>
+                      <p className="text-xs mt-1" style={{ color: 'var(--color-error)' }}>
                         You have {localChanges.length} uncommitted change{localChanges.length !== 1 ? 's' : ''}.
                         These will be lost when you restore.
                       </p>
@@ -726,20 +744,22 @@ ${changedFilesContext}`;
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 p-5 border-t border-white/10 bg-slate-900/30">
+            <div className="flex gap-3 p-5" style={{ borderTop: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-100)' }}>
               <button
                 onClick={() => {
                   setShowRevertConfirm(false);
                   setRevertTargetCommit(null);
                 }}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-slate-300 bg-slate-800/50 hover:bg-slate-800 rounded-lg border border-white/10 transition-colors"
+                className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--theme-surface)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmRevert}
                 disabled={isReverting}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 disabled:bg-slate-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                style={{ backgroundColor: isReverting ? 'var(--theme-surface)' : 'var(--color-warning)', color: 'var(--theme-text-on-accent)' }}
               >
                 {isReverting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

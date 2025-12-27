@@ -96,22 +96,22 @@ export const DebugPanel: React.FC = () => {
     <div className="p-6 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-500/20 rounded-lg">
-          <Bug className="w-5 h-5 text-blue-400" />
+        <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-info-subtle)' }}>
+          <Bug className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">Debug & Monitoring</h2>
-          <p className="text-xs text-slate-400">Configure debugging and logging options</p>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Debug & Monitoring</h2>
+          <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Configure debugging and logging options</p>
         </div>
       </div>
 
       {/* Warning */}
       {settings.enabled && (
-        <div className="flex items-start gap-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-          <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-slate-300">
-            <p className="font-medium text-amber-400 mb-1">Debug Mode Active</p>
-            <p className="text-slate-400">
+        <div className="flex items-start gap-3 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)' }}>
+          <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--color-warning)' }} />
+          <div className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>
+            <p className="font-medium mb-1" style={{ color: 'var(--color-warning)' }}>Debug Mode Active</p>
+            <p style={{ color: 'var(--theme-text-muted)' }}>
               Debug mode logs all API requests and responses. This may impact performance
               and will consume additional memory. Disable when not needed.
             </p>
@@ -143,9 +143,9 @@ export const DebugPanel: React.FC = () => {
           checked={promptConfirmation.isEnabled}
           onChange={(checked) => promptConfirmation.setEnabled(checked)}
         />
-        <div className="flex items-start gap-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg mt-3">
-          <Eye className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-          <div className="text-xs text-slate-400">
+        <div className="flex items-start gap-3 p-3 rounded-lg mt-3" style={{ backgroundColor: 'var(--color-info-subtle)', border: '1px solid var(--color-info-border)' }}>
+          <Eye className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--color-info)' }} />
+          <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
             When enabled, you'll see the exact prompt, system instruction, model, and token
             estimate before any request is sent to the AI provider. Useful for debugging
             and understanding what data is being shared.
@@ -166,14 +166,14 @@ export const DebugPanel: React.FC = () => {
         />
 
         {/* Stats */}
-        <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg mt-3">
+        <div className="flex items-center justify-between p-3 rounded-lg mt-3" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
           <div className="flex items-center gap-3">
-            <Sparkles className="w-4 h-4 text-purple-400" />
+            <Sparkles className="w-4 h-4" style={{ color: 'var(--color-feature)' }} />
             <div>
-              <div className="text-sm text-white">
+              <div className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>
                 {fileContextStats.trackedFiles} files tracked
               </div>
-              <div className="text-xs text-slate-500">
+              <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                 Turn {fileContextStats.currentTurn} • {fileContextStats.tokensSaved.toLocaleString()} tokens saved
               </div>
             </div>
@@ -181,16 +181,17 @@ export const DebugPanel: React.FC = () => {
           <button
             onClick={() => setShowClearFileContextConfirm(true)}
             disabled={fileContextStats.trackedFiles === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors disabled:opacity-50"
+            style={{ color: 'var(--color-warning)' }}
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Reset
           </button>
         </div>
 
-        <div className="flex items-start gap-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg mt-3">
-          <Sparkles className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-          <div className="text-xs text-slate-400">
+        <div className="flex items-start gap-3 p-3 rounded-lg mt-3" style={{ backgroundColor: 'var(--color-feature-subtle)', border: '1px solid var(--color-feature)' }}>
+          <Sparkles className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--color-feature)' }} />
+          <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
             When delta mode is enabled, the first prompt sends file summaries, and subsequent
             prompts only include files that have changed. This significantly reduces token
             usage for iterative conversations.
@@ -269,10 +270,10 @@ export const DebugPanel: React.FC = () => {
         title="Log Management"
         description={`Currently storing ${debugState.logs.length} log entries`}
       >
-        <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg">
+        <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
           <div>
-            <div className="text-sm text-white">{debugState.logs.length} entries</div>
-            <div className="text-xs text-slate-500">
+            <div className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>{debugState.logs.length} entries</div>
+            <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
               {debugState.logs.filter(l => l.type === 'error').length} errors,{' '}
               {debugState.logs.filter(l => l.type === 'request').length} requests
             </div>
@@ -280,7 +281,8 @@ export const DebugPanel: React.FC = () => {
           <button
             onClick={clearLogs}
             disabled={debugState.logs.length === 0}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors disabled:opacity-50"
+            style={{ color: 'var(--color-error)' }}
           >
             <Trash2 className="w-3.5 h-3.5" />
             Clear Logs
@@ -289,12 +291,12 @@ export const DebugPanel: React.FC = () => {
       </SettingsSection>
 
       {/* Info */}
-      <div className="p-4 bg-slate-800/50 rounded-lg">
+      <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
         <div className="flex items-start gap-3">
-          <Info className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5" />
+          <Info className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--theme-text-muted)' }} />
           <div>
-            <div className="text-sm text-slate-300 font-medium">Debug Panel Access</div>
-            <div className="text-xs text-slate-500 mt-1">
+            <div className="text-sm font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Debug Panel Access</div>
+            <div className="text-xs mt-1" style={{ color: 'var(--theme-text-dim)' }}>
               When debug mode is enabled, you can view detailed logs in the Debug tab
               of the preview panel. Use this to inspect AI requests, responses, and
               troubleshoot issues.

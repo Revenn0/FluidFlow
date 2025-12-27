@@ -5,6 +5,26 @@ All notable changes to FluidFlow will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2025-12-28
+
+### Added
+- Project screenshot lightbox for full-size preview before opening projects
+- Projects panel redesigned with 3-column vertical card layout
+- 4:3 aspect ratio thumbnail display with zoom overlay on hover
+- Resolution indicator in lightbox showing image dimensions
+
+### Changed
+- Screenshots now saved at 100% quality with no resizing or compression
+- Thumbnail field stores original full-quality image (CSS handles display sizing)
+- Binary file reading (PNG, JPG, etc.) properly converts to data URL
+- Projects panel uses responsive grid (1/2/3 columns based on viewport)
+
+### Fixed
+- **Critical:** `.fluidflow` folder no longer deleted during project save/auto-save
+- Added `.fluidflow` to `IGNORED_FOLDERS` to preserve screenshots and metadata
+- Fixed binary image corruption when reading screenshot files from server
+- Lightbox now correctly loads full-size screenshots from `.fluidflow/` folder
+
 ## [0.7.0] - 2025-12-26
 
 ### Added

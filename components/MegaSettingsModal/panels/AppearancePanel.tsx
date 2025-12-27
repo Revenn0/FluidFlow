@@ -31,7 +31,7 @@ const ThemeCard: React.FC<{
           className="absolute -top-2 -right-2 w-5 h-5 rounded-full flex items-center justify-center"
           style={{ backgroundColor: colors.accent }}
         >
-          <Check className="w-3 h-3 text-white" />
+          <Check className="w-3 h-3" style={{ color: 'var(--theme-text-on-accent)' }} />
         </div>
       )}
 
@@ -126,20 +126,41 @@ export const AppearancePanel: React.FC = () => {
         </div>
       </div>
 
-      {/* Theme Selection */}
+      {/* Dark Themes */}
       <SettingsSection
-        title="Theme"
-        description="Choose a theme that suits your style"
+        title="Dark Themes"
+        description="Dark modes for low-light environments"
       >
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-          {themeList.map((theme) => (
-            <ThemeCard
-              key={theme.id}
-              theme={theme}
-              isSelected={theme.id === themeId}
-              onSelect={() => setTheme(theme.id)}
-            />
-          ))}
+          {themeList
+            .filter((theme) => theme.monacoTheme === 'vs-dark')
+            .map((theme) => (
+              <ThemeCard
+                key={theme.id}
+                theme={theme}
+                isSelected={theme.id === themeId}
+                onSelect={() => setTheme(theme.id)}
+              />
+            ))}
+        </div>
+      </SettingsSection>
+
+      {/* Light Themes */}
+      <SettingsSection
+        title="Light Themes"
+        description="Bright modes for well-lit environments"
+      >
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {themeList
+            .filter((theme) => theme.monacoTheme === 'vs')
+            .map((theme) => (
+              <ThemeCard
+                key={theme.id}
+                theme={theme}
+                isSelected={theme.id === themeId}
+                onSelect={() => setTheme(theme.id)}
+              />
+            ))}
         </div>
       </SettingsSection>
 

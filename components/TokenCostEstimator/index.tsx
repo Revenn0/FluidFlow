@@ -29,7 +29,7 @@ export const TokenCostEstimator: React.FC<TokenCostEstimatorProps> = ({
 
   if (!pricing) {
     return (
-      <div className={`flex items-center gap-2 text-xs text-slate-500 ${className}`}>
+      <div className={`flex items-center gap-2 text-xs ${className}`} style={{ color: 'var(--theme-text-muted)' }}>
         <DollarSign className="w-4 h-4" />
         <span>Pricing not available for {model}</span>
       </div>
@@ -42,26 +42,24 @@ export const TokenCostEstimator: React.FC<TokenCostEstimatorProps> = ({
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="flex items-center gap-2 text-xs">
-        <DollarSign className="w-4 h-4 text-green-400" />
-        <span className="text-slate-400">Est. Cost:</span>
-        <span className={`font-mono font-semibold ${
-          isFree ? 'text-green-400' : 'text-white'
-        }`}>
+        <DollarSign className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
+        <span style={{ color: 'var(--theme-text-muted)' }}>Est. Cost:</span>
+        <span className="font-mono font-semibold" style={{ color: isFree ? 'var(--color-success)' : 'var(--theme-text-primary)' }}>
           {isFree ? 'Free' : formatCost(estimate.totalCost, estimate.currency)}
         </span>
       </div>
 
       {/* Token breakdown */}
-      <div className="flex items-center gap-3 text-xs text-slate-500">
+      <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-blue-400" />
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-info)' }} />
           <span>In: {inputTokens.toLocaleString()}</span>
         </span>
         <span className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full bg-purple-400" />
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--color-feature)' }} />
           <span>Out: {outputTokens.toLocaleString()}</span>
         </span>
-        <span className="font-mono text-slate-400">
+        <span className="font-mono" style={{ color: 'var(--theme-text-muted)' }}>
           ({totalTokens.toLocaleString()} total)
         </span>
       </div>

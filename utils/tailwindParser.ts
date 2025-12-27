@@ -355,22 +355,22 @@ export function getCategoryDisplayName(category: TailwindCategory): string {
 }
 
 /**
- * Get category icon/color for UI
+ * Get category color for UI as CSS custom property value
  */
 export function getCategoryColor(category: TailwindCategory): string {
   const colors: Record<TailwindCategory, string> = {
-    layout: 'text-blue-400',
-    flexbox: 'text-purple-400',
-    grid: 'text-indigo-400',
-    spacing: 'text-green-400',
-    sizing: 'text-teal-400',
-    typography: 'text-amber-400',
-    colors: 'text-pink-400',
-    borders: 'text-orange-400',
-    effects: 'text-cyan-400',
-    transforms: 'text-violet-400',
-    interactivity: 'text-emerald-400',
-    other: 'text-slate-400',
+    layout: 'var(--color-info)',
+    flexbox: 'var(--color-feature)',
+    grid: 'var(--color-feature)',
+    spacing: 'var(--color-success)',
+    sizing: 'var(--color-info)',
+    typography: 'var(--color-warning)',
+    colors: 'var(--color-feature)',
+    borders: 'var(--color-warning)',
+    effects: 'var(--color-info)',
+    transforms: 'var(--color-feature)',
+    interactivity: 'var(--color-success)',
+    other: 'var(--theme-text-muted)',
   };
   return colors[category];
 }

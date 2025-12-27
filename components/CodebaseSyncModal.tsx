@@ -105,18 +105,27 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 backdrop-blur-sm" style={{ backgroundColor: 'var(--theme-modal-overlay)' }} onClick={onClose} />
 
-      <div className="relative bg-slate-900 border border-white/10 rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+      <div
+        className="relative rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col"
+        style={{
+          backgroundColor: 'var(--theme-surface)',
+          border: '1px solid var(--theme-border)'
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div
+          className="flex items-center justify-between p-4"
+          style={{ borderBottom: '1px solid var(--theme-border)' }}
+        >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-purple-400" />
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--theme-accent-subtle)' }}>
+              <Sparkles className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Generate AI Context</h2>
-              <p className="text-sm text-white/60">
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Generate AI Context</h2>
+              <p className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>
                 {phase === 'ready' && 'Create project summaries for consistent AI responses'}
                 {phase === 'generating' && progress}
                 {phase === 'complete' && 'Context generated successfully!'}
@@ -124,8 +133,8 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-            <X className="w-5 h-5 text-white/60" />
+          <button onClick={onClose} className="p-2 rounded-lg transition-colors" style={{ color: 'var(--theme-text-muted)' }}>
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -135,47 +144,47 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
           {phase === 'ready' && (
             <>
               {/* Project Stats */}
-              <div className="p-4 bg-white/5 rounded-lg">
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                 <div className="flex items-center gap-3 mb-3">
-                  <FileCode className="w-5 h-5 text-blue-400" />
-                  <span className="font-medium text-white">Project Overview</span>
+                  <FileCode className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
+                  <span className="font-medium" style={{ color: 'var(--theme-text-primary)' }}>Project Overview</span>
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
-                    <div className="text-2xl font-bold text-white">{stats.fileCount}</div>
-                    <div className="text-xs text-white/50">Files</div>
+                    <div className="text-2xl font-bold" style={{ color: 'var(--theme-text-primary)' }}>{stats.fileCount}</div>
+                    <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Files</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-white">{stats.lineCount.toLocaleString()}</div>
-                    <div className="text-xs text-white/50">Lines</div>
+                    <div className="text-2xl font-bold" style={{ color: 'var(--theme-text-primary)' }}>{stats.lineCount.toLocaleString()}</div>
+                    <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Lines</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-white">~{Math.round(stats.tokenCount / 1000)}K</div>
-                    <div className="text-xs text-white/50">Tokens</div>
+                    <div className="text-2xl font-bold" style={{ color: 'var(--theme-text-primary)' }}>~{Math.round(stats.tokenCount / 1000)}K</div>
+                    <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Tokens</div>
                   </div>
                 </div>
               </div>
 
               {/* What will be generated */}
               <div className="space-y-3">
-                <div className="text-sm text-white/60 font-medium">What will be generated:</div>
+                <div className="text-sm font-medium" style={{ color: 'var(--theme-text-secondary)' }}>What will be generated:</div>
 
-                <div className="p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-                  <div className="flex items-center gap-2 text-purple-400 mb-2">
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-ai-accent-subtle)', border: '1px solid var(--theme-ai-accent)' }}>
+                  <div className="flex items-center gap-2 mb-2" style={{ color: 'var(--theme-ai-accent)' }}>
                     <Palette className="w-4 h-4" />
                     <span className="font-medium">Style Guide</span>
                   </div>
-                  <div className="text-sm text-white/60">
+                  <div className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>
                     Colors, typography, visual patterns, code conventions, component list
                   </div>
                 </div>
 
-                <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                  <div className="flex items-center gap-2 text-blue-400 mb-2">
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-accent-subtle)', border: '1px solid var(--theme-accent)' }}>
+                  <div className="flex items-center gap-2 mb-2" style={{ color: 'var(--theme-accent)' }}>
                     <FolderTree className="w-4 h-4" />
                     <span className="font-medium">Project Summary</span>
                   </div>
-                  <div className="text-sm text-white/60">
+                  <div className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>
                     Purpose, architecture, key files, features, tech stack
                   </div>
                 </div>
@@ -183,8 +192,8 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
 
               {/* Existing context warning */}
               {existingContext && (
-                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                  <div className="text-sm text-amber-300">
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)' }}>
+                  <div className="text-sm" style={{ color: 'var(--color-warning-text)' }}>
                     ⚠️ This project already has a context (generated {new Date(existingContext.generatedAt).toLocaleDateString()}).
                     Generating again will replace it.
                   </div>
@@ -192,12 +201,12 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
               )}
 
               {/* Benefits */}
-              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                <div className="flex items-center gap-2 text-green-400 mb-2">
+              <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--color-success-subtle)', border: '1px solid var(--color-success-border)' }}>
+                <div className="flex items-center gap-2 mb-2" style={{ color: 'var(--color-success)' }}>
                   <Zap className="w-4 h-4" />
                   <span className="font-medium">Benefits</span>
                 </div>
-                <ul className="text-sm text-white/60 space-y-1">
+                <ul className="text-sm space-y-1" style={{ color: 'var(--theme-text-secondary)' }}>
                   <li>• AI maintains consistent style across all responses</li>
                   <li>• Works even after page refresh (persisted locally)</li>
                   <li>• Only ~1K tokens added to each prompt (not 50K+)</li>
@@ -210,57 +219,59 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
           {/* Generating State */}
           {phase === 'generating' && (
             <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="w-12 h-12 text-purple-400 animate-spin mb-4" />
-              <div className="text-white font-medium mb-2">Analyzing codebase...</div>
-              <div className="text-sm text-white/60">{progress}</div>
-              <div className="text-xs text-white/40 mt-4">This may take 10-30 seconds</div>
+              <Loader2 className="w-12 h-12 animate-spin mb-4" style={{ color: 'var(--theme-accent)' }} />
+              <div className="font-medium mb-2" style={{ color: 'var(--theme-text-primary)' }}>Analyzing codebase...</div>
+              <div className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>{progress}</div>
+              <div className="text-xs mt-4" style={{ color: 'var(--theme-text-muted)' }}>This may take 10-30 seconds</div>
             </div>
           )}
 
           {/* Complete State */}
           {phase === 'complete' && context && (
             <div className="space-y-4">
-              <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
-                <div className="flex items-center gap-2 text-green-400 mb-2">
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-success-subtle)', border: '1px solid var(--color-success-border)' }}>
+                <div className="flex items-center gap-2 mb-2" style={{ color: 'var(--color-success)' }}>
                   <CheckCircle2 className="w-5 h-5" />
                   <span className="font-medium">Context Generated Successfully!</span>
                 </div>
-                <div className="text-sm text-white/60">
+                <div className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>
                   Your project context will be included in all future AI prompts.
                 </div>
               </div>
 
               {/* Style Guide Display */}
-              <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                <div className="flex items-center gap-2 text-purple-400 mb-3">
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-ai-accent-subtle)', border: '1px solid var(--theme-ai-accent)' }}>
+                <div className="flex items-center gap-2 mb-3" style={{ color: 'var(--theme-ai-accent)' }}>
                   <Palette className="w-5 h-5" />
                   <span className="font-medium">Style Guide</span>
                 </div>
 
-                <div className="text-sm text-white/80 mb-3">
+                <div className="text-sm mb-3" style={{ color: 'var(--theme-text-primary)' }}>
                   {context.styleGuide.summary}
                 </div>
 
                 {/* Colors */}
                 {Object.keys(context.styleGuide.colors).length > 0 && (
                   <div className="mb-3">
-                    <div className="text-xs text-white/50 mb-1">Colors</div>
+                    <div className="text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>Colors</div>
                     <div className="flex flex-wrap gap-2">
                       {Object.entries(context.styleGuide.colors)
                         .filter(([_, v]) => v)
                         .map(([name, value]) => (
                           <div
                             key={name}
-                            className="flex items-center gap-1.5 px-2 py-1 bg-black/30 rounded text-xs"
+                            className="flex items-center gap-1.5 px-2 py-1 rounded text-xs"
+                            style={{ backgroundColor: 'var(--theme-glass-200)' }}
                           >
                             <div
-                              className="w-3 h-3 rounded-full border border-white/20"
+                              className="w-3 h-3 rounded-full"
                               style={{
                                 backgroundColor: value?.startsWith('#') ? value : undefined,
+                                border: '1px solid var(--theme-border)'
                               }}
                             />
-                            <span className="text-white/60">{name}:</span>
-                            <span className="text-white/80">{value}</span>
+                            <span style={{ color: 'var(--theme-text-secondary)' }}>{name}:</span>
+                            <span style={{ color: 'var(--theme-text-primary)' }}>{value}</span>
                           </div>
                         ))}
                     </div>
@@ -271,9 +282,9 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
                 <div className="grid grid-cols-3 gap-3 mb-3">
                   {/* Typography */}
                   {context.styleGuide.typography?.fontFamily && (
-                    <div className="p-2 bg-black/20 rounded">
-                      <div className="text-xs text-white/50 mb-1">Typography</div>
-                      <div className="text-xs text-white/70 space-y-0.5">
+                    <div className="p-2 rounded" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                      <div className="text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>Typography</div>
+                      <div className="text-xs space-y-0.5" style={{ color: 'var(--theme-text-secondary)' }}>
                         {context.styleGuide.typography?.fontFamily && (
                           <div>Font: {context.styleGuide.typography.fontFamily}</div>
                         )}
@@ -288,9 +299,9 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
 
                   {/* Borders */}
                   {context.styleGuide.borders?.radius && (
-                    <div className="p-2 bg-black/20 rounded">
-                      <div className="text-xs text-white/50 mb-1">Borders</div>
-                      <div className="text-xs text-white/70 space-y-0.5">
+                    <div className="p-2 rounded" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                      <div className="text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>Borders</div>
+                      <div className="text-xs space-y-0.5" style={{ color: 'var(--theme-text-secondary)' }}>
                         {context.styleGuide.borders?.radius && (
                           <div>Radius: {context.styleGuide.borders.radius}</div>
                         )}
@@ -305,9 +316,9 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
 
                   {/* Effects */}
                   {(context.styleGuide.effects?.shadow || context.styleGuide.effects?.blur) && (
-                    <div className="p-2 bg-black/20 rounded">
-                      <div className="text-xs text-white/50 mb-1">Effects</div>
-                      <div className="text-xs text-white/70 space-y-0.5">
+                    <div className="p-2 rounded" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                      <div className="text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>Effects</div>
+                      <div className="text-xs space-y-0.5" style={{ color: 'var(--theme-text-secondary)' }}>
                         {context.styleGuide.effects?.shadow && (
                           <div className="truncate" title={context.styleGuide.effects.shadow}>
                             Shadow: {context.styleGuide.effects.shadow}
@@ -326,20 +337,20 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
                 {/* Spacing */}
                 {(context.styleGuide.spacing?.containerPadding || context.styleGuide.spacing?.elementGap) && (
                   <div className="mb-3">
-                    <div className="text-xs text-white/50 mb-1">Spacing</div>
+                    <div className="text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>Spacing</div>
                     <div className="flex flex-wrap gap-2 text-xs">
                       {context.styleGuide.spacing?.containerPadding && (
-                        <span className="px-2 py-0.5 bg-black/30 rounded text-white/70">
+                        <span className="px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-secondary)' }}>
                           Padding: {context.styleGuide.spacing.containerPadding}
                         </span>
                       )}
                       {context.styleGuide.spacing?.elementGap && (
-                        <span className="px-2 py-0.5 bg-black/30 rounded text-white/70">
+                        <span className="px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-secondary)' }}>
                           Gap: {context.styleGuide.spacing.elementGap}
                         </span>
                       )}
                       {context.styleGuide.spacing?.sectionSpacing && (
-                        <span className="px-2 py-0.5 bg-black/30 rounded text-white/70">
+                        <span className="px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-secondary)' }}>
                           Sections: {context.styleGuide.spacing.sectionSpacing}
                         </span>
                       )}
@@ -350,12 +361,13 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
                 {/* Patterns */}
                 {context.styleGuide.patterns?.length > 0 && (
                   <div className="mb-3">
-                    <div className="text-xs text-white/50 mb-1">Design Patterns</div>
+                    <div className="text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>Design Patterns</div>
                     <div className="flex flex-wrap gap-1.5">
                       {context.styleGuide.patterns.map((pattern, i) => (
                         <span
                           key={i}
-                          className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded text-xs"
+                          className="px-2 py-0.5 rounded text-xs"
+                          style={{ backgroundColor: 'var(--theme-ai-accent-subtle)', color: 'var(--theme-ai-accent)' }}
                         >
                           {pattern}
                         </span>
@@ -367,8 +379,8 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
                 {/* Components */}
                 {context.styleGuide.components?.length > 0 && (
                   <div>
-                    <div className="text-xs text-white/50 mb-1">Components</div>
-                    <div className="text-xs text-white/60">
+                    <div className="text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>Components</div>
+                    <div className="text-xs" style={{ color: 'var(--theme-text-secondary)' }}>
                       {context.styleGuide.components.join(', ')}
                     </div>
                   </div>
@@ -376,36 +388,36 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
               </div>
 
               {/* Project Summary Display */}
-              <div className="p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                <div className="flex items-center gap-2 text-blue-400 mb-3">
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-accent-subtle)', border: '1px solid var(--theme-accent)' }}>
+                <div className="flex items-center gap-2 mb-3" style={{ color: 'var(--theme-accent)' }}>
                   <FolderTree className="w-5 h-5" />
                   <span className="font-medium">Project Summary</span>
                 </div>
 
-                <div className="text-sm text-white/80 mb-3">
+                <div className="text-sm mb-3" style={{ color: 'var(--theme-text-primary)' }}>
                   {context.projectSummary.summary}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <div className="text-xs text-white/50 mb-1">Purpose</div>
-                    <div className="text-white/70">{context.projectSummary.purpose}</div>
+                    <div className="text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>Purpose</div>
+                    <div style={{ color: 'var(--theme-text-secondary)' }}>{context.projectSummary.purpose}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-white/50 mb-1">Architecture</div>
-                    <div className="text-white/70">{context.projectSummary.architecture}</div>
+                    <div className="text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>Architecture</div>
+                    <div style={{ color: 'var(--theme-text-secondary)' }}>{context.projectSummary.architecture}</div>
                   </div>
                 </div>
 
                 {/* Key Files */}
                 {Object.keys(context.projectSummary.keyFiles).length > 0 && (
                   <div className="mt-3">
-                    <div className="text-xs text-white/50 mb-1">Key Files</div>
+                    <div className="text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>Key Files</div>
                     <div className="space-y-1">
                       {Object.entries(context.projectSummary.keyFiles).map(([path, desc]) => (
                         <div key={path} className="text-xs">
-                          <span className="text-blue-400">{path}</span>
-                          <span className="text-white/40"> - {desc}</span>
+                          <span style={{ color: 'var(--theme-accent)' }}>{path}</span>
+                          <span style={{ color: 'var(--theme-text-muted)' }}> - {desc}</span>
                         </div>
                       ))}
                     </div>
@@ -415,12 +427,13 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
                 {/* Tech Stack */}
                 {context.projectSummary.techStack.length > 0 && (
                   <div className="mt-3">
-                    <div className="text-xs text-white/50 mb-1">Tech Stack</div>
+                    <div className="text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>Tech Stack</div>
                     <div className="flex flex-wrap gap-1.5">
                       {context.projectSummary.techStack.map((tech, i) => (
                         <span
                           key={i}
-                          className="px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded text-xs"
+                          className="px-2 py-0.5 rounded text-xs"
+                          style={{ backgroundColor: 'var(--theme-accent-subtle)', color: 'var(--theme-accent)' }}
                         >
                           {tech}
                         </span>
@@ -431,7 +444,7 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
               </div>
 
               {/* Token info */}
-              <div className="text-center text-xs text-white/40">
+              <div className="text-center text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                 Combined context: ~{Math.ceil(context.combinedPrompt.length / 4)} tokens
                 (included in every AI prompt)
               </div>
@@ -440,30 +453,38 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
 
           {/* Error State */}
           {phase === 'error' && (
-            <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-              <div className="flex items-center gap-2 text-red-400 mb-2">
+            <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)' }}>
+              <div className="flex items-center gap-2 mb-2" style={{ color: 'var(--color-error)' }}>
                 <XCircle className="w-5 h-5" />
                 <span className="font-medium">Generation Failed</span>
               </div>
-              <div className="text-sm text-red-300">{error}</div>
+              <div className="text-sm" style={{ color: 'var(--color-error-text)' }}>{error}</div>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/10 flex items-center justify-end gap-3">
+        <div
+          className="p-4 flex items-center justify-end gap-3"
+          style={{ borderTop: '1px solid var(--theme-border)' }}
+        >
           {phase === 'ready' && (
             <>
               <button
                 onClick={onClose}
-                className="px-4 py-2 text-sm text-white/60 hover:text-white transition-colors"
+                className="px-4 py-2 text-sm transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleGenerate}
                 disabled={!projectId}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-white/10 disabled:text-white/40 text-white rounded-lg transition-colors text-sm font-medium"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium disabled:opacity-40"
+                style={{
+                  backgroundColor: 'var(--theme-ai-accent)',
+                  color: 'var(--theme-text-on-accent)'
+                }}
               >
                 <Sparkles className="w-4 h-4" />
                 Generate Context
@@ -472,7 +493,7 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
           )}
 
           {phase === 'generating' && (
-            <div className="text-sm text-white/40">
+            <div className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>
               Please wait...
             </div>
           )}
@@ -481,13 +502,18 @@ export const CodebaseSyncModal: React.FC<CodebaseSyncModalProps> = ({
             <>
               <button
                 onClick={handleReset}
-                className="px-4 py-2 text-sm text-white/60 hover:text-white transition-colors"
+                className="px-4 py-2 text-sm transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
               >
                 Generate Again
               </button>
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors text-sm font-medium"
+                className="px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                style={{
+                  backgroundColor: 'var(--theme-ai-accent)',
+                  color: 'var(--theme-text-on-accent)'
+                }}
               >
                 Done
               </button>

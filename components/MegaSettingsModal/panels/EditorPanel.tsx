@@ -29,12 +29,12 @@ export const EditorPanel: React.FC = () => {
     <div className="p-6 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-500/20 rounded-lg">
-          <Code className="w-5 h-5 text-blue-400" />
+        <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-accent-subtle)' }}>
+          <Code className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">Editor Settings</h2>
-          <p className="text-xs text-slate-400">Configure code editor appearance and behavior</p>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Editor Settings</h2>
+          <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Configure code editor appearance and behavior</p>
         </div>
       </div>
 
@@ -183,11 +183,11 @@ export const EditorPanel: React.FC = () => {
             <button
               key={theme.value}
               onClick={() => updateSettings({ theme: theme.value as 'vs-dark' | 'vs' | 'hc-black' })}
-              className={`p-3 rounded-lg border text-center transition-all ${
-                settings.theme === theme.value
-                  ? 'border-blue-500/50 bg-blue-500/10'
-                  : 'border-white/10 hover:border-white/20'
-              }`}
+              className="p-3 rounded-lg border text-center transition-all"
+              style={{
+                borderColor: settings.theme === theme.value ? 'var(--theme-accent)' : 'var(--theme-border)',
+                backgroundColor: settings.theme === theme.value ? 'var(--theme-accent-subtle)' : 'transparent'
+              }}
             >
               <div className="flex gap-1 justify-center mb-2">
                 {theme.colors.map((color, i) => (
@@ -198,7 +198,7 @@ export const EditorPanel: React.FC = () => {
                   />
                 ))}
               </div>
-              <div className="text-sm text-white">{theme.label}</div>
+              <div className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>{theme.label}</div>
             </button>
           ))}
         </div>

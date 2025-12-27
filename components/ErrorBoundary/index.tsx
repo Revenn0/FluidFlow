@@ -106,29 +106,38 @@ function DefaultErrorFallback({
 }: DefaultErrorFallbackProps) {
   const isDev = process.env.NODE_ENV === 'development';
 
+  const getCategoryStyle = () => {
+    switch (state.errorCategory) {
+      case 'network':
+        return { bg: 'var(--color-info-subtle)', color: 'var(--color-info)' };
+      case 'render':
+        return { bg: 'var(--color-feature-subtle)', color: 'var(--color-feature)' };
+      default:
+        return { bg: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' };
+    }
+  };
+
+  const categoryStyle = getCategoryStyle();
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-4">
-      <div className="w-full max-w-2xl bg-slate-900 border border-red-500/30 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: 'var(--theme-modal-overlay)' }}>
+      <div className="w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in fade-in duration-300" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--color-error-border)' }}>
         {/* Header */}
-        <div className="p-6 border-b border-red-500/20 bg-gradient-to-r from-red-500/10 to-orange-500/10">
+        <div className="p-6" style={{ borderBottom: '1px solid var(--color-error-border)', background: 'linear-gradient(to right, var(--color-error-subtle), var(--color-warning-subtle))' }}>
           <div className="flex items-start gap-4">
-            <div className="p-3 bg-red-500/20 rounded-xl">
-              <AlertTriangle className="w-6 h-6 text-red-400" />
+            <div className="p-3 rounded-xl" style={{ backgroundColor: 'var(--color-error-subtle)' }}>
+              <AlertTriangle className="w-6 h-6" style={{ color: 'var(--color-error)' }} />
             </div>
             <div className="flex-1">
-              <h1 className="text-xl font-semibold text-white mb-1">
+              <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--theme-text-primary)' }}>
                 Something went wrong
               </h1>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                 {boundaryName ? `Error in ${boundaryName}` : 'An unexpected error occurred'}
               </p>
             </div>
             <div className="text-right">
-              <span className={`px-2 py-1 text-xs font-mono rounded-md ${
-                state.errorCategory === 'network' ? 'bg-blue-500/20 text-blue-400' :
-                state.errorCategory === 'render' ? 'bg-purple-500/20 text-purple-400' :
-                'bg-slate-500/20 text-slate-400'
-              }`}>
+              <span className="px-2 py-1 text-xs font-mono rounded-md" style={{ backgroundColor: categoryStyle.bg, color: categoryStyle.color }}>
                 {state.errorCategory.toUpperCase()}
               </span>
             </div>
@@ -139,11 +148,11 @@ function DefaultErrorFallback({
         <div className="p-6 max-h-[40vh] overflow-y-auto">
           {state.error && (
             <div className="mb-4">
-              <h3 className="text-sm font-medium text-red-400 mb-2 flex items-center gap-2">
+              <h3 className="text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--color-error)' }}>
                 <Bug className="w-4 h-4" />
                 Error Message
               </h3>
-              <p className="text-sm text-slate-300 font-mono bg-slate-950/50 p-3 rounded-lg border border-white/5">
+              <p className="text-sm font-mono p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-secondary)' }}>
                 {state.error.message}
               </p>
             </div>
@@ -151,10 +160,10 @@ function DefaultErrorFallback({
 
           {isDev && state.error?.stack && (
             <details className="mb-4">
-              <summary className="text-sm font-medium text-slate-400 cursor-pointer hover:text-white transition-colors">
+              <summary className="text-sm font-medium cursor-pointer transition-colors" style={{ color: 'var(--theme-text-muted)' }}>
                 Stack Trace
               </summary>
-              <pre className="mt-2 p-3 text-xs bg-slate-950/50 rounded-lg border border-white/5 overflow-x-auto text-slate-400">
+              <pre className="mt-2 p-3 text-xs rounded-lg overflow-x-auto" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-muted)' }}>
                 {state.error.stack}
               </pre>
             </details>
@@ -162,18 +171,18 @@ function DefaultErrorFallback({
 
           {isDev && state.errorInfo?.componentStack && (
             <details className="mb-4">
-              <summary className="text-sm font-medium text-slate-400 cursor-pointer hover:text-white transition-colors">
+              <summary className="text-sm font-medium cursor-pointer transition-colors" style={{ color: 'var(--theme-text-muted)' }}>
                 Component Stack
               </summary>
-              <pre className="mt-2 p-3 text-xs bg-slate-950/50 rounded-lg border border-white/5 overflow-x-auto text-slate-400">
+              <pre className="mt-2 p-3 text-xs rounded-lg overflow-x-auto" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-muted)' }}>
                 {state.errorInfo.componentStack}
               </pre>
             </details>
           )}
 
           {state.retryCount > 0 && (
-            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-              <p className="text-xs text-amber-400">
+            <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)' }}>
+              <p className="text-xs" style={{ color: 'var(--color-warning)' }}>
                 Retry attempt {state.retryCount} failed. If this persists, try resetting or export the error report.
               </p>
             </div>
@@ -181,10 +190,11 @@ function DefaultErrorFallback({
         </div>
 
         {/* Actions */}
-        <div className="p-4 border-t border-white/5 bg-slate-950/50 flex flex-wrap gap-3">
+        <div className="p-4 flex flex-wrap gap-3" style={{ borderTop: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-glass-100)' }}>
           <button
             onClick={onReset}
-            className="flex-1 min-w-[140px] px-4 py-2.5 text-sm font-medium text-white bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="flex-1 min-w-[140px] px-4 py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+            style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-primary)' }}
           >
             <RefreshCw className="w-4 h-4" />
             Reset
@@ -193,7 +203,8 @@ function DefaultErrorFallback({
           {state.retryCount < 3 && (
             <button
               onClick={onRetry}
-              className="flex-1 min-w-[140px] px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+              className="flex-1 min-w-[140px] px-4 py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+              style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
             >
               <RefreshCw className="w-4 h-4" />
               Try Again
@@ -202,7 +213,8 @@ function DefaultErrorFallback({
 
           <button
             onClick={onExportReport}
-            className="px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors flex items-center justify-center gap-2"
+            className="px-4 py-2.5 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Export error report as JSON"
           >
             <Download className="w-4 h-4" />

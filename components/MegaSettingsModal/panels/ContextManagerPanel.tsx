@@ -82,21 +82,21 @@ export const ContextManagerPanel: React.FC = () => {
     <div className="p-6 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-500/20 rounded-lg">
-          <MessageSquare className="w-5 h-5 text-blue-400" />
+        <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-info-subtle)' }}>
+          <MessageSquare className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">Context Manager</h2>
-          <p className="text-xs text-slate-400">Configure conversation context and token limits</p>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Context Manager</h2>
+          <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Configure conversation context and token limits</p>
         </div>
       </div>
 
       {/* Info Box */}
-      <div className="flex items-start gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-        <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-        <div className="text-sm text-slate-300">
-          <p className="font-medium text-blue-400 mb-1">How Context Management Works</p>
-          <p className="text-slate-400">
+      <div className="flex items-start gap-3 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-info-subtle)', border: '1px solid var(--color-info-border)' }}>
+        <Info className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--color-info)' }} />
+        <div className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>
+          <p className="font-medium mb-1" style={{ color: 'var(--color-info)' }}>How Context Management Works</p>
+          <p style={{ color: 'var(--theme-text-muted)' }}>
             As conversations grow, the context window fills up. When the <strong>remaining context space</strong> falls
             below the minimum threshold, older messages are summarized to free up space while preserving
             important information. This ensures the AI always has enough room to generate meaningful responses.
@@ -162,7 +162,8 @@ export const ContextManagerPanel: React.FC = () => {
             <div className="flex justify-end mb-2">
               <button
                 onClick={clearCompactionLogs}
-                className="flex items-center gap-1.5 px-2 py-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
+                className="flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors"
+                style={{ color: 'var(--color-error)' }}
               >
                 <Trash2 className="w-3 h-3" />
                 Clear All
@@ -172,33 +173,34 @@ export const ContextManagerPanel: React.FC = () => {
               {compactionLogs.slice().reverse().map(log => (
                 <div
                   key={log.id}
-                  className="p-3 bg-slate-800/50 border border-white/5 rounded-lg"
+                  className="p-3 rounded-lg"
+                  style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}
                 >
                   <div
                     className="flex items-center justify-between cursor-pointer"
                     onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
                   >
                     <div className="flex items-center gap-3">
-                      <RefreshCw className="w-4 h-4 text-blue-400" />
+                      <RefreshCw className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
                       <div>
-                        <div className="text-sm text-white">
+                        <div className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>
                           {formatTokens(log.beforeTokens)} → {formatTokens(log.afterTokens)} tokens
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                           {formatDate(log.timestamp)} • {log.messagesSummarized} messages summarized
                         </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-green-400">
+                      <span className="text-xs" style={{ color: 'var(--color-success)' }}>
                         -{formatTokens(log.beforeTokens - log.afterTokens)}
                       </span>
                     </div>
                   </div>
                   {expandedLog === log.id && (
-                    <div className="mt-3 pt-3 border-t border-white/5">
-                      <div className="text-xs text-slate-400 mb-1">Summary:</div>
-                      <div className="text-sm text-slate-300 whitespace-pre-wrap bg-slate-900/50 p-2 rounded">
+                    <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
+                      <div className="text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>Summary:</div>
+                      <div className="text-sm whitespace-pre-wrap p-2 rounded" style={{ color: 'var(--theme-text-secondary)', backgroundColor: 'var(--theme-glass-300)' }}>
                         {log.summary}
                       </div>
                     </div>
@@ -208,7 +210,7 @@ export const ContextManagerPanel: React.FC = () => {
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-center py-8 text-slate-500">
+          <div className="flex items-center justify-center py-8" style={{ color: 'var(--theme-text-muted)' }}>
             <div className="text-center">
               <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No compaction logs yet</p>
@@ -228,7 +230,8 @@ export const ContextManagerPanel: React.FC = () => {
             <div className="flex justify-end mb-2">
               <button
                 onClick={() => setShowDeleteAllContextsConfirm(true)}
-                className="flex items-center gap-1.5 px-2 py-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
+                className="flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors"
+                style={{ color: 'var(--color-error)' }}
               >
                 <Trash2 className="w-3 h-3" />
                 Delete All
@@ -238,18 +241,19 @@ export const ContextManagerPanel: React.FC = () => {
               {storedContexts.map(ctx => (
                 <div
                   key={ctx.id}
-                  className="flex items-center justify-between p-3 bg-slate-800/50 border border-white/5 rounded-lg"
+                  className="flex items-center justify-between p-3 rounded-lg"
+                  style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}
                 >
                   <div className="flex items-center gap-3">
-                    <MessageSquare className="w-4 h-4 text-blue-400" />
+                    <MessageSquare className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
                     <div>
-                      <div className="text-sm text-white">{ctx.name}</div>
-                      <div className="text-xs text-slate-500">
+                      <div className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>{ctx.name}</div>
+                      <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                         {ctx.messages} message{ctx.messages !== 1 ? 's' : ''} • {formatTokens(ctx.tokens)} tokens
                       </div>
                     </div>
                   </div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                     {formatDate(ctx.lastUpdated)}
                   </div>
                 </div>
@@ -257,7 +261,7 @@ export const ContextManagerPanel: React.FC = () => {
             </div>
           </>
         ) : (
-          <div className="flex items-center justify-center py-8 text-slate-500">
+          <div className="flex items-center justify-center py-8" style={{ color: 'var(--theme-text-muted)' }}>
             <div className="text-center">
               <Database className="w-8 h-8 mx-auto mb-2 opacity-50" />
               <p className="text-sm">No stored contexts</p>
@@ -281,9 +285,9 @@ export const ContextManagerPanel: React.FC = () => {
             { id: 'code-review', name: 'Code Review', desc: 'Code analysis' },
             { id: 'db-studio', name: 'DB Studio', desc: 'Database operations' },
           ].map(ctx => (
-            <div key={ctx.id} className="p-2 bg-slate-800/30 rounded-lg">
-              <div className="text-sm text-white">{ctx.name}</div>
-              <div className="text-xs text-slate-500">{ctx.desc}</div>
+            <div key={ctx.id} className="p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+              <div className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>{ctx.name}</div>
+              <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>{ctx.desc}</div>
             </div>
           ))}
         </div>

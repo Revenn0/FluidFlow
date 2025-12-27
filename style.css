@@ -7,7 +7,13 @@ html, body, #root {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
+  /* Use overflow: clip instead of hidden - stronger, doesn't create scroll container */
+  overflow: clip !important;
+  /* Prevent any scroll behavior */
+  overscroll-behavior: none;
+  /* Prevent scroll chaining from iframes */
+  overscroll-behavior-y: none;
+  overscroll-behavior-x: none;
 }
 
 /* Ensure root fills available space correctly */
@@ -15,6 +21,9 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   min-height: 0; /* Important for flex children */
+  /* Fixed positioning ensures the root can never be pushed/scrolled */
+  position: fixed;
+  inset: 0;
 }
 
 body {
@@ -58,4 +67,1098 @@ body {
 .theme-transition *::before,
 .theme-transition *::after {
   transition: background-color 0.3s ease, border-color 0.3s ease, color 0.2s ease !important;
+}
+
+/* ============================================
+   LIGHT THEME COMPREHENSIVE OVERRIDES
+   Using :is() selector for clean grouping
+   ============================================ */
+
+/* Light theme selector shorthand */
+:root:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) {
+  /* Define override variables for light themes */
+  --tw-override-text: var(--theme-text-primary);
+  --tw-override-text-secondary: var(--theme-text-secondary);
+  --tw-override-text-muted: var(--theme-text-muted);
+  --tw-override-bg: var(--theme-surface);
+  --tw-override-border: var(--theme-border);
+}
+
+/* ==== BACKGROUND OVERRIDES ==== */
+
+/* Solid dark backgrounds → light surface */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-slate-950,
+  .bg-slate-900,
+  .bg-slate-800,
+  .bg-slate-700
+) {
+  background-color: var(--theme-surface) !important;
+}
+
+/* Semi-transparent dark backgrounds → light glass */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-slate-950\/30,
+  .bg-slate-950\/50,
+  .bg-slate-950\/70,
+  .bg-slate-900\/30,
+  .bg-slate-900\/50,
+  .bg-slate-900\/70,
+  .bg-slate-800\/30,
+  .bg-slate-800\/50,
+  .bg-slate-800\/70,
+  .bg-slate-700\/30,
+  .bg-slate-700\/50
+) {
+  background-color: var(--theme-glass-100) !important;
+}
+
+/* White semi-transparent → light glass (subtle) */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-white\/5,
+  .bg-white\/10,
+  .bg-white\/20
+) {
+  background-color: var(--theme-glass-200) !important;
+}
+
+/* Black semi-transparent → light glass */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-black\/20,
+  .bg-black\/30,
+  .bg-black\/40,
+  .bg-black\/50,
+  .bg-black\/60
+) {
+  background-color: var(--theme-glass-300) !important;
+}
+
+/* ==== HOVER BACKGROUND OVERRIDES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .hover\:bg-slate-900:hover,
+  .hover\:bg-slate-800:hover,
+  .hover\:bg-slate-700:hover,
+  .hover\:bg-slate-800\/70:hover,
+  .hover\:bg-slate-700\/50:hover
+) {
+  background-color: var(--theme-surface-hover) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .hover\:bg-white\/5:hover,
+  .hover\:bg-white\/10:hover,
+  .hover\:bg-white\/20:hover
+) {
+  background-color: var(--theme-glass-300) !important;
+}
+
+/* ==== TEXT COLOR OVERRIDES ==== */
+
+/* Primary text (bright in dark = dark in light) */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-slate-50,
+  .text-slate-100,
+  .text-slate-200,
+  .text-slate-300
+):not(.bg-blue-500 *, .bg-blue-600 *, .bg-purple-500 *, .bg-emerald-500 *, .bg-red-500 *, .bg-amber-500 *) {
+  color: var(--theme-text-primary) !important;
+}
+
+/* White text - preserve on colored backgrounds */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .text-white:not(
+  .bg-blue-500 .text-white,
+  .bg-blue-600 .text-white,
+  .bg-purple-500 .text-white,
+  .bg-emerald-500 .text-white,
+  .bg-red-500 .text-white,
+  .bg-green-500 .text-white,
+  .bg-amber-500 .text-white,
+  [class*="bg-blue-"] .text-white,
+  [class*="bg-purple-"] .text-white,
+  [class*="bg-emerald-"] .text-white,
+  [class*="bg-green-"] .text-white
+) {
+  color: var(--theme-text-primary) !important;
+}
+
+/* Secondary text */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-slate-400,
+  .text-slate-500
+) {
+  color: var(--theme-text-secondary) !important;
+}
+
+/* Muted text */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-slate-600,
+  .text-slate-700
+) {
+  color: var(--theme-text-muted) !important;
+}
+
+/* Hover text states */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .hover\:text-white:hover,
+  .hover\:text-slate-100:hover,
+  .hover\:text-slate-200:hover,
+  .hover\:text-slate-300:hover
+) {
+  color: var(--theme-text-primary) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .hover\:text-slate-400:hover,
+  .hover\:text-slate-300:hover
+) {
+  color: var(--theme-accent) !important;
+}
+
+/* Group hover text */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .group-hover\:text-white:hover,
+  .group-hover\:text-slate-300:hover
+) {
+  color: var(--theme-text-primary) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .group:hover .group-hover\:text-white,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .group:hover .group-hover\:text-slate-300 {
+  color: var(--theme-text-primary) !important;
+}
+
+/* ==== BORDER OVERRIDES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .border-slate-900,
+  .border-slate-800,
+  .border-slate-700,
+  .border-slate-600,
+  .border-white\/5,
+  .border-white\/10,
+  .border-white\/20
+) {
+  border-color: var(--theme-border) !important;
+}
+
+/* Divide colors */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .divide-slate-800 > :not([hidden]) ~ :not([hidden]),
+  .divide-slate-700 > :not([hidden]) ~ :not([hidden]),
+  .divide-white\/10 > :not([hidden]) ~ :not([hidden])
+) {
+  border-color: var(--theme-border) !important;
+}
+
+/* ==== RING/OUTLINE OVERRIDES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .ring-slate-800,
+  .ring-slate-700,
+  .ring-white\/10
+) {
+  --tw-ring-color: var(--theme-border) !important;
+}
+
+/* ==== FORM ELEMENT OVERRIDES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  select,
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea
+) {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text-primary) !important;
+  border-color: var(--theme-border) !important;
+}
+
+/* Placeholder text */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .placeholder-slate-500::placeholder,
+  .placeholder-slate-400::placeholder
+) {
+  color: var(--theme-text-muted) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) ::placeholder {
+  color: var(--theme-text-muted) !important;
+}
+
+/* ==== CODE BLOCKS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) pre,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) code {
+  background-color: var(--theme-glass-200) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+/* Inline code in markdown */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .prose code {
+  background-color: var(--theme-glass-300) !important;
+  color: var(--theme-accent) !important;
+}
+
+/* ==== GRADIENT ADJUSTMENTS ==== */
+
+/* Make gradient text visible in light mode */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .from-blue-100 {
+  --tw-gradient-from: var(--theme-accent) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .to-slate-300 {
+  --tw-gradient-to: var(--theme-text-secondary) !important;
+}
+
+/* Reduce gradient intensity for light themes */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .from-blue-500\/20 {
+  --tw-gradient-from: rgba(59, 130, 246, 0.08) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .to-purple-500\/20 {
+  --tw-gradient-to: rgba(168, 85, 247, 0.08) !important;
+}
+
+/* ==== SHADOW ADJUSTMENTS ==== */
+
+/* Convert dark shadows to light shadows */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl
+) {
+  --tw-shadow-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ==== SPECIAL COMPONENT OVERRIDES ==== */
+
+/* Monaco editor background */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .monaco-editor,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .monaco-editor .margin,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .monaco-editor-background {
+  background-color: var(--theme-background) !important;
+}
+
+/* Activity bar and panels */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [class*="ActivityBar"],
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [class*="Sidebar"] {
+  background-color: var(--theme-surface) !important;
+}
+
+/* Modal backdrop */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .backdrop-blur-sm {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Focus visible rings */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .focus\:ring-slate-500:focus,
+  .focus-visible\:ring-slate-500:focus-visible
+) {
+  --tw-ring-color: var(--theme-accent) !important;
+}
+
+/* Accent backgrounds - keep but slightly adjust */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-blue-600\/20,
+  .bg-purple-600\/20,
+  .bg-emerald-600\/20
+) {
+  opacity: 0.7;
+}
+
+/* ==== PROSE/MARKDOWN OVERRIDES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .prose {
+  --tw-prose-body: var(--theme-text-primary);
+  --tw-prose-headings: var(--theme-text-primary);
+  --tw-prose-bold: var(--theme-text-primary);
+  --tw-prose-code: var(--theme-accent);
+  color: var(--theme-text-primary);
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .prose-invert {
+  --tw-prose-body: var(--theme-text-primary);
+  --tw-prose-headings: var(--theme-text-primary);
+  color: var(--theme-text-primary);
+}
+
+/* ==== SCROLLBAR FOR LIGHT THEMES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) ::-webkit-scrollbar-track {
+  background: var(--theme-scrollbar-track) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) ::-webkit-scrollbar-thumb {
+  background: var(--theme-scrollbar-thumb) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) ::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-scrollbar-thumb-hover) !important;
+}
+
+/* ==== TOOLTIP/POPOVER OVERRIDES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [role="tooltip"],
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [data-radix-popper-content-wrapper] {
+  background-color: var(--theme-surface) !important;
+  color: var(--theme-text-primary) !important;
+  border-color: var(--theme-border) !important;
+}
+
+/* ==== BUTTON STATES ==== */
+
+/* Disabled state in light themes */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .disabled\:text-slate-500:disabled,
+  .disabled\:text-slate-600:disabled
+) {
+  color: var(--theme-text-muted) !important;
+  opacity: 0.6;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .disabled\:bg-slate-800:disabled,
+  .disabled\:bg-slate-700:disabled
+) {
+  background-color: var(--theme-glass-100) !important;
+}
+
+/* ==== CURSOR-NOT-ALLOWED STATES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .cursor-not-allowed {
+  color: var(--theme-text-muted) !important;
+}
+
+/* ==== ICON VISIBILITY ==== */
+
+/* Make sure colored icons stay visible */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-blue-400,
+  .text-blue-500
+) {
+  color: #2563eb !important; /* Darker blue for light backgrounds */
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-purple-400,
+  .text-purple-500
+) {
+  color: #7c3aed !important; /* Darker purple */
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-emerald-400,
+  .text-green-400
+) {
+  color: #059669 !important; /* Darker green */
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-amber-400,
+  .text-yellow-400
+) {
+  color: #d97706 !important; /* Darker amber */
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .text-red-400 {
+  color: #dc2626 !important; /* Darker red */
+}
+
+/* ==== MODAL AND OVERLAY BACKGROUNDS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .fixed.inset-0.bg-black\/50,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .fixed.inset-0.bg-black\/60 {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Modal content backgrounds */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [role="dialog"] {
+  background-color: var(--theme-background) !important;
+  border-color: var(--theme-border) !important;
+}
+
+/* ==== CARDS AND PANELS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .rounded-xl.border {
+  border-color: var(--theme-border) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .rounded-lg.border {
+  border-color: var(--theme-border) !important;
+}
+
+/* ==== SELECTION STATE ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) ::selection {
+  background-color: var(--theme-accent-subtle) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+/* ==== FOCUS RINGS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :focus-visible {
+  outline-color: var(--theme-accent) !important;
+}
+
+/* ==== SEMI-TRANSPARENT TEXT OVERRIDES ==== */
+
+/* White with opacity - very common in dark themes */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-white\/40,
+  .text-white\/50,
+  .text-white\/60
+) {
+  color: var(--theme-text-muted) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-white\/70,
+  .text-white\/80
+) {
+  color: var(--theme-text-secondary) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .text-white\/90 {
+  color: var(--theme-text-primary) !important;
+}
+
+/* ==== AI/PURPLE/PINK COLOR OVERRIDES ==== */
+
+/* Purple accent - use AI accent from theme */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-purple-300,
+  .text-purple-400,
+  .text-purple-500
+) {
+  color: var(--theme-ai-accent) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-purple-500\/10,
+  .bg-purple-500\/15,
+  .bg-purple-500\/20,
+  .bg-purple-600\/10,
+  .bg-purple-600\/20
+) {
+  background-color: var(--theme-ai-accent-subtle) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .border-purple-500\/20,
+  .border-purple-500\/30
+) {
+  border-color: color-mix(in srgb, var(--theme-ai-accent) 30%, transparent) !important;
+}
+
+/* Pink accent - use AI secondary from theme */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-pink-300,
+  .text-pink-400,
+  .text-pink-500
+) {
+  color: var(--theme-ai-secondary) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-pink-500\/10,
+  .bg-pink-500\/15,
+  .bg-pink-500\/20
+) {
+  background-color: var(--theme-ai-secondary-subtle) !important;
+}
+
+/* ==== BLUE ACCENT OVERRIDES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-blue-300
+) {
+  color: var(--theme-accent) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-blue-500\/10,
+  .bg-blue-500\/15,
+  .bg-blue-500\/20,
+  .bg-blue-600\/10,
+  .bg-blue-600\/20
+) {
+  background-color: var(--theme-accent-subtle) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .border-blue-500\/20,
+  .border-blue-500\/30
+) {
+  border-color: color-mix(in srgb, var(--theme-accent) 30%, transparent) !important;
+}
+
+/* ==== GREEN/SUCCESS OVERRIDES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-green-300,
+  .text-green-400,
+  .text-emerald-300,
+  .text-emerald-400
+) {
+  color: #059669 !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-green-500\/10,
+  .bg-green-500\/15,
+  .bg-emerald-500\/10
+) {
+  background-color: var(--color-success-subtle) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .border-green-500\/20,
+  .border-green-500\/30,
+  .border-emerald-500\/20
+) {
+  border-color: color-mix(in srgb, var(--color-success) 30%, transparent) !important;
+}
+
+/* ==== RED/ERROR OVERRIDES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-red-300,
+  .text-red-400
+) {
+  color: #dc2626 !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-red-500\/10,
+  .bg-red-500\/15
+) {
+  background-color: var(--color-error-subtle) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .border-red-500\/20,
+  .border-red-500\/30
+) {
+  border-color: color-mix(in srgb, var(--color-error) 30%, transparent) !important;
+}
+
+/* ==== AMBER/WARNING OVERRIDES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-amber-300,
+  .text-amber-400,
+  .text-orange-300,
+  .text-orange-400
+) {
+  color: #d97706 !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-amber-500\/10,
+  .bg-orange-500\/10
+) {
+  background-color: var(--color-warning-subtle) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .border-amber-500\/20,
+  .border-orange-500\/20
+) {
+  border-color: color-mix(in srgb, var(--color-warning) 30%, transparent) !important;
+}
+
+/* ==== ADDITIONAL BACKGROUND PATTERNS ==== */
+
+/* Slate backgrounds with various opacity */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-slate-900\/20,
+  .bg-slate-900\/40,
+  .bg-slate-800\/20,
+  .bg-slate-800\/40
+) {
+  background-color: var(--theme-glass-100) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-slate-900\/80,
+  .bg-slate-900\/90,
+  .bg-slate-800\/80,
+  .bg-slate-800\/90
+) {
+  background-color: var(--theme-surface) !important;
+}
+
+/* ==== HOVER STATES FOR COLORED ELEMENTS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .hover\:bg-purple-500\/20:hover,
+  .hover\:bg-purple-600\/20:hover
+) {
+  background-color: color-mix(in srgb, var(--theme-ai-accent) 25%, transparent) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .hover\:bg-blue-500\/20:hover,
+  .hover\:bg-blue-600\/20:hover
+) {
+  background-color: color-mix(in srgb, var(--theme-accent) 25%, transparent) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .hover\:text-purple-300:hover,
+  .hover\:text-purple-400:hover
+) {
+  color: var(--theme-ai-accent-hover) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .hover\:text-blue-300:hover,
+  .hover\:text-blue-400:hover
+) {
+  color: var(--theme-accent-hover) !important;
+}
+
+/* ==== DISABLED STATES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .disabled\:bg-white\/10:disabled
+) {
+  background-color: var(--theme-glass-200) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .disabled\:text-white\/40:disabled
+) {
+  color: var(--theme-text-muted) !important;
+}
+
+/* ==== SPECIFIC COMPONENT FIXES ==== */
+
+/* Message bubbles */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [class*="rounded-xl"][class*="rounded-tr-sm"],
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [class*="rounded-xl"][class*="rounded-tl-sm"] {
+  background-color: var(--theme-glass-100) !important;
+  border-color: var(--theme-border) !important;
+}
+
+/* Status indicators */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .animate-pulse {
+  animation: pulse-light 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-light {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ==== DIVIDER LINES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .border-t.border-white\/5,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .border-b.border-white\/5,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .border-t.border-white\/10,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .border-b.border-white\/10 {
+  border-color: var(--theme-border) !important;
+}
+
+/* ==== TAGS AND BADGES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [class*="px-"][class*="py-"][class*="rounded"][class*="text-xs"] {
+  background-color: var(--theme-glass-200);
+  color: var(--theme-text-secondary);
+}
+
+/* Preserve colored badges */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [class*="bg-purple-"][class*="text-purple-"],
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [class*="bg-blue-"][class*="text-blue-"],
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [class*="bg-green-"][class*="text-green-"],
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [class*="bg-emerald-"][class*="text-emerald-"] {
+  background-color: revert;
+}
+
+/* ==== AVATAR OVERRIDES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .rounded-full[class*="bg-purple-"] {
+  background-color: var(--theme-ai-accent-subtle) !important;
+  color: var(--theme-ai-accent) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .rounded-full[class*="bg-blue-"] {
+  background-color: var(--theme-accent-subtle) !important;
+  color: var(--theme-accent) !important;
+}
+
+/* ==== MARKDOWN CONTENT CLASSES ==== */
+
+.md-paragraph {
+  color: var(--theme-text-secondary);
+}
+
+.md-bold {
+  color: var(--theme-text-primary);
+  font-weight: 600;
+}
+
+.md-code {
+  background-color: var(--theme-glass-200);
+  color: var(--theme-accent);
+  padding: 0 4px;
+  border-radius: 4px;
+  font-family: ui-monospace, monospace;
+}
+
+/* ==== ADDITIONAL COLOR HARMONIZATION ==== */
+
+/* Cyan/Teal colors */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-cyan-300,
+  .text-cyan-400,
+  .text-teal-300,
+  .text-teal-400
+) {
+  color: #0891b2 !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-cyan-500\/10,
+  .bg-cyan-500\/20,
+  .bg-teal-500\/10,
+  .bg-teal-500\/20
+) {
+  background-color: rgba(8, 145, 178, 0.1) !important;
+}
+
+/* Indigo/Violet colors */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-indigo-300,
+  .text-indigo-400,
+  .text-violet-300,
+  .text-violet-400
+) {
+  color: #6366f1 !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-indigo-500\/10,
+  .bg-indigo-500\/20,
+  .bg-violet-500\/10,
+  .bg-violet-500\/20
+) {
+  background-color: rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Fix prose content in light themes */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .prose-invert :is(
+  h1, h2, h3, h4, h5, h6, p, li, strong
+) {
+  color: var(--theme-text-primary) !important;
+}
+
+/* Additional slate backgrounds not covered */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-slate-600,
+  .bg-slate-500
+) {
+  background-color: var(--theme-glass-300) !important;
+}
+
+/* Gray text variations */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-gray-300,
+  .text-gray-400,
+  .text-zinc-300,
+  .text-zinc-400,
+  .text-neutral-300,
+  .text-neutral-400
+) {
+  color: var(--theme-text-secondary) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .text-gray-500,
+  .text-gray-600,
+  .text-zinc-500,
+  .text-zinc-600,
+  .text-neutral-500,
+  .text-neutral-600
+) {
+  color: var(--theme-text-muted) !important;
+}
+
+/* Fix placeholder colors in forms */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) input::placeholder,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) textarea::placeholder {
+  color: var(--theme-text-muted) !important;
+}
+
+/* Fix dropdown option backgrounds */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) select option {
+  background-color: var(--theme-background) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+/* Button group and toggle backgrounds */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-slate-800\/30,
+  .bg-slate-800\/40,
+  .bg-slate-700\/30,
+  .bg-slate-700\/40
+) {
+  background-color: var(--theme-glass-100) !important;
+}
+
+/* Gradient text fix for light themes */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .bg-clip-text.text-transparent {
+  -webkit-text-fill-color: transparent;
+}
+
+/* Panel separators */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .border-l.border-white\/5,
+  .border-r.border-white\/5,
+  .border-l.border-white\/10,
+  .border-r.border-white\/10
+) {
+  border-color: var(--theme-border) !important;
+}
+
+/* Hover states for list items */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .hover\:bg-slate-800\/30:hover,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .hover\:bg-slate-800\/40:hover,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .hover\:bg-slate-800\/50:hover {
+  background-color: var(--theme-glass-200) !important;
+}
+
+/* Active/selected states */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-blue-500,
+  .bg-blue-600
+) {
+  background-color: var(--theme-accent) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-purple-500,
+  .bg-purple-600
+) {
+  background-color: var(--theme-ai-accent) !important;
+}
+
+/* Ensure white text stays white on colored backgrounds */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-blue-500 .text-white,
+  .bg-blue-600 .text-white,
+  .bg-purple-500 .text-white,
+  .bg-purple-600 .text-white,
+  .bg-emerald-500 .text-white,
+  .bg-green-500 .text-white,
+  .bg-red-500 .text-white,
+  .bg-emerald-600 .text-white,
+  .bg-red-600 .text-white
+) {
+  color: white !important;
+}
+
+/* ==== EXTENDED BUTTON OVERRIDES ==== */
+
+/* Primary buttons with colored backgrounds - keep text white */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) button:is(
+  [class*="bg-emerald-6"],
+  [class*="bg-blue-6"],
+  [class*="bg-red-6"],
+  [class*="bg-purple-6"]
+) {
+  color: white !important;
+}
+
+/* Disabled button backgrounds */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .disabled\:bg-slate-700:disabled,
+  .disabled\:bg-slate-800:disabled
+) {
+  background-color: var(--theme-glass-200) !important;
+  color: var(--theme-text-muted) !important;
+}
+
+/* ==== COMPREHENSIVE TEXT OVERRIDES ==== */
+
+/* Any remaining text-white not on colored backgrounds */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) h1.text-white,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) h2.text-white,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) h3.text-white,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) p.text-white,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) span.text-white,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) div.text-white,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) label.text-white {
+  color: var(--theme-text-primary) !important;
+}
+
+/* Text base on non-colored backgrounds */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .text-base {
+  color: var(--theme-text-primary) !important;
+}
+
+/* ==== COMMIT INPUT AND GIT PANEL ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) textarea.resize-none {
+  background-color: var(--theme-glass-200) !important;
+  color: var(--theme-text-primary) !important;
+  border-color: var(--theme-border) !important;
+}
+
+/* ==== HOVER STATES FOR MORE ELEMENTS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) button:is(
+  [class*="hover:bg-white/10"]:hover,
+  [class*="hover:bg-white/5"]:hover
+) {
+  background-color: var(--theme-glass-200) !important;
+}
+
+/* ==== LOADING AND SPINNER COLORS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .animate-spin {
+  color: var(--theme-accent) !important;
+}
+
+/* Preserve colored spinners */
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .text-emerald-400.animate-spin,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .text-red-400.animate-spin,
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .text-amber-400.animate-spin {
+  color: inherit !important;
+}
+
+/* ==== SECTION HEADERS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .font-medium.text-white,
+  .font-semibold.text-white,
+  .font-bold.text-white
+) {
+  color: var(--theme-text-primary) !important;
+}
+
+/* ==== PANEL BACKGROUNDS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-\[\#050811\],
+  .bg-\[\#0a0d14\],
+  .bg-\[\#020617\]
+) {
+  background-color: var(--theme-background) !important;
+}
+
+/* ==== CONFIRMATION DIALOGS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .bg-red-500\/10,
+  .bg-red-600\/10
+) {
+  background-color: var(--color-error-subtle) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .border-red-500\/20,
+  .border-red-500\/30,
+  .border-red-600\/20
+) {
+  border-color: color-mix(in srgb, var(--color-error) 30%, transparent) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .text-red-300 {
+  color: #dc2626 !important;
+}
+
+/* ==== STATUS BAR ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) footer {
+  background-color: var(--theme-surface) !important;
+  color: var(--theme-text-secondary) !important;
+}
+
+/* ==== ACTIVITY BAR TOOLTIP ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [role="tooltip"] {
+  background-color: var(--theme-surface) !important;
+  color: var(--theme-text-primary) !important;
+  border-color: var(--theme-border) !important;
+}
+
+/* ==== ADDITIONAL FLEX/GRID CONTAINERS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .flex-col.h-full {
+  color: var(--theme-text-primary);
+}
+
+/* ==== ICONS IN CONTEXT ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .text-slate-500:not(svg):not(path) {
+  color: var(--theme-text-muted) !important;
+}
+
+/* ==== EMPTY STATES ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) .text-center.text-slate-500 {
+  color: var(--theme-text-muted) !important;
+}
+
+/* ==== PANEL TITLES IN SETTINGS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [class*="font-medium"][class*="text-lg"],
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) [class*="font-semibold"][class*="text-lg"] {
+  color: var(--theme-text-primary) !important;
+}
+
+/* ==== HOVER TEXT TO THEME COLORS ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .hover\:text-blue-400:hover
+) {
+  color: var(--theme-accent) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .hover\:text-emerald-400:hover,
+  .hover\:text-green-400:hover
+) {
+  color: #059669 !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) :is(
+  .hover\:text-red-400:hover
+) {
+  color: #dc2626 !important;
+}
+
+/* ==== RANGE INPUT STYLING ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) input[type="range"] {
+  accent-color: var(--theme-accent);
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) input[type="range"]::-webkit-slider-thumb {
+  background: var(--theme-accent) !important;
+}
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) input[type="range"]::-webkit-slider-runnable-track {
+  background: var(--theme-glass-300) !important;
+}
+
+/* ==== CHECKBOX STYLING ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) input[type="checkbox"] {
+  accent-color: var(--theme-accent);
+}
+
+/* ==== DROPDOWN/SELECT ARROW FIX ==== */
+
+:is([data-theme="snow-white"], [data-theme="paper-cream"], [data-theme="sky-blue"]) select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+  background-position: right 0.5rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 1.5em 1.5em !important;
 }

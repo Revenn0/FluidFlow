@@ -141,32 +141,33 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ files, setFiles, activeF
   return (
     <div className="flex flex-col h-full w-full">
       {/* File Tab Bar */}
-      <div className="flex-none bg-[#0a0e16] border-b border-white/5 px-2 flex items-center justify-between h-9">
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0d1117] rounded-t border-t border-l border-r border-white/10">
-          <FileCode className="w-3.5 h-3.5 text-blue-400" />
-          <span className="text-[11px] font-medium text-slate-300">{activeFile}</span>
+      <div className="flex-none px-2 flex items-center justify-between h-9" style={{ backgroundColor: 'var(--theme-surface-dark)', borderBottom: '1px solid var(--theme-border-light)' }}>
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-t" style={{ backgroundColor: 'var(--theme-surface)', borderTop: '1px solid var(--theme-border-light)', borderLeft: '1px solid var(--theme-border-light)', borderRight: '1px solid var(--theme-border-light)' }}>
+          <FileCode className="w-3.5 h-3.5" style={{ color: 'var(--theme-accent)' }} />
+          <span className="text-[11px] font-medium" style={{ color: 'var(--theme-text-secondary)' }}>{activeFile}</span>
           {!isSaved && (
             <span title="Unsaved changes">
-              <Circle className="w-2 h-2 fill-orange-400 text-orange-400" />
+              <Circle className="w-2 h-2" style={{ fill: 'var(--color-warning)', color: 'var(--color-warning)' }} />
             </span>
           )}
           {isModified && isSaved && (
-            <span className="text-[9px] px-1 py-0.5 bg-amber-500/20 text-amber-400 rounded">modified</span>
+            <span className="text-[9px] px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>modified</span>
           )}
         </div>
         <div className="flex items-center gap-2">
           {showSaveIndicator && (
-            <div className="flex items-center gap-1 text-emerald-400 animate-in fade-in duration-200">
+            <div className="flex items-center gap-1 animate-in fade-in duration-200" style={{ color: 'var(--color-success)' }}>
               <Check className="w-3 h-3" />
               <span className="text-[10px]">Saved</span>
             </div>
           )}
-          <span className="text-[10px] text-slate-600 font-mono pr-2">
+          <span className="text-[10px] font-mono pr-2" style={{ color: 'var(--theme-text-dim)' }}>
             {content.split('\n').length} lines
           </span>
           <button
             onClick={() => setShowSnippetLibrary(true)}
-            className="p-1.5 hover:bg-white/5 rounded-lg text-slate-500 hover:text-blue-400 transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Snippet Library"
           >
             <BookOpen className="w-4 h-4" />
@@ -216,8 +217,8 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ files, setFiles, activeF
             formatOnPaste: editorSettings.formatOnPaste
           }}
           loading={
-            <div className="w-full h-full flex items-center justify-center bg-[#0d1117]">
-              <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+            <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: 'var(--theme-surface)' }}>
+              <div className="w-8 h-8 rounded-full animate-spin" style={{ border: '2px solid var(--theme-accent-subtle)', borderTopColor: 'var(--theme-accent)' }} />
             </div>
           }
         />

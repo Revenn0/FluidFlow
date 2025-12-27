@@ -155,11 +155,11 @@ export const ProjectHealthModal: React.FC<ProjectHealthModalProps> = ({
   const getStatusIcon = (status: HealthCheckResult['status']) => {
     switch (status) {
       case 'healthy':
-        return <ShieldCheck className="w-6 h-6 text-emerald-400" />;
+        return <ShieldCheck className="w-6 h-6" style={{ color: 'var(--color-success)' }} />;
       case 'warning':
-        return <AlertTriangle className="w-6 h-6 text-amber-400" />;
+        return <AlertTriangle className="w-6 h-6" style={{ color: 'var(--color-warning)' }} />;
       case 'critical':
-        return <AlertCircle className="w-6 h-6 text-red-400" />;
+        return <AlertCircle className="w-6 h-6" style={{ color: 'var(--color-error)' }} />;
     }
   };
 
@@ -170,14 +170,14 @@ export const ProjectHealthModal: React.FC<ProjectHealthModalProps> = ({
     return <FileWarning className="w-4 h-4" />;
   };
 
-  const getSeverityColor = (severity: HealthIssue['severity']) => {
+  const getSeverityStyles = (severity: HealthIssue['severity']): React.CSSProperties => {
     switch (severity) {
       case 'error':
-        return 'text-red-400 bg-red-500/10 border-red-500/20';
+        return { color: 'var(--color-error)', backgroundColor: 'var(--color-error-subtle)', borderColor: 'var(--color-error-border)' };
       case 'warning':
-        return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
+        return { color: 'var(--color-warning)', backgroundColor: 'var(--color-warning-subtle)', borderColor: 'var(--color-warning-border)' };
       case 'info':
-        return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+        return { color: 'var(--color-info)', backgroundColor: 'var(--color-info-subtle)', borderColor: 'var(--color-info-border)' };
     }
   };
 
@@ -189,26 +189,27 @@ export const ProjectHealthModal: React.FC<ProjectHealthModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 backdrop-blur-sm" style={{ backgroundColor: 'var(--theme-modal-overlay)' }} onClick={onClose} />
 
-      <div className="relative bg-slate-900 border border-white/10 rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+      <div className="relative rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--theme-border)' }}>
           <div className="flex items-center gap-3">
             <div
-              className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                allHealthy
-                  ? 'bg-emerald-500/20'
+              className="w-10 h-10 rounded-lg flex items-center justify-center"
+              style={{
+                backgroundColor: allHealthy
+                  ? 'var(--color-success-subtle)'
                   : healthCheck.status === 'critical'
-                    ? 'bg-red-500/20'
-                    : 'bg-amber-500/20'
-              }`}
+                    ? 'var(--color-error-subtle)'
+                    : 'var(--color-warning-subtle)'
+              }}
             >
               {getStatusIcon(allHealthy ? 'healthy' : healthCheck.status)}
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Project Health</h2>
-              <p className="text-sm text-slate-400">
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Project Health</h2>
+              <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                 {allHealthy
                   ? 'All critical files are present and valid'
                   : `${activeIssues.length} issue(s) found`}
@@ -217,9 +218,10 @@ export const ProjectHealthModal: React.FC<ProjectHealthModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
           >
-            <X className="w-5 h-5 text-slate-400" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -227,13 +229,13 @@ export const ProjectHealthModal: React.FC<ProjectHealthModalProps> = ({
         <div className="flex-1 overflow-y-auto p-4">
           {allHealthy ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/20 flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'var(--color-success-subtle)' }}>
+                <CheckCircle2 className="w-8 h-8" style={{ color: 'var(--color-success)' }} />
               </div>
-              <h3 className="text-lg font-medium text-white mb-2">
+              <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--theme-text-primary)' }}>
                 Project is Healthy
               </h3>
-              <p className="text-slate-400 max-w-md">
+              <p className="max-w-md" style={{ color: 'var(--theme-text-muted)' }}>
                 All critical configuration files are present and valid.
                 Your project is ready to run.
               </p>
@@ -246,19 +248,21 @@ export const ProjectHealthModal: React.FC<ProjectHealthModalProps> = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={selectAll}
-                      className="text-xs text-blue-400 hover:text-blue-300"
+                      className="text-xs"
+                      style={{ color: 'var(--color-info)' }}
                     >
                       Select All ({fixableCount})
                     </button>
-                    <span className="text-slate-600">•</span>
+                    <span style={{ color: 'var(--theme-text-dim)' }}>•</span>
                     <button
                       onClick={selectNone}
-                      className="text-xs text-slate-400 hover:text-slate-300"
+                      className="text-xs"
+                      style={{ color: 'var(--theme-text-muted)' }}
                     >
                       Clear
                     </button>
                   </div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                     {selectedCount} selected
                   </div>
                 </div>
@@ -268,9 +272,8 @@ export const ProjectHealthModal: React.FC<ProjectHealthModalProps> = ({
               {activeIssues.map((issue) => (
                 <div
                   key={issue.id}
-                  className={`border rounded-lg overflow-hidden transition-colors ${getSeverityColor(
-                    issue.severity
-                  )}`}
+                  className="border rounded-lg overflow-hidden transition-colors"
+                  style={getSeverityStyles(issue.severity)}
                 >
                   <div className="flex items-center gap-3 p-3">
                     {issue.fixable && (
@@ -278,61 +281,67 @@ export const ProjectHealthModal: React.FC<ProjectHealthModalProps> = ({
                         type="checkbox"
                         checked={selectedIssues.has(issue.id)}
                         onChange={() => toggleIssue(issue.id)}
-                        className="rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500/50"
+                        className="rounded"
+                        style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-glass-100)' }}
                       />
                     )}
                     <div
-                      className={`p-1.5 rounded ${
-                        issue.severity === 'error'
-                          ? 'bg-red-500/20'
+                      className="p-1.5 rounded"
+                      style={{
+                        backgroundColor: issue.severity === 'error'
+                          ? 'var(--color-error-subtle)'
                           : issue.severity === 'warning'
-                            ? 'bg-amber-500/20'
-                            : 'bg-blue-500/20'
-                      }`}
+                            ? 'var(--color-warning-subtle)'
+                            : 'var(--color-info-subtle)'
+                      }}
                     >
                       {getIssueIcon(issue)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <code className="text-sm font-mono text-white">
+                        <code className="text-sm font-mono" style={{ color: 'var(--theme-text-primary)' }}>
                           {issue.file}
                         </code>
                         <span
-                          className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-medium ${
-                            issue.type === 'missing'
-                              ? 'bg-red-500/20 text-red-400'
-                              : 'bg-amber-500/20 text-amber-400'
-                          }`}
+                          className="text-[10px] px-1.5 py-0.5 rounded uppercase font-medium"
+                          style={{
+                            backgroundColor: issue.type === 'missing'
+                              ? 'var(--color-error-subtle)'
+                              : 'var(--color-warning-subtle)',
+                            color: issue.type === 'missing'
+                              ? 'var(--color-error)'
+                              : 'var(--color-warning)'
+                          }}
                         >
                           {issue.type}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5 truncate">
+                      <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--theme-text-muted)' }}>
                         {issue.message}
                       </p>
                     </div>
                     <button
                       onClick={() => toggleExpand(issue.id)}
-                      className="p-1 hover:bg-white/10 rounded"
+                      className="p-1 rounded"
                     >
                       {expandedIssues.has(issue.id) ? (
-                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                        <ChevronDown className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                       ) : (
-                        <ChevronRight className="w-4 h-4 text-slate-400" />
+                        <ChevronRight className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                       )}
                     </button>
                   </div>
 
                   {/* Expanded details */}
                   {expandedIssues.has(issue.id) && (
-                    <div className="px-4 pb-3 border-t border-white/5">
+                    <div className="px-4 pb-3" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
                       <div className="flex items-start gap-2 pt-3">
-                        <Info className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
-                        <div className="text-xs text-slate-400">
+                        <Info className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--theme-text-dim)' }} />
+                        <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                           {issue.fixable ? (
                             <>
                               This issue can be automatically fixed by generating
-                              a default <code className="text-white">{issue.file}</code> file.
+                              a default <code style={{ color: 'var(--theme-text-primary)' }}>{issue.file}</code> file.
                             </>
                           ) : (
                             'This issue requires manual intervention.'
@@ -348,8 +357,8 @@ export const ProjectHealthModal: React.FC<ProjectHealthModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="p-4 flex items-center justify-between" style={{ borderTop: '1px solid var(--theme-border)' }}>
+          <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--theme-text-dim)' }}>
             <RefreshCw className="w-3.5 h-3.5" />
             Checked {new Date(healthCheck.checkedAt).toLocaleTimeString()}
           </div>
@@ -361,7 +370,8 @@ export const ProjectHealthModal: React.FC<ProjectHealthModalProps> = ({
                   <button
                     onClick={handleFixSelected}
                     disabled={isFixing}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 text-white rounded-lg text-sm font-medium transition-colors"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--color-info)', color: 'white' }}
                   >
                     {isFixing ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -374,7 +384,8 @@ export const ProjectHealthModal: React.FC<ProjectHealthModalProps> = ({
                 <button
                   onClick={handleFixAll}
                   disabled={isFixing}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:opacity-50 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-emerald-500/20"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-lg disabled:opacity-50"
+                  style={{ backgroundColor: 'var(--color-success)', color: 'white' }}
                 >
                   {isFixing ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -388,7 +399,8 @@ export const ProjectHealthModal: React.FC<ProjectHealthModalProps> = ({
             {allHealthy && (
               <button
                 onClick={onClose}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{ backgroundColor: 'var(--color-success)', color: 'white' }}
               >
                 <CheckCircle2 className="w-4 h-4" />
                 Done

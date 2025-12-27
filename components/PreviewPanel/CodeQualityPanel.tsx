@@ -284,20 +284,21 @@ export const CodeQualityPanel: React.FC<CodeQualityPanelProps> = ({
   const currentFileMetrics = fileMetrics[selectedFile];
 
   return (
-    <div className="h-full flex flex-col bg-slate-950/50">
+    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--theme-surface-dark)' }}>
       {/* Header */}
-      <div className="flex-none border-b border-white/5 p-4 bg-slate-900/30">
+      <div className="flex-none p-4" style={{ borderBottom: '1px solid var(--theme-border-subtle)', backgroundColor: 'var(--theme-glass-100)' }}>
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-emerald-400" />
-            <h3 className="font-semibold text-white">Code Quality</h3>
+            <ShieldCheck className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+            <h3 className="font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Code Quality</h3>
           </div>
           <button
             onClick={() => {
               setSelectedFile(activeFile);
               onRunLint?.();
             }}
-            className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Refresh analysis"
           >
             <RefreshCw className="w-4 h-4" />
@@ -306,39 +307,42 @@ export const CodeQualityPanel: React.FC<CodeQualityPanelProps> = ({
 
         {/* Stats Summary */}
         <div className="grid grid-cols-4 gap-3">
-          <div className="text-center p-2 bg-slate-800/50 rounded-lg border border-white/5">
-            <div className="text-lg font-bold text-white">{totalStats.totalFiles}</div>
-            <div className="text-[10px] text-slate-400">Files</div>
+          <div className="text-center p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-subtle)' }}>
+            <div className="text-lg font-bold" style={{ color: 'var(--theme-text-primary)' }}>{totalStats.totalFiles}</div>
+            <div className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Files</div>
           </div>
-          <div className="text-center p-2 bg-slate-800/50 rounded-lg border border-white/5">
-            <div className="text-lg font-bold text-blue-400">{totalStats.totalLines}</div>
-            <div className="text-[10px] text-slate-400">Lines</div>
+          <div className="text-center p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-subtle)' }}>
+            <div className="text-lg font-bold" style={{ color: 'var(--color-info)' }}>{totalStats.totalLines}</div>
+            <div className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Lines</div>
           </div>
-          <div className="text-center p-2 bg-slate-800/50 rounded-lg border border-white/5">
-            <div className={`text-lg font-bold ${
-              totalStats.avgComplexity > 15 ? 'text-red-400' : totalStats.avgComplexity > 10 ? 'text-yellow-400' : 'text-emerald-400'
-            }`}>
+          <div className="text-center p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-subtle)' }}>
+            <div
+              className="text-lg font-bold"
+              style={{ color: totalStats.avgComplexity > 15 ? 'var(--color-error)' : totalStats.avgComplexity > 10 ? 'var(--color-warning)' : 'var(--color-success)' }}
+            >
               {totalStats.avgComplexity.toFixed(1)}
             </div>
-            <div className="text-[10px] text-slate-400">Avg Complexity</div>
+            <div className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Avg Complexity</div>
           </div>
-          <div className="text-center p-2 bg-slate-800/50 rounded-lg border border-white/5">
-            <div className={`text-lg font-bold ${
-              issueStats.error > 0 ? 'text-red-400' : issueStats.warning > 0 ? 'text-yellow-400' : 'text-emerald-400'
-            }`}>
+          <div className="text-center p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-subtle)' }}>
+            <div
+              className="text-lg font-bold"
+              style={{ color: issueStats.error > 0 ? 'var(--color-error)' : issueStats.warning > 0 ? 'var(--color-warning)' : 'var(--color-success)' }}
+            >
               {filteredIssues.length}
             </div>
-            <div className="text-[10px] text-slate-400">Issues</div>
+            <div className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>Issues</div>
           </div>
         </div>
       </div>
 
       {/* File Selector */}
-      <div className="flex-none border-b border-white/5 p-2 bg-slate-900/20">
+      <div className="flex-none p-2" style={{ borderBottom: '1px solid var(--theme-border-subtle)', backgroundColor: 'var(--theme-glass-100)' }}>
         <select
           value={selectedFile}
           onChange={(e) => setSelectedFile(e.target.value)}
-          className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50"
+          className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+          style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
         >
           <option value="">All Files</option>
           {Object.keys(fileMetrics).map(path => (
@@ -354,15 +358,16 @@ export const CodeQualityPanel: React.FC<CodeQualityPanelProps> = ({
           <div className="space-y-2">
             <button
               onClick={() => toggleExpand('issues')}
-              className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors w-full"
+              className="flex items-center gap-2 text-sm font-medium transition-colors w-full"
+              style={{ color: 'var(--theme-text-secondary)' }}
             >
               {expandedSections.has('issues') ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
               <Bug className="w-4 h-4" />
               Issues ({filteredIssues.length})
               <span className="ml-auto flex gap-2">
-                {issueStats.error > 0 && <span className="text-red-400">{issueStats.error} errors</span>}
-                {issueStats.warning > 0 && <span className="text-yellow-400">{issueStats.warning} warnings</span>}
-                {issueStats.info > 0 && <span className="text-blue-400">{issueStats.info} info</span>}
+                {issueStats.error > 0 && <span style={{ color: 'var(--color-error)' }}>{issueStats.error} errors</span>}
+                {issueStats.warning > 0 && <span style={{ color: 'var(--color-warning)' }}>{issueStats.warning} warnings</span>}
+                {issueStats.info > 0 && <span style={{ color: 'var(--color-info)' }}>{issueStats.info} info</span>}
               </span>
             </button>
 
@@ -371,33 +376,31 @@ export const CodeQualityPanel: React.FC<CodeQualityPanelProps> = ({
                 {filteredIssues.map(issue => (
                   <div
                     key={issue.id}
-                    className={`p-3 rounded-lg border ${
-                      issue.severity === 'error'
-                        ? 'bg-red-500/10 border-red-500/20'
-                        : issue.severity === 'warning'
-                          ? 'bg-yellow-500/10 border-yellow-500/20'
-                          : 'bg-blue-500/10 border-blue-500/20'
-                    }`}
+                    className="p-3 rounded-lg"
+                    style={{
+                      backgroundColor: issue.severity === 'error' ? 'var(--color-error-subtle)' : issue.severity === 'warning' ? 'var(--color-warning-subtle)' : 'var(--color-info-subtle)',
+                      border: `1px solid ${issue.severity === 'error' ? 'var(--color-error-border)' : issue.severity === 'warning' ? 'var(--color-warning-border)' : 'var(--color-info-border)'}`,
+                    }}
                   >
                     <div className="flex items-start gap-2">
                       {issue.severity === 'error' ? (
-                        <XCircle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                        <XCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--color-error)' }} />
                       ) : issue.severity === 'warning' ? (
-                        <AlertTriangle className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" />
+                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--color-warning)' }} />
                       ) : (
-                        <CheckCircle className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                        <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--color-info)' }} />
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-sm text-white">{issue.message}</p>
+                          <p className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>{issue.message}</p>
                           {issue.fixable && (
-                            <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                            <Zap className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--color-warning)' }} />
                           )}
                         </div>
-                        <div className="flex items-center gap-3 mt-1 text-[11px] text-slate-400">
+                        <div className="flex items-center gap-3 mt-1 text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>
                           <span>{issue.file}</span>
                           <span>Line {issue.line}</span>
-                          <span className="px-1.5 py-0.5 bg-slate-800 rounded text-[10px]">{issue.rule}</span>
+                          <span className="px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--theme-glass-200)' }}>{issue.rule}</span>
                         </div>
                       </div>
                     </div>
@@ -407,8 +410,8 @@ export const CodeQualityPanel: React.FC<CodeQualityPanelProps> = ({
             )}
           </div>
         ) : (
-          <div className="text-center py-8 text-slate-500">
-            <CheckCircle className="w-12 h-12 mx-auto mb-3 text-emerald-400" />
+          <div className="text-center py-8" style={{ color: 'var(--theme-text-dim)' }}>
+            <CheckCircle className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--color-success)' }} />
             <p className="text-sm">No issues found</p>
             <p className="text-xs mt-1">Code looks clean!</p>
           </div>
@@ -419,7 +422,8 @@ export const CodeQualityPanel: React.FC<CodeQualityPanelProps> = ({
           <div className="space-y-2">
             <button
               onClick={() => toggleExpand('metrics')}
-              className="flex items-center gap-2 text-sm font-medium text-slate-300 hover:text-white transition-colors w-full"
+              className="flex items-center gap-2 text-sm font-medium transition-colors w-full"
+              style={{ color: 'var(--theme-text-secondary)' }}
             >
               {expandedSections.has('metrics') ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
               <LineChart className="w-4 h-4" />
@@ -429,37 +433,38 @@ export const CodeQualityPanel: React.FC<CodeQualityPanelProps> = ({
             {expandedSections.has('metrics') && (
               <div className="ml-6 space-y-3">
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="p-3 bg-slate-800/50 rounded-lg border border-white/5">
-                    <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-subtle)' }}>
+                    <div className="flex items-center gap-2 text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>
                       <FileCode className="w-3 h-3" />
                       Total Lines
                     </div>
-                    <div className="text-lg font-bold text-white">{currentFileMetrics.lines}</div>
+                    <div className="text-lg font-bold" style={{ color: 'var(--theme-text-primary)' }}>{currentFileMetrics.lines}</div>
                   </div>
-                  <div className="p-3 bg-slate-800/50 rounded-lg border border-white/5">
-                    <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-subtle)' }}>
+                    <div className="flex items-center gap-2 text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>
                       <Code className="w-3 h-3" />
                       Code Lines
                     </div>
-                    <div className="text-lg font-bold text-blue-400">{currentFileMetrics.codeLines}</div>
+                    <div className="text-lg font-bold" style={{ color: 'var(--color-info)' }}>{currentFileMetrics.codeLines}</div>
                   </div>
-                  <div className="p-3 bg-slate-800/50 rounded-lg border border-white/5">
-                    <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-subtle)' }}>
+                    <div className="flex items-center gap-2 text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>
                       <Activity className="w-3 h-3" />
                       Complexity
                     </div>
-                    <div className={`text-lg font-bold ${
-                      currentFileMetrics.complexity > 20 ? 'text-red-400' : currentFileMetrics.complexity > 10 ? 'text-yellow-400' : 'text-emerald-400'
-                    }`}>
+                    <div
+                      className="text-lg font-bold"
+                      style={{ color: currentFileMetrics.complexity > 20 ? 'var(--color-error)' : currentFileMetrics.complexity > 10 ? 'var(--color-warning)' : 'var(--color-success)' }}
+                    >
                       {currentFileMetrics.complexity}
                     </div>
                   </div>
-                  <div className="p-3 bg-slate-800/50 rounded-lg border border-white/5">
-                    <div className="flex items-center gap-2 text-slate-400 text-xs mb-1">
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-subtle)' }}>
+                    <div className="flex items-center gap-2 text-xs mb-1" style={{ color: 'var(--theme-text-muted)' }}>
                       <Zap className="w-3 h-3" />
                       Density
                     </div>
-                    <div className="text-lg font-bold text-purple-400">
+                    <div className="text-lg font-bold" style={{ color: 'var(--color-feature)' }}>
                       {((currentFileMetrics.codeLines / currentFileMetrics.lines) * 100).toFixed(0)}%
                     </div>
                   </div>
@@ -467,11 +472,11 @@ export const CodeQualityPanel: React.FC<CodeQualityPanelProps> = ({
 
                 {/* Imports */}
                 {currentFileMetrics.imports.length > 0 && (
-                  <div className="p-3 bg-slate-800/50 rounded-lg border border-white/5">
-                    <div className="text-xs text-slate-400 mb-2">Imports ({currentFileMetrics.imports.length})</div>
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-subtle)' }}>
+                    <div className="text-xs mb-2" style={{ color: 'var(--theme-text-muted)' }}>Imports ({currentFileMetrics.imports.length})</div>
                     <div className="flex flex-wrap gap-1">
                       {currentFileMetrics.imports.map(imp => (
-                        <span key={imp} className="px-2 py-1 bg-slate-900 rounded text-[10px] text-blue-400 font-mono">
+                        <span key={imp} className="px-2 py-1 rounded text-[10px] font-mono" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--color-info)' }}>
                           {imp}
                         </span>
                       ))}
@@ -481,11 +486,11 @@ export const CodeQualityPanel: React.FC<CodeQualityPanelProps> = ({
 
                 {/* Exports */}
                 {currentFileMetrics.exports.length > 0 && (
-                  <div className="p-3 bg-slate-800/50 rounded-lg border border-white/5">
-                    <div className="text-xs text-slate-400 mb-2">Exports ({currentFileMetrics.exports.length})</div>
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-subtle)' }}>
+                    <div className="text-xs mb-2" style={{ color: 'var(--theme-text-muted)' }}>Exports ({currentFileMetrics.exports.length})</div>
                     <div className="flex flex-wrap gap-1">
                       {currentFileMetrics.exports.map(exp => (
-                        <span key={exp} className="px-2 py-1 bg-slate-900 rounded text-[10px] text-emerald-400 font-mono">
+                        <span key={exp} className="px-2 py-1 rounded text-[10px] font-mono" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--color-success)' }}>
                           {exp}
                         </span>
                       ))}

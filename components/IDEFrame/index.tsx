@@ -49,8 +49,12 @@ export const IDEFrame = memo(function IDEFrame({
 }: IDEFrameProps) {
   return (
     <div
-      className="flex flex-col h-full w-full overflow-hidden transition-colors duration-300"
-      style={{ backgroundColor: 'var(--theme-background)' }}
+      className="flex flex-col h-full w-full transition-colors duration-300"
+      style={{
+        backgroundColor: 'var(--theme-background)',
+        // Use overflow: clip - prevents ANY content from escaping this container
+        overflow: 'clip',
+      }}
     >
       {/* Title Bar */}
       {showTitleBar && (
@@ -60,7 +64,13 @@ export const IDEFrame = memo(function IDEFrame({
       )}
 
       {/* Main Content Area */}
-      <div className="flex flex-1 min-h-0 overflow-hidden">
+      <div
+        className="flex flex-1 min-h-0"
+        style={{
+          // Use overflow: clip for stronger isolation
+          overflow: 'clip',
+        }}
+      >
         {/* Activity Bar */}
         {showActivityBar && (
           <ActivityBar
@@ -71,7 +81,13 @@ export const IDEFrame = memo(function IDEFrame({
         )}
 
         {/* Content */}
-        <main className="flex-1 min-w-0 overflow-hidden">
+        <main
+          className="flex-1 min-w-0"
+          style={{
+            // Use overflow: clip - prevents any layout influence
+            overflow: 'clip',
+          }}
+        >
           {children}
         </main>
       </div>

@@ -214,7 +214,7 @@ export function parseChangelog(content: string): ChangelogEntry[] {
 }
 
 /**
- * Get section icon/color based on type
+ * Get section style based on type - returns CSS variable values for theming
  */
 export function getSectionStyle(type: ChangelogEntry['sections'][0]['type']): {
   color: string;
@@ -223,19 +223,19 @@ export function getSectionStyle(type: ChangelogEntry['sections'][0]['type']): {
 } {
   switch (type) {
     case 'added':
-      return { color: 'text-emerald-400', bgColor: 'bg-emerald-500/20', label: 'Added' };
+      return { color: 'var(--color-success)', bgColor: 'var(--color-success-subtle)', label: 'Added' };
     case 'changed':
-      return { color: 'text-blue-400', bgColor: 'bg-blue-500/20', label: 'Changed' };
+      return { color: 'var(--color-info)', bgColor: 'var(--color-info-subtle)', label: 'Changed' };
     case 'fixed':
-      return { color: 'text-amber-400', bgColor: 'bg-amber-500/20', label: 'Fixed' };
+      return { color: 'var(--color-warning)', bgColor: 'var(--color-warning-subtle)', label: 'Fixed' };
     case 'removed':
-      return { color: 'text-red-400', bgColor: 'bg-red-500/20', label: 'Removed' };
+      return { color: 'var(--color-error)', bgColor: 'var(--color-error-subtle)', label: 'Removed' };
     case 'security':
-      return { color: 'text-purple-400', bgColor: 'bg-purple-500/20', label: 'Security' };
+      return { color: 'var(--color-feature)', bgColor: 'var(--color-feature-subtle)', label: 'Security' };
     case 'deprecated':
-      return { color: 'text-slate-400', bgColor: 'bg-slate-500/20', label: 'Deprecated' };
+      return { color: 'var(--theme-text-muted)', bgColor: 'var(--theme-glass-200)', label: 'Deprecated' };
     default:
-      return { color: 'text-slate-400', bgColor: 'bg-slate-500/20', label: type };
+      return { color: 'var(--theme-text-muted)', bgColor: 'var(--theme-glass-200)', label: type };
   }
 }
 

@@ -104,8 +104,8 @@ const renderMarkdown = (text: string): React.ReactNode => {
     if (line.startsWith('```')) {
       if (inCodeBlock) {
         elements.push(
-          <pre key={`code-${idx}`} className="bg-slate-950 rounded-lg p-3 my-2 overflow-x-auto text-xs">
-            <code className="text-slate-300">{codeContent.trim()}</code>
+          <pre key={`code-${idx}`} className="rounded-lg p-3 my-2 overflow-x-auto text-xs" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+            <code style={{ color: 'var(--theme-text-secondary)' }}>{codeContent.trim()}</code>
           </pre>
         );
         codeContent = '';
@@ -124,31 +124,31 @@ const renderMarkdown = (text: string): React.ReactNode => {
 
     // Headers
     if (line.startsWith('### ')) {
-      elements.push(<h4 key={idx} className="text-sm font-semibold text-slate-200 mt-3 mb-1">{line.slice(4)}</h4>);
+      elements.push(<h4 key={idx} className="text-sm font-semibold mt-3 mb-1" style={{ color: 'var(--theme-text-primary)' }}>{line.slice(4)}</h4>);
     } else if (line.startsWith('## ')) {
-      elements.push(<h3 key={idx} className="text-base font-semibold text-slate-100 mt-4 mb-2">{line.slice(3)}</h3>);
+      elements.push(<h3 key={idx} className="text-base font-semibold mt-4 mb-2" style={{ color: 'var(--theme-text-primary)' }}>{line.slice(3)}</h3>);
     } else if (line.startsWith('# ')) {
-      elements.push(<h2 key={idx} className="text-lg font-bold text-white mt-4 mb-2">{line.slice(2)}</h2>);
+      elements.push(<h2 key={idx} className="text-lg font-bold mt-4 mb-2" style={{ color: 'var(--theme-text-primary)' }}>{line.slice(2)}</h2>);
     }
     // Lists
     else if (line.startsWith('- ') || line.startsWith('* ')) {
       elements.push(
-        <li key={idx} className="text-slate-300 text-sm ml-4 list-disc">{line.slice(2)}</li>
+        <li key={idx} className="text-sm ml-4 list-disc" style={{ color: 'var(--theme-text-secondary)' }}>{line.slice(2)}</li>
       );
     }
     // Bold and inline code - escape HTML first, then sanitize with DOMPurify
     else if (line.trim()) {
       const escaped = escapeHtml(line);
       const formatted = escaped
-        .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>')
-        .replace(/`(.+?)`/g, '<code class="bg-slate-800 px-1 rounded text-blue-300">$1</code>');
+        .replace(/\*\*(.+?)\*\*/g, '<strong class="md-bold">$1</strong>')
+        .replace(/`(.+?)`/g, '<code class="md-code">$1</code>');
       // DOMPurify sanitizes HTML to prevent XSS attacks
       const sanitized = DOMPurify.sanitize(formatted, {
         ALLOWED_TAGS: ['strong', 'code'],
         ALLOWED_ATTR: ['class']
       });
       elements.push(
-        <p key={idx} className="text-slate-300 text-sm my-1" dangerouslySetInnerHTML={{ __html: sanitized }} />
+        <p key={idx} className="md-paragraph text-sm my-1" dangerouslySetInnerHTML={{ __html: sanitized }} />
       );
     } else {
       elements.push(<div key={idx} className="h-2" />);
@@ -166,39 +166,40 @@ const FileChangesSummary = memo(function FileChangesSummary({ changes }: { chang
   const totalDeletions = changes.reduce((sum, c) => sum + c.deletions, 0);
 
   return (
-    <div className="mt-3 pt-3 border-t border-white/10">
+    <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--theme-border)' }}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-slate-500 font-medium">File Changes</span>
+        <span className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>File Changes</span>
         <div className="flex items-center gap-2 text-xs font-mono">
-          <span className="text-green-400 flex items-center gap-0.5">
+          <span className="flex items-center gap-0.5" style={{ color: 'var(--color-success)' }}>
             <Plus className="w-3 h-3" />{totalAdditions}
           </span>
-          <span className="text-red-400 flex items-center gap-0.5">
+          <span className="flex items-center gap-0.5" style={{ color: 'var(--color-error)' }}>
             <Minus className="w-3 h-3" />{totalDeletions}
           </span>
         </div>
       </div>
       <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
         {changes.map((change, idx) => (
-          <div key={idx} className="flex items-center justify-between text-xs py-1 px-2 rounded bg-slate-900/50">
+          <div key={idx} className="flex items-center justify-between text-xs py-1 px-2 rounded" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
             <div className="flex items-center gap-2 min-w-0">
-              <FileCode className="w-3 h-3 text-slate-500 flex-shrink-0" />
+              <FileCode className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--theme-text-muted)' }} />
               <span
-                className={`truncate ${
-                  change.type === 'added' ? 'text-green-400' :
-                  change.type === 'deleted' ? 'text-red-400' : 'text-slate-300'
-                }`}
+                className="truncate"
+                style={{
+                  color: change.type === 'added' ? 'var(--color-success)' :
+                         change.type === 'deleted' ? 'var(--color-error)' : 'var(--theme-text-secondary)'
+                }}
                 title={change.path}
               >
                 {getFileName(change.path)}
               </span>
               {change.type === 'added' && (
-                <span className="text-[9px] px-1 py-0.5 rounded bg-green-500/20 text-green-400">NEW</span>
+                <span className="text-[9px] px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>NEW</span>
               )}
             </div>
             <div className="flex items-center gap-1.5 font-mono text-[10px] flex-shrink-0">
-              {change.additions > 0 && <span className="text-green-400">+{change.additions}</span>}
-              {change.deletions > 0 && <span className="text-red-400">-{change.deletions}</span>}
+              {change.additions > 0 && <span style={{ color: 'var(--color-success)' }}>+{change.additions}</span>}
+              {change.deletions > 0 && <span style={{ color: 'var(--color-error)' }}>-{change.deletions}</span>}
             </div>
           </div>
         ))}
@@ -294,11 +295,13 @@ const MessageItem = memo(function MessageItem({
       onContextMenu={handleContextMenu}
     >
       {/* Avatar */}
-      <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
-        message.role === 'user'
-          ? 'bg-blue-600/20 text-blue-400'
-          : 'bg-purple-600/20 text-purple-400'
-      }`}>
+      <div
+        className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center"
+        style={{
+          backgroundColor: message.role === 'user' ? 'var(--theme-accent-subtle)' : 'var(--theme-ai-accent-subtle)',
+          color: message.role === 'user' ? 'var(--theme-accent)' : 'var(--theme-ai-accent)'
+        }}
+      >
         {message.role === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
       </div>
 
@@ -316,14 +319,15 @@ const MessageItem = memo(function MessageItem({
                       <img
                         src={att.preview}
                         alt={att.type}
-                        className="w-16 h-16 object-cover rounded-lg border border-white/10"
+                        className="w-16 h-16 object-cover rounded-lg"
+                        style={{ border: '1px solid var(--theme-border)' }}
                       />
                     ) : (
-                      <div className="w-16 h-16 bg-slate-800 rounded-lg border border-white/10 flex items-center justify-center">
-                        {att.type === 'sketch' ? <Image className="w-6 h-6 text-blue-400" /> : <Palette className="w-6 h-6 text-purple-400" />}
+                      <div className="w-16 h-16 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)' }}>
+                        {att.type === 'sketch' ? <Image className="w-6 h-6" style={{ color: 'var(--theme-accent)' }} /> : <Palette className="w-6 h-6" style={{ color: 'var(--theme-ai-accent)' }} />}
                       </div>
                     )}
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[9px] text-center py-0.5 rounded-b-lg flex items-center justify-center gap-1">
+                    <div className="absolute bottom-0 left-0 right-0 text-[9px] text-center py-0.5 rounded-b-lg flex items-center justify-center gap-1" style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}>
                       {att.type === 'sketch' ? <Image className="w-2.5 h-2.5" /> : <Palette className="w-2.5 h-2.5" />}
                       {att.type}
                     </div>
@@ -333,8 +337,8 @@ const MessageItem = memo(function MessageItem({
             )}
             {/* Prompt */}
             {message.prompt && (
-              <div className="bg-blue-600/20 border border-blue-500/20 rounded-xl rounded-tr-sm px-3 py-2 inline-block max-w-full">
-                <p className="text-sm text-slate-200 break-words whitespace-pre-wrap">
+              <div className="rounded-xl rounded-tr-sm px-3 py-2 inline-block max-w-full" style={{ backgroundColor: 'var(--theme-accent-subtle)', border: '1px solid var(--theme-accent-subtle)' }}>
+                <p className="text-sm break-words whitespace-pre-wrap" style={{ color: 'var(--theme-text-primary)' }}>
                   {shouldTruncate(message.prompt, TRUNCATE_PROMPT_LENGTH) ? (
                     <>
                       {getTruncatedText(message.prompt, TRUNCATE_PROMPT_LENGTH)}
@@ -344,7 +348,8 @@ const MessageItem = memo(function MessageItem({
                           content: message.prompt || '',
                           title: 'Full Prompt'
                         })}
-                        className="ml-1 text-blue-400 hover:text-blue-300 text-xs font-medium"
+                        className="ml-1 text-xs font-medium"
+                        style={{ color: 'var(--theme-accent)' }}
                       >
                         show more
                       </button>
@@ -358,10 +363,10 @@ const MessageItem = memo(function MessageItem({
 
         {/* Assistant Message */}
         {message.role === 'assistant' && (
-          <div className="bg-slate-800/50 border border-white/5 rounded-xl rounded-tl-sm p-3">
+          <div className="rounded-xl rounded-tl-sm p-3" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border)' }}>
             {/* Loading State */}
             {message.isGenerating && (
-              <div className="flex items-center gap-2 text-blue-400">
+              <div className="flex items-center gap-2" style={{ color: 'var(--theme-accent)' }}>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span className="text-sm">Generating...</span>
               </div>
@@ -370,14 +375,15 @@ const MessageItem = memo(function MessageItem({
             {/* Error State */}
             {message.error && (
               <div className="space-y-2">
-                <div className="flex items-center gap-2 text-red-400">
+                <div className="flex items-center gap-2" style={{ color: 'var(--color-error)' }}>
                   <AlertCircle className="w-4 h-4" />
                   <span className="text-sm">{message.error}</span>
                 </div>
                 {!isGenerating && (
                   <button
                     onClick={() => onRetry(message.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-lg transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+                    style={{ backgroundColor: 'var(--theme-accent-subtle)', color: 'var(--theme-accent)' }}
                   >
                     <RefreshCw className="w-3 h-3" />
                     Retry
@@ -398,7 +404,8 @@ const MessageItem = memo(function MessageItem({
                         content: message.explanation || '',
                         title: 'Full Explanation'
                       })}
-                      className="text-blue-400 hover:text-blue-300 text-xs font-medium mt-2 block"
+                      className="text-xs font-medium mt-2 block"
+                      style={{ color: 'var(--theme-accent)' }}
                     >
                       Read more...
                     </button>
@@ -409,14 +416,14 @@ const MessageItem = memo(function MessageItem({
 
             {/* Token Usage */}
             {message.tokenUsage && (
-              <div className="mt-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700">
+              <div className="mt-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border)' }}>
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-yellow-400" />
+                  <h4 className="text-sm font-medium flex items-center gap-2" style={{ color: 'var(--theme-text-secondary)' }}>
+                    <Zap className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
                     Token Usage
                   </h4>
                   {message.generationTime && (
-                    <div className="flex items-center gap-1 text-xs text-slate-400">
+                    <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                       <Clock className="w-3 h-3" />
                       {(message.generationTime / 1000).toFixed(1)}s
                     </div>
@@ -424,22 +431,22 @@ const MessageItem = memo(function MessageItem({
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-xs">
                   <div className="flex flex-col">
-                    <span className="text-slate-500">Input</span>
-                    <span className="text-blue-400 font-medium">{message.tokenUsage.inputTokens.toLocaleString()}</span>
+                    <span style={{ color: 'var(--theme-text-muted)' }}>Input</span>
+                    <span className="font-medium" style={{ color: 'var(--theme-accent)' }}>{message.tokenUsage.inputTokens.toLocaleString()}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-slate-500">Output</span>
-                    <span className="text-green-400 font-medium">{message.tokenUsage.outputTokens.toLocaleString()}</span>
+                    <span style={{ color: 'var(--theme-text-muted)' }}>Output</span>
+                    <span className="font-medium" style={{ color: 'var(--color-success)' }}>{message.tokenUsage.outputTokens.toLocaleString()}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-slate-500">Total</span>
-                    <span className="text-purple-400 font-medium">{message.tokenUsage.totalTokens.toLocaleString()}</span>
+                    <span style={{ color: 'var(--theme-text-muted)' }}>Total</span>
+                    <span className="font-medium" style={{ color: 'var(--theme-ai-accent)' }}>{message.tokenUsage.totalTokens.toLocaleString()}</span>
                   </div>
                 </div>
                 {message.model && message.provider && (
-                  <div className="mt-2 pt-2 border-t border-slate-700 flex items-center justify-between">
-                    <span className="text-xs text-slate-500">Model</span>
-                    <span className="text-xs text-slate-400">{message.provider} • {message.model}</span>
+                  <div className="mt-2 pt-2 flex items-center justify-between" style={{ borderTop: '1px solid var(--theme-border)' }}>
+                    <span className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Model</span>
+                    <span className="text-xs" style={{ color: 'var(--theme-text-secondary)' }}>{message.provider} • {message.model}</span>
                   </div>
                 )}
               </div>
@@ -450,16 +457,16 @@ const MessageItem = memo(function MessageItem({
 
             {/* Continuation Prompt */}
             {message.continuation && !message.isGenerating && (
-              <div className="mt-3 pt-3 border-t border-white/5">
-                <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-3">
+              <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--theme-border)' }}>
+                <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-success-subtle)', border: '1px solid var(--color-success)' }}>
                   <div className="flex items-start gap-2">
-                    <div className="p-1.5 bg-green-500/20 rounded-lg flex-shrink-0">
-                      <svg className="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="p-1.5 rounded-lg flex-shrink-0" style={{ backgroundColor: 'var(--color-success-subtle)' }}>
+                      <svg className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                       </svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-green-300 mb-2">
+                      <p className="text-xs mb-2" style={{ color: 'var(--color-success)' }}>
                         Batch {message.continuation.currentBatch} of {message.continuation.totalBatches} complete.
                         {message.continuation.remainingFiles.length} files remaining.
                       </p>
@@ -469,7 +476,8 @@ const MessageItem = memo(function MessageItem({
                             onSetExternalPrompt(message.continuation.prompt);
                           }
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs rounded-md transition-colors w-full justify-center"
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-white text-xs rounded-md transition-colors w-full justify-center"
+                        style={{ backgroundColor: 'var(--color-success)' }}
                       >
                         <Clock className="w-3 h-3" />
                         {autoContinueCountdown > 0 && index === totalMessages - 1 ? (
@@ -479,12 +487,12 @@ const MessageItem = memo(function MessageItem({
                         )}
                       </button>
                       <details className="mt-2">
-                        <summary className="text-xs text-slate-400 cursor-pointer hover:text-slate-300">
+                        <summary className="text-xs cursor-pointer" style={{ color: 'var(--theme-text-muted)' }}>
                           View remaining files
                         </summary>
                         <div className="mt-1 space-y-1">
                           {message.continuation.remainingFiles.map((file) => (
-                            <div key={`remaining-${file}`} className="text-xs font-mono text-slate-500 pl-2">
+                            <div key={`remaining-${file}`} className="text-xs font-mono pl-2" style={{ color: 'var(--theme-text-muted)' }}>
                               {file}
                             </div>
                           ))}
@@ -500,7 +508,8 @@ const MessageItem = memo(function MessageItem({
             {message.snapshotFiles && !message.isGenerating && index < totalMessages - 1 && (
               <button
                 onClick={() => onRevert(message.id)}
-                className="mt-3 flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                className="mt-3 flex items-center gap-1.5 text-xs transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
               >
                 <RotateCcw className="w-3 h-3" />
                 Revert to this state
@@ -510,7 +519,7 @@ const MessageItem = memo(function MessageItem({
         )}
 
         {/* Timestamp */}
-        <div className={`text-[10px] text-slate-600 mt-1 ${message.role === 'user' ? 'text-right' : ''}`}>
+        <div className={`text-[10px] mt-1 ${message.role === 'user' ? 'text-right' : ''}`} style={{ color: 'var(--theme-text-muted)' }}>
           {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
       </div>
@@ -620,7 +629,7 @@ export const ChatPanel = memo(function ChatPanel({
 
   if (messages.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-slate-500 p-4 min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 min-h-0" style={{ color: 'var(--theme-text-muted)' }}>
         <Bot className="w-10 h-10 mb-3 opacity-30" />
         <p className="text-sm text-center">Upload a sketch to start generating your app</p>
 
@@ -628,7 +637,8 @@ export const ChatPanel = memo(function ChatPanel({
         {aiHistoryCount > 0 && onRestoreFromHistory && (
           <button
             onClick={onRestoreFromHistory}
-            className="mt-4 flex items-center gap-2 px-4 py-2.5 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 text-purple-400 rounded-xl text-sm font-medium transition-colors"
+            className="mt-4 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors"
+            style={{ backgroundColor: 'var(--theme-ai-accent-subtle)', border: '1px solid var(--theme-ai-accent)', color: 'var(--theme-ai-accent)' }}
           >
             <RotateCcw className="w-4 h-4" />
             Restore from History ({aiHistoryCount})
@@ -641,10 +651,10 @@ export const ChatPanel = memo(function ChatPanel({
   return (
     <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
       {/* Chat Toolbar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-white/5 flex-shrink-0">
+      <div className="flex items-center justify-between px-3 py-2 shrink-0" style={{ borderBottom: '1px solid var(--theme-border)' }}>
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium text-slate-300">History</h3>
-          <span className="text-xs text-slate-500">({messages.length})</span>
+          <h3 className="text-sm font-medium" style={{ color: 'var(--theme-text-secondary)' }}>History</h3>
+          <span className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>({messages.length})</span>
         </div>
         <div className="flex items-center gap-2">
           {/* Time Travel Navigation */}
@@ -658,7 +668,8 @@ export const ChatPanel = memo(function ChatPanel({
           {onSaveCheckpoint && (
             <button
               onClick={onSaveCheckpoint}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
               title="Save current state as checkpoint"
             >
               <Bookmark className="w-3.5 h-3.5" />
@@ -685,18 +696,19 @@ export const ChatPanel = memo(function ChatPanel({
       {/* Generating indicator at bottom with streaming status */}
       {isGenerating && messages[messages.length - 1]?.role === 'user' && (
         <div className="flex gap-3">
-          <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-purple-600/20 text-purple-400">
+          <div className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--theme-ai-accent-subtle)', color: 'var(--theme-ai-accent)' }}>
             <Bot className="w-4 h-4" />
           </div>
-          <div className="bg-slate-800/50 border border-white/5 rounded-xl rounded-tl-sm p-3 flex-1">
+          <div className="rounded-xl rounded-tl-sm p-3 flex-1" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border)' }}>
             <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 text-blue-400">
+              <div className="flex items-center gap-2" style={{ color: 'var(--theme-accent)' }}>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span className="text-sm font-medium">Generating your app...</span>
               </div>
               <button
                 onClick={() => ui.setActiveTab('debug')}
-                className="p-1.5 rounded-md text-slate-500 hover:text-purple-400 hover:bg-purple-500/10 transition-colors"
+                className="p-1.5 rounded-md transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
                 title="View Debug Logs"
               >
                 <Bug className="w-3.5 h-3.5" />
@@ -706,23 +718,24 @@ export const ChatPanel = memo(function ChatPanel({
             {/* Streaming Status */}
             {streamingStatus && (
               <div className="mt-2 space-y-2">
-                <div className="text-xs text-slate-300 font-mono bg-slate-900/50 rounded-lg px-3 py-2 border border-white/5">
+                <div className="text-xs font-mono rounded-lg px-3 py-2" style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}>
                   {streamingStatus}
                 </div>
 
                 {/* Progress bar */}
                 {streamingChars && streamingChars > 0 && (
                   <div className="space-y-1">
-                    <div className="h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                    <div className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                       <div
-                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300 ease-out"
+                        className="h-full rounded-full transition-all duration-300 ease-out"
                         style={{
+                          background: 'linear-gradient(to right, var(--theme-accent), var(--color-feature))',
                           width: `${Math.min(100, (streamingChars / 50000) * 100)}%`,
                           animation: 'pulse 2s ease-in-out infinite'
                         }}
                       />
                     </div>
-                    <div className="flex justify-between text-[10px] text-slate-600">
+                    <div className="flex justify-between text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>
                       <span>{Math.round(streamingChars / 1024)}KB received</span>
                       <span className="animate-pulse">streaming...</span>
                     </div>
@@ -731,31 +744,32 @@ export const ChatPanel = memo(function ChatPanel({
 
                 {/* Smart Continuation Progress */}
                 {continuationState && (
-                  <div className="mt-3 pt-3 border-t border-white/5">
-                    <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3">
+                  <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--theme-border)' }}>
+                    <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--theme-accent-subtle)', border: '1px solid var(--theme-accent)' }}>
                       <div className="flex items-start gap-2">
-                        <Layers className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                        <Layers className="w-4 h-4 mt-0.5 shrink-0" style={{ color: 'var(--theme-accent)' }} />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs font-medium text-blue-300">
+                            <span className="text-xs font-medium" style={{ color: 'var(--theme-accent)' }}>
                               Multi-batch Generation
                             </span>
-                            <span className="text-xs text-blue-400">
+                            <span className="text-xs" style={{ color: 'var(--theme-accent)' }}>
                               Batch {continuationState.generationMeta.currentBatch}/{continuationState.generationMeta.totalBatches}
                             </span>
                           </div>
 
                           {/* Progress bar */}
-                          <div className="h-2 bg-slate-900 rounded-full overflow-hidden mb-2">
+                          <div className="h-2 rounded-full overflow-hidden mb-2" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                             <div
-                              className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
+                              className="h-full rounded-full transition-all duration-500"
                               style={{
+                                background: 'linear-gradient(to right, var(--theme-accent), var(--color-feature))',
                                 width: `${(continuationState.generationMeta.completedFiles.length / continuationState.generationMeta.totalFilesPlanned) * 100}%`
                               }}
                             />
                           </div>
 
-                          <div className="flex justify-between text-[10px] text-slate-400 mb-2">
+                          <div className="flex justify-between text-[10px] mb-2" style={{ color: 'var(--theme-text-muted)' }}>
                             <span>
                               {continuationState.generationMeta.completedFiles.length} of {continuationState.generationMeta.totalFilesPlanned} files
                             </span>
@@ -768,7 +782,8 @@ export const ChatPanel = memo(function ChatPanel({
                           {!continuationState.isActive && !isGenerating && onContinueGeneration && (
                             <button
                               onClick={onContinueGeneration}
-                              className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-md transition-colors w-full justify-center"
+                              className="flex items-center gap-1.5 px-3 py-1.5 text-white text-xs rounded-md transition-colors w-full justify-center"
+                              style={{ backgroundColor: 'var(--theme-accent)' }}
                             >
                               <Zap className="w-3 h-3" />
                               Continue Generation ({continuationState.generationMeta.remainingFiles.length} files)
@@ -777,7 +792,7 @@ export const ChatPanel = memo(function ChatPanel({
 
                           {/* Active indicator */}
                           {continuationState.isActive && (
-                            <div className="flex items-center gap-2 text-[10px] text-blue-400">
+                            <div className="flex items-center gap-2 text-[10px]" style={{ color: 'var(--theme-accent)' }}>
                               <Loader2 className="w-3 h-3 animate-spin" />
                               <span>Auto-continuing...</span>
                             </div>
@@ -790,17 +805,18 @@ export const ChatPanel = memo(function ChatPanel({
 
                 {/* Truncation Retry Button */}
                 {truncatedContent && onTruncationRetry && !isGenerating && (
-                  <div className="mt-3 pt-3 border-t border-white/5">
-                    <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3">
+                  <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--theme-border)' }}>
+                    <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning)' }}>
                       <div className="flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
+                        <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: 'var(--color-warning)' }} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-orange-300 mb-2">
+                          <p className="text-xs mb-2" style={{ color: 'var(--color-warning)' }}>
                             Generation was truncated. {truncatedContent.partialFiles ? Object.keys(truncatedContent.partialFiles).length + ' files need recovery.' : ''}
                           </p>
                           <button
                             onClick={onTruncationRetry}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-md transition-colors"
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-white text-xs rounded-md transition-colors"
+                            style={{ backgroundColor: 'var(--color-warning)' }}
                           >
                             <RefreshCw className="w-3 h-3" />
                             Retry Generation (attempt {truncatedContent.attempt}/3)
@@ -813,22 +829,25 @@ export const ChatPanel = memo(function ChatPanel({
 
                 {/* File Plan Progress (when plan is detected) */}
                 {filePlan && filePlan.create.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-white/5">
+                  <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--theme-border)' }}>
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <FileCode className="w-3.5 h-3.5 text-blue-400" />
-                        <span className="text-xs font-medium text-slate-400">File Generation Plan</span>
+                        <FileCode className="w-3.5 h-3.5" style={{ color: 'var(--theme-accent)' }} />
+                        <span className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>File Generation Plan</span>
                       </div>
-                      <span className="text-xs text-blue-400">
+                      <span className="text-xs" style={{ color: 'var(--theme-accent)' }}>
                         {filePlan.completed.length}/{filePlan.total} complete
                       </span>
                     </div>
 
                     {/* Progress bar */}
-                    <div className="h-1.5 bg-slate-900 rounded-full overflow-hidden mb-2">
+                    <div className="h-1.5 rounded-full overflow-hidden mb-2" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                       <div
-                        className="h-full bg-gradient-to-r from-emerald-500 to-blue-500 rounded-full transition-all duration-300"
-                        style={{ width: `${(filePlan.completed.length / filePlan.total) * 100}%` }}
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          background: 'linear-gradient(to right, var(--color-success), var(--theme-accent))',
+                          width: `${(filePlan.completed.length / filePlan.total) * 100}%`
+                        }}
                       />
                     </div>
 
@@ -846,34 +865,36 @@ export const ChatPanel = memo(function ChatPanel({
                         return (
                           <div
                             key={file}
-                            className={`text-xs font-mono rounded transition-all overflow-hidden ${
-                              isCompleted
-                                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300'
-                                : isStreaming
-                                ? 'bg-blue-500/10 border border-blue-500/20 text-blue-300'
-                                : 'bg-slate-900/50 text-slate-500 border border-transparent'
-                            }`}
+                            className="text-xs font-mono rounded transition-all overflow-hidden"
+                            style={{
+                              backgroundColor: isCompleted ? 'var(--color-success-subtle)' : isStreaming ? 'var(--theme-accent-subtle)' : 'var(--theme-glass-100)',
+                              border: isCompleted ? '1px solid var(--color-success)' : isStreaming ? '1px solid var(--theme-accent)' : '1px solid transparent',
+                              color: isCompleted ? 'var(--color-success)' : isStreaming ? 'var(--theme-accent)' : 'var(--theme-text-muted)'
+                            }}
                             title={`${file}${progress ? ` - ${progressPercent}%` : ''}`}
                           >
                             <div className="flex items-center gap-2 px-2 py-1">
                               {isCompleted ? (
-                                <span className="w-4 h-4 flex items-center justify-center text-emerald-400">✓</span>
+                                <span className="w-4 h-4 flex items-center justify-center" style={{ color: 'var(--color-success)' }}>✓</span>
                               ) : isStreaming ? (
-                                <Loader2 className="w-3.5 h-3.5 text-blue-400 animate-spin" />
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" style={{ color: 'var(--theme-accent)' }} />
                               ) : (
-                                <Clock className="w-3.5 h-3.5 text-slate-600" />
+                                <Clock className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} />
                               )}
                               <span className="truncate flex-1">{getFileName(file)}</span>
                               {isStreaming && progressPercent > 0 && (
-                                <span className="text-[10px] text-blue-400 tabular-nums">{progressPercent}%</span>
+                                <span className="text-[10px] tabular-nums" style={{ color: 'var(--theme-accent)' }}>{progressPercent}%</span>
                               )}
                             </div>
                             {/* Per-file progress bar */}
                             {isStreaming && !isCompleted && (
-                              <div className="h-0.5 bg-slate-800">
+                              <div className="h-0.5" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                                 <div
-                                  className="h-full bg-linear-to-r from-blue-500 to-cyan-400 transition-all duration-500 ease-out"
-                                  style={{ width: `${progressPercent}%` }}
+                                  className="h-full transition-all duration-500 ease-out"
+                                  style={{
+                                    background: 'linear-gradient(to right, var(--theme-accent), var(--color-info))',
+                                    width: `${progressPercent}%`
+                                  }}
                                 />
                               </div>
                             )}
@@ -884,11 +905,12 @@ export const ChatPanel = memo(function ChatPanel({
                       {/* Files to delete */}
                       {filePlan.delete.length > 0 && (
                         <>
-                          <div className="text-[10px] text-slate-500 mt-2 mb-1">Files to delete:</div>
+                          <div className="text-[10px] mt-2 mb-1" style={{ color: 'var(--theme-text-muted)' }}>Files to delete:</div>
                           {filePlan.delete.map((file) => (
                             <div
                               key={`del-${file}`}
-                              className="flex items-center gap-2 text-xs font-mono px-2 py-1 rounded bg-red-500/10 border border-red-500/20 text-red-400"
+                              className="flex items-center gap-2 text-xs font-mono px-2 py-1 rounded"
+                              style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error)', color: 'var(--color-error)' }}
                               title={file}
                             >
                               <span className="w-4 h-4 flex items-center justify-center">🗑️</span>
@@ -903,19 +925,24 @@ export const ChatPanel = memo(function ChatPanel({
 
                 {/* Fallback: Streaming Files List (when no plan detected) */}
                 {!filePlan && streamingFiles && streamingFiles.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-white/5">
+                  <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--theme-border)' }}>
                     <div className="flex items-center gap-2 mb-2">
-                      <FileCode className="w-3.5 h-3.5 text-emerald-400" />
-                      <span className="text-xs font-medium text-slate-400">File Changes Detected ({streamingFiles.length})</span>
+                      <FileCode className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} />
+                      <span className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>File Changes Detected ({streamingFiles.length})</span>
                     </div>
                     <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
                       {[...streamingFiles].reverse().map((file, idx) => (
                         <div
                           key={file}
-                          className={`flex items-center gap-2 text-xs font-mono text-slate-300 px-2 py-1 rounded ${idx === 0 ? 'animate-in slide-in-from-top-2 duration-200 bg-emerald-500/10 border border-emerald-500/20' : 'bg-slate-900/50'}`}
+                          className="flex items-center gap-2 text-xs font-mono px-2 py-1 rounded"
+                          style={{
+                            backgroundColor: idx === 0 ? 'var(--color-success-subtle)' : 'var(--theme-glass-100)',
+                            border: idx === 0 ? '1px solid var(--color-success)' : 'none',
+                            color: 'var(--theme-text-secondary)'
+                          }}
                           title={file}
                         >
-                          <span className={`w-1.5 h-1.5 rounded-full ${idx === 0 ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
+                          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: idx === 0 ? 'var(--color-success)' : 'var(--theme-text-muted)' }} />
                           {getFileName(file)}
                         </div>
                       ))}

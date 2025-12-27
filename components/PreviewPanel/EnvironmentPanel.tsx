@@ -238,36 +238,39 @@ export const EnvironmentPanel: React.FC<EnvironmentPanelProps> = ({ files, setFi
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#0d1117] overflow-hidden">
+    <div className="flex flex-col h-full w-full overflow-hidden" style={{ backgroundColor: 'var(--theme-background)' }}>
       {/* Header */}
-      <div className="flex-none flex items-center justify-between px-4 py-3 bg-[#0a0e16] border-b border-white/5">
+      <div className="flex-none flex items-center justify-between px-4 py-3" style={{ backgroundColor: 'var(--theme-surface)', borderBottom: '1px solid var(--theme-border)' }}>
         <div className="flex items-center gap-3">
-          <div className="p-1.5 bg-amber-500/20 rounded-lg">
-            <Shield className="w-4 h-4 text-amber-400" />
+          <div className="p-1.5 rounded-lg" style={{ backgroundColor: 'var(--color-warning-subtle)' }}>
+            <Shield className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-white">Environment Variables</h2>
-            <p className="text-[10px] text-slate-500">{variables.length} variables configured</p>
+            <h2 className="text-sm font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Environment Variables</h2>
+            <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>{variables.length} variables configured</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {hasChanges && (
-            <span className="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded animate-pulse">
+            <span className="text-[10px] px-2 py-0.5 rounded animate-pulse" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
               unsaved
             </span>
           )}
           <button
             onClick={() => setShowTemplates(!showTemplates)}
-            className={`p-2 rounded-lg transition-colors ${
-              showTemplates ? 'bg-purple-500/20 text-purple-400' : 'bg-white/5 text-slate-400 hover:text-white'
-            }`}
+            className="p-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: showTemplates ? 'var(--color-feature-subtle)' : 'var(--theme-glass-200)',
+              color: showTemplates ? 'var(--color-feature)' : 'var(--theme-text-muted)'
+            }}
             title="Add from templates"
           >
             <Sparkles className="w-4 h-4" />
           </button>
           <button
             onClick={generateExampleEnv}
-            className="p-2 bg-white/5 text-slate-400 hover:text-white rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}
             title="Generate .env.example"
           >
             <RefreshCw className="w-4 h-4" />
@@ -275,11 +278,11 @@ export const EnvironmentPanel: React.FC<EnvironmentPanelProps> = ({ files, setFi
           <button
             onClick={saveEnvFile}
             disabled={!hasChanges}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-              hasChanges
-                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                : 'bg-white/5 text-slate-500'
-            }`}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+            style={{
+              backgroundColor: hasChanges ? 'var(--color-success)' : 'var(--theme-glass-200)',
+              color: hasChanges ? 'var(--theme-text-on-accent)' : 'var(--theme-text-dim)'
+            }}
           >
             <Key className="w-3.5 h-3.5" />
             Save
@@ -289,8 +292,8 @@ export const EnvironmentPanel: React.FC<EnvironmentPanelProps> = ({ files, setFi
 
       {/* Security Warning */}
       {!gitignoreStatus.hasEnv && variables.length > 0 && (
-        <div className="flex-none px-4 py-2 bg-red-500/10 border-b border-red-500/20">
-          <div className="flex items-center gap-2 text-red-400">
+        <div className="flex-none px-4 py-2" style={{ backgroundColor: 'var(--color-error-subtle)', borderBottom: '1px solid var(--color-error)' }}>
+          <div className="flex items-center gap-2" style={{ color: 'var(--color-error)' }}>
             <AlertTriangle className="w-4 h-4 flex-shrink-0" />
             <span className="text-xs">
               <strong>.env is not in .gitignore!</strong> Your secrets may be exposed. Save to auto-fix.
@@ -301,18 +304,19 @@ export const EnvironmentPanel: React.FC<EnvironmentPanelProps> = ({ files, setFi
 
       {/* Templates Panel */}
       {showTemplates && (
-        <div className="flex-none px-4 py-3 bg-purple-500/5 border-b border-purple-500/20 max-h-64 overflow-y-auto">
+        <div className="flex-none px-4 py-3 max-h-64 overflow-y-auto" style={{ backgroundColor: 'var(--color-feature-subtle)', borderBottom: '1px solid var(--color-feature)' }}>
           <div className="space-y-3">
             {Object.entries(ENV_TEMPLATES).map(([category, templates]) => (
               <div key={category}>
-                <h4 className="text-[10px] text-slate-500 uppercase tracking-wide mb-1.5">{category}</h4>
+                <h4 className="text-[10px] uppercase tracking-wide mb-1.5" style={{ color: 'var(--theme-text-dim)' }}>{category}</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {templates.map(t => (
                     <button
                       key={t.key}
                       onClick={() => addFromTemplate(t.key, t.placeholder)}
                       disabled={variables.some(v => v.key === t.key)}
-                      className="flex items-center gap-1.5 px-2 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-slate-300 rounded transition-colors"
+                      className="flex items-center gap-1.5 px-2 py-1 text-[11px] disabled:opacity-50 disabled:cursor-not-allowed rounded transition-colors"
+                      style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-secondary)' }}
                     >
                       {t.icon}
                       {t.key}
@@ -326,26 +330,29 @@ export const EnvironmentPanel: React.FC<EnvironmentPanelProps> = ({ files, setFi
       )}
 
       {/* Add New Variable */}
-      <div className="flex-none px-4 py-3 bg-slate-800/30 border-b border-white/5">
+      <div className="flex-none px-4 py-3" style={{ backgroundColor: 'var(--theme-surface-dark)', borderBottom: '1px solid var(--theme-border-light)' }}>
         <div className="flex items-center gap-2">
           <input
             value={newKey}
             onChange={(e) => setNewKey(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
             placeholder="VARIABLE_NAME"
-            className="flex-1 px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 font-mono"
+            className="flex-1 px-3 py-2 rounded-lg text-sm outline-none font-mono"
+            style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-primary)' }}
             onKeyDown={(e) => e.key === 'Enter' && addVariable()}
           />
           <input
             value={newValue}
             onChange={(e) => setNewValue(e.target.value)}
             placeholder="value"
-            className="flex-1 px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+            className="flex-1 px-3 py-2 rounded-lg text-sm outline-none"
+            style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-primary)' }}
             onKeyDown={(e) => e.key === 'Enter' && addVariable()}
           />
           <button
             onClick={() => addVariable()}
             disabled={!newKey.trim()}
-            className="p-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            style={{ backgroundColor: newKey.trim() ? 'var(--color-success)' : 'var(--theme-glass-300)', color: 'var(--theme-text-on-accent)' }}
           >
             <Plus className="w-4 h-4" />
           </button>
@@ -355,30 +362,31 @@ export const EnvironmentPanel: React.FC<EnvironmentPanelProps> = ({ files, setFi
       {/* Variables List */}
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
         {variables.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-500 p-8">
+          <div className="h-full flex flex-col items-center justify-center p-8" style={{ color: 'var(--theme-text-dim)' }}>
             <Shield className="w-12 h-12 mb-4 opacity-30" />
-            <h3 className="text-sm font-medium text-slate-400 mb-2">No environment variables</h3>
+            <h3 className="text-sm font-medium mb-2" style={{ color: 'var(--theme-text-muted)' }}>No environment variables</h3>
             <p className="text-xs text-center mb-4">
               Add variables above or use templates to get started
             </p>
             <button
               onClick={() => setShowTemplates(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm rounded-lg transition-colors"
+              className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors"
+              style={{ backgroundColor: 'var(--color-feature)', color: 'var(--theme-text-on-accent)' }}
             >
               <Sparkles className="w-4 h-4" />
               Browse Templates
             </button>
           </div>
         ) : (
-          <div className="divide-y divide-white/5">
+          <div style={{ borderTop: '1px solid var(--theme-border-light)' }}>
             {variables.map((variable, index) => (
-              <div key={variable.key} className="px-4 py-3 hover:bg-white/[0.02] group">
+              <div key={variable.key} className="px-4 py-3 group" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                 <div className="flex items-center gap-3">
                   <div className="flex-shrink-0">
                     {variable.isSecret ? (
-                      <Lock className="w-4 h-4 text-amber-400" />
+                      <Lock className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
                     ) : (
-                      <Unlock className="w-4 h-4 text-slate-500" />
+                      <Unlock className="w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
                     )}
                   </div>
 
@@ -386,7 +394,8 @@ export const EnvironmentPanel: React.FC<EnvironmentPanelProps> = ({ files, setFi
                     <input
                       value={variable.key}
                       onChange={(e) => updateVariable(index, { key: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '') })}
-                      className="w-full bg-transparent text-sm font-mono text-emerald-400 outline-none"
+                      className="w-full bg-transparent text-sm font-mono outline-none"
+                      style={{ color: 'var(--color-success)' }}
                     />
                   </div>
 
@@ -396,7 +405,8 @@ export const EnvironmentPanel: React.FC<EnvironmentPanelProps> = ({ files, setFi
                         type={variable.isSecret && !showValues[variable.key] ? 'password' : 'text'}
                         value={variable.value}
                         onChange={(e) => updateVariable(index, { value: e.target.value })}
-                        className="w-full bg-slate-800/50 border border-white/5 rounded px-2 py-1 text-sm text-slate-300 outline-none focus:border-blue-500/50"
+                        className="w-full rounded px-2 py-1 text-sm outline-none"
+                        style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-secondary)' }}
                         placeholder="(empty)"
                       />
                     </div>
@@ -406,33 +416,33 @@ export const EnvironmentPanel: React.FC<EnvironmentPanelProps> = ({ files, setFi
                     {variable.isSecret && (
                       <button
                         onClick={() => toggleShowValue(variable.key)}
-                        className="p-1.5 hover:bg-white/10 rounded transition-colors"
+                        className="p-1.5 rounded transition-colors"
                         title={showValues[variable.key] ? 'Hide value' : 'Show value'}
                       >
                         {showValues[variable.key] ? (
-                          <EyeOff className="w-3.5 h-3.5 text-slate-400" />
+                          <EyeOff className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} />
                         ) : (
-                          <Eye className="w-3.5 h-3.5 text-slate-400" />
+                          <Eye className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} />
                         )}
                       </button>
                     )}
                     <button
                       onClick={() => copyValue(variable.value, variable.key)}
-                      className="p-1.5 hover:bg-white/10 rounded transition-colors"
+                      className="p-1.5 rounded transition-colors"
                       title="Copy value"
                     >
                       {copied === variable.key ? (
-                        <Check className="w-3.5 h-3.5 text-green-400" />
+                        <Check className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} />
                       ) : (
-                        <Copy className="w-3.5 h-3.5 text-slate-400" />
+                        <Copy className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} />
                       )}
                     </button>
                     <button
                       onClick={() => deleteVariable(index)}
-                      className="p-1.5 hover:bg-red-500/20 rounded transition-colors"
+                      className="p-1.5 rounded transition-colors"
                       title="Delete"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                      <Trash2 className="w-3.5 h-3.5" style={{ color: 'var(--color-error)' }} />
                     </button>
                   </div>
                 </div>
@@ -443,8 +453,8 @@ export const EnvironmentPanel: React.FC<EnvironmentPanelProps> = ({ files, setFi
       </div>
 
       {/* Footer Info */}
-      <div className="flex-none px-4 py-2 bg-slate-800/30 border-t border-white/5">
-        <div className="flex items-center justify-between text-[10px] text-slate-500">
+      <div className="flex-none px-4 py-2" style={{ backgroundColor: 'var(--theme-surface-dark)', borderTop: '1px solid var(--theme-border-light)' }}>
+        <div className="flex items-center justify-between text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
               <Lock className="w-3 h-3" />
@@ -452,9 +462,9 @@ export const EnvironmentPanel: React.FC<EnvironmentPanelProps> = ({ files, setFi
             </span>
             <span className="flex items-center gap-1">
               {gitignoreStatus.hasEnv ? (
-                <Check className="w-3 h-3 text-green-400" />
+                <Check className="w-3 h-3" style={{ color: 'var(--color-success)' }} />
               ) : (
-                <AlertTriangle className="w-3 h-3 text-red-400" />
+                <AlertTriangle className="w-3 h-3" style={{ color: 'var(--color-error)' }} />
               )}
               .gitignore {gitignoreStatus.hasEnv ? 'configured' : 'missing .env'}
             </span>

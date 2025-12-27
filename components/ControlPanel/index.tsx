@@ -639,30 +639,49 @@ Fix the error in src/App.tsx.`;
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-white/5 flex-shrink-0">
+      <div
+        className="flex items-center justify-between p-4 shrink-0"
+        style={{ borderBottom: '1px solid var(--theme-border)' }}
+      >
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl border border-white/5">
-            <Layers className="w-5 h-5 text-blue-400" />
+          <div
+            className="p-2 rounded-xl"
+            style={{ background: 'linear-gradient(to bottom right, var(--theme-accent-subtle), var(--theme-ai-accent-subtle))', border: '1px solid var(--theme-border)' }}
+          >
+            <Layers className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
           </div>
           <div>
-            <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-100 to-slate-300">
+            <h1
+              className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r"
+              style={{ backgroundImage: 'linear-gradient(to right, var(--theme-accent), var(--theme-text-secondary))' }}
+            >
               FluidFlow
             </h1>
-            <p className="text-[10px] text-slate-500 font-medium tracking-wide">REACT PAGE BUILDER</p>
+            <p className="text-[10px] font-medium tracking-wide" style={{ color: 'var(--theme-text-muted)' }}>REACT PAGE BUILDER</p>
           </div>
         </div>
 
         <div className="flex items-center gap-1">
           <button
             onClick={onOpenMegaSettings}
-            className="p-2 hover:bg-blue-500/10 rounded-lg text-slate-500 hover:text-blue-400 transition-colors"
+            className="p-2 rounded-lg transition-colors hover:bg-[var(--theme-accent-subtle)]"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Settings"
           >
             <SlidersHorizontal className="w-4 h-4" />
           </button>
           <button
             onClick={handleResetClick}
-            className="p-2 hover:bg-red-500/10 rounded-lg text-slate-500 hover:text-red-400 transition-colors"
+            className="p-2 rounded-lg transition-colors group"
+            style={{ color: 'var(--theme-text-muted)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-error-subtle)';
+              e.currentTarget.style.color = 'var(--color-error)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'var(--theme-text-muted)';
+            }}
             title="Start Fresh"
           >
             <RotateCcw className="w-4 h-4" />
@@ -671,14 +690,15 @@ Fix the error in src/App.tsx.`;
       </div>
 
       {/* AI Provider Quick Selector */}
-      <div className="px-4 py-2 border-b border-white/5 flex-shrink-0">
+      <div className="px-4 py-2 shrink-0" style={{ borderBottom: '1px solid var(--theme-border)' }}>
         <div className="flex items-center gap-2">
           {/* Model Selector Dropdown */}
           <div className="flex-1 relative">
             <select
               value={selectedModel}
               onChange={(e) => onModelChange(e.target.value)}
-              className="w-full appearance-none bg-slate-800/50 border border-white/10 rounded-lg px-3 py-1.5 pr-8 text-sm text-slate-200 focus:outline-none focus:border-blue-500/50 cursor-pointer hover:bg-slate-800/70 transition-colors"
+              className="w-full appearance-none rounded-lg px-3 py-1.5 pr-8 text-sm focus:outline-none cursor-pointer transition-colors"
+              style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
             >
               {(() => {
                 const manager = getProviderManager();
@@ -693,16 +713,17 @@ Fix the error in src/App.tsx.`;
                 ));
               })()}
             </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--theme-text-muted)' }} />
           </div>
 
           {/* Provider Badge & Settings Button */}
           <button
             onClick={onOpenAISettings}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800/50 hover:bg-slate-700/50 border border-white/10 rounded-lg text-xs font-medium text-slate-400 hover:text-slate-200 transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors"
+            style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-secondary)' }}
             title="AI Provider Settings"
           >
-            <span className="text-blue-400">
+            <span style={{ color: 'var(--theme-accent)' }}>
               {(() => {
                 const manager = getProviderManager();
                 const activeConfig = manager.getActiveConfig();
@@ -715,7 +736,7 @@ Fix the error in src/App.tsx.`;
       </div>
 
       {/* Context Indicator */}
-      <div className="px-4 py-2 border-b border-white/5 flex-shrink-0">
+      <div className="px-4 py-2 shrink-0" style={{ borderBottom: '1px solid var(--theme-border)' }}>
         <ContextIndicator
           contextId={sessionId}
           projectId={currentProject?.id}
@@ -729,16 +750,17 @@ Fix the error in src/App.tsx.`;
       {currentProject?.id && Object.keys(files).length > 0 && !hasProjectContext && (
         <button
           onClick={modals.openCodebaseSync}
-          className="mx-4 my-2 p-2.5 bg-purple-500/10 border border-purple-500/20 rounded-lg flex items-center gap-2 text-left hover:bg-purple-500/20 transition-colors group"
+          className="mx-4 my-2 p-2.5 rounded-lg flex items-center gap-2 text-left transition-colors group"
+          style={{ backgroundColor: 'var(--theme-ai-accent-subtle)', border: '1px solid var(--theme-ai-accent)' }}
         >
-          <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
+          <Sparkles className="w-4 h-4 shrink-0" style={{ color: 'var(--theme-ai-accent)' }} />
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-medium text-purple-300">Generate AI Context</p>
-            <p className="text-[10px] text-purple-400/70 truncate">
+            <p className="text-xs font-medium" style={{ color: 'var(--theme-ai-accent)' }}>Generate AI Context</p>
+            <p className="text-[10px] truncate" style={{ color: 'var(--theme-text-muted)' }}>
               Create style guide for consistent AI responses
             </p>
           </div>
-          <ChevronDown className="w-4 h-4 text-purple-400/50 -rotate-90 group-hover:translate-x-0.5 transition-transform" />
+          <ChevronDown className="w-4 h-4 -rotate-90 group-hover:translate-x-0.5 transition-transform" style={{ color: 'var(--theme-ai-accent)' }} />
         </button>
       )}
 
@@ -814,7 +836,7 @@ Fix the error in src/App.tsx.`;
       />
 
       {/* Mode Toggle + Auto-Accept */}
-      <div className="px-3 py-2 border-t border-white/5 flex-shrink-0 flex items-center justify-between gap-2">
+      <div className="px-3 py-2 shrink-0 flex items-center justify-between gap-2" style={{ borderTop: '1px solid var(--theme-border)' }}>
         <ModeToggle
           isConsultantMode={isConsultantMode}
           onToggle={() => setIsConsultantMode(!isConsultantMode)}
@@ -825,7 +847,8 @@ Fix the error in src/App.tsx.`;
         {Object.keys(files).length > 0 && (
           <button
             onClick={modals.openCodebaseSync}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-purple-400 hover:text-purple-300 bg-purple-500/10 hover:bg-purple-500/20 rounded-lg border border-purple-500/20 transition-all"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg transition-all"
+            style={{ backgroundColor: 'var(--theme-ai-accent-subtle)', border: '1px solid var(--theme-ai-accent)', color: 'var(--theme-ai-accent)' }}
             title="Generate project context for consistent AI responses"
           >
             <Sparkles className="w-3.5 h-3.5" />

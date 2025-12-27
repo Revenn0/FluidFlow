@@ -187,57 +187,59 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div className="w-full max-w-4xl bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm" style={{ backgroundColor: 'var(--theme-backdrop)' }}>
+      <div className="w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border-light)' }}>
         {/* Header */}
-        <div className="p-6 border-b border-white/5 bg-gradient-to-r from-purple-500/10 to-blue-500/10">
+        <div className="p-6" style={{ borderBottom: '1px solid var(--theme-border-subtle)', background: 'linear-gradient(to right, var(--color-feature-subtle), var(--color-info-subtle))' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-500/20 rounded-lg">
-                <Clock className="w-5 h-5 text-purple-400" />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-feature-subtle)' }}>
+                <Clock className="w-5 h-5" style={{ color: 'var(--color-feature)' }} />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">Prompt History</h2>
-                <p className="text-xs text-slate-400">{stats.totalPrompts} prompts saved</p>
+                <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Prompt History</h2>
+                <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>{stats.totalPrompts} prompts saved</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
-              <X className="w-5 h-5 text-slate-400" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mt-4">
             <div className="flex items-center gap-2 text-xs">
-              <Heart className="w-4 h-4 text-red-400" />
-              <span className="text-slate-400">{stats.favoriteCount} favorites</span>
+              <Heart className="w-4 h-4" style={{ color: 'var(--color-error)' }} />
+              <span style={{ color: 'var(--theme-text-muted)' }}>{stats.favoriteCount} favorites</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
-              <span className="text-slate-400">{stats.thisWeekCount} this week</span>
+              <TrendingUp className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
+              <span style={{ color: 'var(--theme-text-muted)' }}>{stats.thisWeekCount} this week</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <Tag className="w-4 h-4 text-blue-400" />
-              <span className="text-slate-400">{stats.mostUsedTags.slice(0, 3).join(', ') || 'No tags'}</span>
+              <Tag className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
+              <span style={{ color: 'var(--theme-text-muted)' }}>{stats.mostUsedTags.slice(0, 3).join(', ') || 'No tags'}</span>
             </div>
           </div>
         </div>
 
         {/* Search and Filters */}
-        <div className="p-4 border-b border-white/5">
+        <div className="p-4" style={{ borderBottom: '1px solid var(--theme-border-subtle)' }}>
           <div className="flex items-center gap-3">
             {/* Search */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
               <input
                 type="text"
                 placeholder="Search prompts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50"
+                className="w-full pl-10 pr-4 py-2 rounded-lg text-sm focus:outline-none"
+                style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
               />
             </div>
 
@@ -245,32 +247,32 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
             <div className="flex gap-2">
               <button
                 onClick={() => setFilter('all')}
-                className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                  filter === 'all'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                }`}
+                className="px-3 py-2 text-sm rounded-lg transition-colors"
+                style={{
+                  backgroundColor: filter === 'all' ? 'var(--theme-accent)' : 'var(--theme-glass-200)',
+                  color: filter === 'all' ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)',
+                }}
               >
                 All
               </button>
               <button
                 onClick={() => setFilter('favorites')}
-                className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                  filter === 'favorites'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                }`}
+                className="px-3 py-2 text-sm rounded-lg transition-colors"
+                style={{
+                  backgroundColor: filter === 'favorites' ? 'var(--theme-accent)' : 'var(--theme-glass-200)',
+                  color: filter === 'favorites' ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)',
+                }}
               >
                 <Star className="w-4 h-4 inline mr-1" />
                 Favorites
               </button>
               <button
                 onClick={() => setFilter('recent')}
-                className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                  filter === 'recent'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                }`}
+                className="px-3 py-2 text-sm rounded-lg transition-colors"
+                style={{
+                  backgroundColor: filter === 'recent' ? 'var(--theme-accent)' : 'var(--theme-glass-200)',
+                  color: filter === 'recent' ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)',
+                }}
               >
                 Recent
               </button>
@@ -280,24 +282,27 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
             <div className="flex gap-2">
               <button
                 onClick={handleImport}
-                className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}
                 title="Import history"
               >
-                <Upload className="w-4 h-4 text-slate-400" />
+                <Upload className="w-4 h-4" />
               </button>
               <button
                 onClick={handleExport}
-                className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}
                 title="Export history"
               >
-                <Download className="w-4 h-4 text-slate-400" />
+                <Download className="w-4 h-4" />
               </button>
               <button
                 onClick={handleClearAll}
-                className="p-2 bg-slate-800 hover:bg-red-500/20 rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}
                 title="Clear all history"
               >
-                <Trash2 className="w-4 h-4 text-slate-400 hover:text-red-400" />
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -306,7 +311,7 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
         {/* Prompt List */}
         <div className="flex-1 overflow-y-auto p-4">
           {filteredPrompts.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+            <div className="flex flex-col items-center justify-center py-16" style={{ color: 'var(--theme-text-dim)' }}>
               <FileText className="w-12 h-12 mb-4 opacity-50" />
               <p className="text-sm">
                 {searchQuery ? 'No prompts match your search' : 'No prompts saved yet'}
@@ -316,33 +321,34 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
             <div className="space-y-4">
               {Object.entries(groupedPrompts).map(([dateKey, items]) => (
                 <div key={dateKey}>
-                  <h3 className="text-xs font-medium text-slate-500 mb-2 px-2">{dateKey}</h3>
+                  <h3 className="text-xs font-medium mb-2 px-2" style={{ color: 'var(--theme-text-dim)' }}>{dateKey}</h3>
                   <div className="space-y-2">
                     {items.map((prompt) => (
                       <div
                         key={prompt.id}
-                        className="p-4 bg-slate-800/50 border border-white/5 rounded-lg hover:border-white/10 transition-colors group"
+                        className="p-4 rounded-lg transition-colors group"
+                        style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-subtle)' }}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-slate-300 whitespace-pre-wrap">
+                            <p className="text-sm whitespace-pre-wrap" style={{ color: 'var(--theme-text-secondary)' }}>
                               {getPromptPreview(prompt.prompt)}
                             </p>
                             {prompt.responsePreview && (
-                              <p className="text-xs text-slate-500 mt-2 italic">
+                              <p className="text-xs mt-2 italic" style={{ color: 'var(--theme-text-dim)' }}>
                                 Response: {prompt.responsePreview}
                               </p>
                             )}
-                            <div className="flex items-center gap-3 mt-2 text-xs text-slate-500">
+                            <div className="flex items-center gap-3 mt-2 text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                               <span>{formatTime(prompt.timestamp)}</span>
                               {prompt.model && (
-                                <span className="px-2 py-0.5 bg-slate-700 rounded">{prompt.model}</span>
+                                <span className="px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-glass-300)' }}>{prompt.model}</span>
                               )}
                               {prompt.tokensUsed && (
                                 <span>{prompt.tokensUsed.toLocaleString()} tokens</span>
                               )}
                               {prompt.tags?.map((tag) => (
-                                <span key={tag} className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded">
+                                <span key={tag} className="px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
                                   {tag}
                                 </span>
                               ))}
@@ -352,25 +358,27 @@ export const PromptHistoryModal: React.FC<PromptHistoryModalProps> = ({
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button
                               onClick={() => handleToggleFavorite(prompt.id)}
-                              className={`p-2 rounded-lg transition-colors ${
-                                prompt.favorite
-                                  ? 'bg-yellow-500/20 text-yellow-400'
-                                  : 'bg-slate-700 text-slate-400 hover:text-yellow-400'
-                              }`}
+                              className="p-2 rounded-lg transition-colors"
+                              style={{
+                                backgroundColor: prompt.favorite ? 'var(--color-warning-subtle)' : 'var(--theme-glass-300)',
+                                color: prompt.favorite ? 'var(--color-warning)' : 'var(--theme-text-muted)',
+                              }}
                               title={prompt.favorite ? 'Remove favorite' : 'Add favorite'}
                             >
                               <Star className={`w-4 h-4 ${prompt.favorite ? 'fill-current' : ''}`} />
                             </button>
                             <button
                               onClick={() => handleSelect(prompt.prompt)}
-                              className="p-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
+                              className="p-2 rounded-lg transition-colors"
+                              style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}
                               title="Reuse this prompt"
                             >
                               <RotateCcw className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDelete(prompt.id)}
-                              className="p-2 bg-slate-700 text-slate-400 rounded-lg hover:bg-red-500/20 hover:text-red-400 transition-colors"
+                              className="p-2 rounded-lg transition-colors"
+                              style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-muted)' }}
                               title="Delete"
                             >
                               <Trash2 className="w-4 h-4" />

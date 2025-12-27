@@ -26,52 +26,53 @@ export const SyncConfirmationDialog: React.FC<SyncConfirmationDialogProps> = ({
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-md bg-slate-900 border border-amber-500/30 rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-full max-w-md rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--color-warning-border)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10 bg-amber-500/10">
+        <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--theme-border-light)', backgroundColor: 'var(--color-warning-subtle)' }}>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-amber-500/20 rounded-lg">
-              <AlertTriangle className="w-5 h-5 text-amber-400" />
+            <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-warning-subtle)' }}>
+              <AlertTriangle className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />
             </div>
-            <h2 className="text-lg font-semibold text-white">File Sync Confirmation</h2>
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>File Sync Confirmation</h2>
           </div>
           <button
             onClick={onCancel}
-            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
             disabled={isLoading}
           >
-            <X className="w-5 h-5 text-slate-400" />
+            <X className="w-5 h-5" style={{ color: 'var(--theme-text-muted)' }} />
           </button>
         </div>
 
         {/* Content */}
         <div className="p-5 space-y-4">
           {/* Warning Message */}
-          <p className="text-slate-300 text-sm leading-relaxed">
+          <p className="text-sm leading-relaxed" style={{ color: 'var(--theme-text-secondary)' }}>
             {message}
           </p>
 
           {/* Stats */}
-          <div className="bg-slate-800/50 rounded-lg p-4 space-y-3">
+          <div className="rounded-lg p-4 space-y-3" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400 text-sm">Current file count:</span>
-              <span className="text-white font-medium">{existingFileCount}</span>
+              <span className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>Current file count:</span>
+              <span className="font-medium" style={{ color: 'var(--theme-text-primary)' }}>{existingFileCount}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400 text-sm">New file count:</span>
-              <span className="text-amber-400 font-medium">{newFileCount}</span>
+              <span className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>New file count:</span>
+              <span className="font-medium" style={{ color: 'var(--color-warning)' }}>{newFileCount}</span>
             </div>
-            <div className="pt-2 border-t border-white/10 flex items-center justify-between">
-              <span className="text-slate-400 text-sm">Reduction rate:</span>
-              <span className="text-red-400 font-bold">{reductionPercent}%</span>
+            <div className="pt-2 flex items-center justify-between" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
+              <span className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>Reduction rate:</span>
+              <span className="font-bold" style={{ color: 'var(--color-error)' }}>{reductionPercent}%</span>
             </div>
           </div>
 
           {/* Warning Note */}
-          <div className="flex items-start gap-2 text-xs text-amber-400/80 bg-amber-500/10 rounded-lg p-3">
-            <FileWarning className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-2 text-xs rounded-lg p-3" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
+            <FileWarning className="w-4 h-4 shrink-0 mt-0.5" />
             <span>
               This action cannot be undone. Make sure your files are correct before confirming.
             </span>
@@ -79,18 +80,20 @@ export const SyncConfirmationDialog: React.FC<SyncConfirmationDialogProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center justify-end gap-3 p-4 border-t border-white/10 bg-slate-800/30">
+        <div className="flex items-center justify-end gap-3 p-4" style={{ borderTop: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-100)' }}>
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+            style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+            style={{ backgroundColor: 'var(--color-warning)', color: 'var(--theme-text-on-accent)' }}
           >
             {isLoading ? (
               <>

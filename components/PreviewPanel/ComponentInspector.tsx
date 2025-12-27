@@ -151,20 +151,24 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
         }}
       >
         <div
-          className={`flex items-center gap-2 px-3 py-2 bg-purple-600/90 backdrop-blur-xl rounded-full shadow-2xl cursor-move select-none transition-all ${
-            isDragging ? 'ring-2 ring-white/30 scale-105' : 'hover:bg-purple-500/90'
-          }`}
+          className="flex items-center gap-2 px-3 py-2 backdrop-blur-xl rounded-full shadow-2xl cursor-move select-none transition-all"
+          style={{
+            backgroundColor: 'var(--color-feature)',
+            boxShadow: isDragging ? '0 0 0 2px rgba(255,255,255,0.3)' : 'none',
+            transform: isDragging ? 'scale(1.05)' : 'scale(1)'
+          }}
           onMouseDown={handleDragStart}
         >
-          <GripVertical className="w-4 h-4 text-white/60" />
-          <MousePointer2 className="w-4 h-4 text-white" />
-          <span className="text-sm font-medium text-white">
+          <GripVertical className="w-4 h-4" style={{ color: 'var(--theme-text-on-accent)', opacity: 0.6 }} />
+          <MousePointer2 className="w-4 h-4" style={{ color: 'var(--theme-text-on-accent)' }} />
+          <span className="text-sm font-medium" style={{ color: 'var(--theme-text-on-accent)' }}>
             {element.componentName || element.tagName.toLowerCase()}
           </span>
           <button
             onClick={(e) => { e.stopPropagation(); setIsMinimized(false); }}
             onMouseDown={(e) => e.stopPropagation()}
-            className="p-1 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+            className="p-1 rounded-full transition-colors"
+            style={{ color: 'var(--theme-text-on-accent)', opacity: 0.8 }}
             title="Expand"
           >
             <Maximize2 className="w-3.5 h-3.5" />
@@ -172,7 +176,8 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
           <button
             onClick={(e) => { e.stopPropagation(); onClose(); }}
             onMouseDown={(e) => e.stopPropagation()}
-            className="p-1 rounded-full hover:bg-white/20 text-white/80 hover:text-white transition-colors"
+            className="p-1 rounded-full transition-colors"
+            style={{ color: 'var(--theme-text-on-accent)', opacity: 0.8 }}
             title="Close"
           >
             <X className="w-3.5 h-3.5" />
@@ -194,32 +199,43 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
         transform: `translateX(calc(-50% + ${position.x}px))`,
       }}
     >
-      <div className={`bg-slate-900/95 backdrop-blur-xl border rounded-2xl shadow-2xl overflow-hidden transition-all ${
-        isDragging ? 'border-purple-400 ring-2 ring-purple-500/40 shadow-purple-500/20' : 'border-purple-500/30'
-      }`}>
+      <div
+        className="backdrop-blur-xl rounded-2xl shadow-2xl overflow-hidden transition-all"
+        style={{
+          backgroundColor: 'var(--theme-surface)',
+          border: `1px solid ${isDragging ? 'var(--color-feature)' : 'var(--color-feature-border)'}`,
+          boxShadow: isDragging ? '0 0 0 2px var(--color-feature-subtle)' : 'none'
+        }}
+      >
         {/* Header - Full Draggable Area with prominent grip */}
         <div
-          className={`flex items-center justify-between px-3 py-2.5 border-b border-white/10 cursor-grab active:cursor-grabbing select-none transition-all ${
-            isDragging ? 'bg-purple-500/30' : 'bg-purple-500/10 hover:bg-purple-500/15'
-          }`}
+          className="flex items-center justify-between px-3 py-2.5 cursor-grab active:cursor-grabbing select-none transition-all"
+          style={{
+            backgroundColor: isDragging ? 'var(--color-feature-subtle)' : 'var(--color-feature-subtle)',
+            borderBottom: '1px solid var(--theme-border-light)'
+          }}
           onMouseDown={handleDragStart}
         >
           <div className="flex items-center gap-2">
             {/* Large drag grip indicator */}
-            <div className={`p-1.5 rounded-lg transition-colors ${isDragging ? 'bg-purple-500/30' : 'bg-white/5 hover:bg-white/10'}`}>
-              <GripVertical className={`w-4 h-4 transition-colors ${isDragging ? 'text-purple-300' : 'text-purple-400/70'}`} />
+            <div
+              className="p-1.5 rounded-lg transition-colors"
+              style={{ backgroundColor: isDragging ? 'var(--color-feature-subtle)' : 'var(--theme-glass-200)' }}
+            >
+              <GripVertical className="w-4 h-4 transition-colors" style={{ color: isDragging ? 'var(--color-feature)' : 'var(--theme-text-muted)' }} />
             </div>
-            <MousePointer2 className="w-4 h-4 text-purple-400" />
-            <span className="text-sm font-medium text-white">Element Selected</span>
+            <MousePointer2 className="w-4 h-4" style={{ color: 'var(--color-feature)' }} />
+            <span className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>Element Selected</span>
             {!hasBeenDragged && (
-              <span className="text-[10px] text-purple-400/60 ml-1">drag to move</span>
+              <span className="text-[10px] ml-1" style={{ color: 'var(--theme-text-dim)' }}>drag to move</span>
             )}
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={(e) => { e.stopPropagation(); setIsMinimized(true); }}
               onMouseDown={(e) => e.stopPropagation()}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
               title="Minimize"
             >
               <Minimize2 className="w-4 h-4" />
@@ -227,7 +243,8 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
             <button
               onClick={(e) => { e.stopPropagation(); onClose(); }}
               onMouseDown={(e) => e.stopPropagation()}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
               title="Close"
             >
               <X className="w-4 h-4" />
@@ -236,39 +253,39 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
         </div>
 
         {/* Element Info */}
-        <div className="px-4 py-3 border-b border-white/5 bg-slate-950/50">
+        <div className="px-4 py-3" style={{ backgroundColor: 'var(--theme-surface-dark)', borderBottom: '1px solid var(--theme-border-light)' }}>
           <div className="flex items-center gap-2 flex-wrap">
             {element.componentName && (
-              <span className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs font-mono">
+              <span className="px-2 py-1 rounded text-xs font-mono" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>
                 {element.componentName}
               </span>
             )}
-            <span className="px-2 py-1 bg-blue-500/20 text-blue-300 rounded text-xs font-mono">
+            <span className="px-2 py-1 rounded text-xs font-mono" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
               &lt;{element.tagName.toLowerCase()}&gt;
             </span>
             {element.ffGroup && (
-              <span className="px-2 py-1 bg-emerald-500/20 text-emerald-300 rounded text-xs font-mono">
+              <span className="px-2 py-1 rounded text-xs font-mono" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
                 group:{element.ffGroup}
               </span>
             )}
             {element.ffId && (
-              <span className="px-2 py-1 bg-cyan-500/20 text-cyan-300 rounded text-xs font-mono">
+              <span className="px-2 py-1 rounded text-xs font-mono" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
                 id:{element.ffId}
               </span>
             )}
             {element.id && (
-              <span className="px-2 py-1 bg-amber-500/20 text-amber-300 rounded text-xs font-mono">
+              <span className="px-2 py-1 rounded text-xs font-mono" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
                 #{element.id}
               </span>
             )}
             {element.className && (
-              <span className="px-2 py-1 bg-slate-500/20 text-slate-400 rounded text-xs font-mono truncate max-w-[200px]" title={element.className}>
+              <span className="px-2 py-1 rounded text-xs font-mono truncate max-w-[200px]" style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }} title={element.className}>
                 .{element.className.split(' ')[0]}
               </span>
             )}
           </div>
           {element.textContent && (
-            <p className="mt-2 text-xs text-slate-500 truncate">
+            <p className="mt-2 text-xs truncate" style={{ color: 'var(--theme-text-dim)' }}>
               "{element.textContent}"
             </p>
           )}
@@ -276,17 +293,18 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
 
         {/* Scope Selector - Only show if we have ff-group */}
         {hasGroup && (
-          <div className="px-4 py-3 border-b border-white/5 bg-slate-900/50">
-            <p className="text-[10px] text-slate-500 mb-2 uppercase tracking-wide">Apply Changes To</p>
+          <div className="px-4 py-3" style={{ backgroundColor: 'var(--theme-surface)', borderBottom: '1px solid var(--theme-border-light)' }}>
+            <p className="text-[10px] mb-2 uppercase tracking-wide" style={{ color: 'var(--theme-text-dim)' }}>Apply Changes To</p>
             <div className="flex gap-2">
               <button
                 onClick={() => setScope('element')}
                 disabled={isProcessing}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                  scope === 'element'
-                    ? 'bg-cyan-500/20 border-2 border-cyan-500/50 text-cyan-300'
-                    : 'bg-slate-800/50 border-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-700/50'
-                }`}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: scope === 'element' ? 'var(--color-info-subtle)' : 'var(--theme-glass-200)',
+                  border: `2px solid ${scope === 'element' ? 'var(--color-info)' : 'transparent'}`,
+                  color: scope === 'element' ? 'var(--color-info)' : 'var(--theme-text-muted)'
+                }}
               >
                 <Target className="w-4 h-4" />
                 <div className="text-left">
@@ -297,11 +315,12 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
               <button
                 onClick={() => setScope('group')}
                 disabled={isProcessing}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
-                  scope === 'group'
-                    ? 'bg-emerald-500/20 border-2 border-emerald-500/50 text-emerald-300'
-                    : 'bg-slate-800/50 border-2 border-transparent text-slate-400 hover:text-white hover:bg-slate-700/50'
-                }`}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all"
+                style={{
+                  backgroundColor: scope === 'group' ? 'var(--color-success-subtle)' : 'var(--theme-glass-200)',
+                  border: `2px solid ${scope === 'group' ? 'var(--color-success)' : 'transparent'}`,
+                  color: scope === 'group' ? 'var(--color-success)' : 'var(--theme-text-muted)'
+                }}
               >
                 <Layers className="w-4 h-4" />
                 <div className="text-left">
@@ -314,15 +333,16 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
         )}
 
         {/* Quick Actions */}
-        <div className="px-4 py-3 border-b border-white/5">
-          <p className="text-[10px] text-slate-500 mb-2 uppercase tracking-wide">Quick Actions</p>
+        <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+          <p className="text-[10px] mb-2 uppercase tracking-wide" style={{ color: 'var(--theme-text-dim)' }}>Quick Actions</p>
           <div className="flex flex-wrap gap-1.5">
             {quickActions.map((action) => (
               <button
                 key={action.label}
                 onClick={() => setPrompt(action.prompt)}
                 disabled={isProcessing}
-                className="px-2.5 py-1.5 text-xs bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 hover:text-white rounded-lg border border-white/5 hover:border-purple-500/30 transition-all disabled:opacity-50"
+                className="px-2.5 py-1.5 text-xs rounded-lg transition-all disabled:opacity-50"
+                style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border-light)' }}
               >
                 {action.label}
               </button>
@@ -341,15 +361,17 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
                 onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
                 placeholder="Describe what to change..."
                 disabled={isProcessing}
-                className="w-full px-4 py-2.5 bg-slate-800/50 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 disabled:opacity-50"
+                className="w-full px-4 py-2.5 rounded-xl text-sm focus:outline-none disabled:opacity-50"
+                style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-primary)' }}
                 autoFocus
               />
-              <Sparkles className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-purple-400/50" />
+              <Sparkles className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--color-feature)', opacity: 0.5 }} />
             </div>
             <button
               onClick={handleSubmit}
               disabled={!prompt.trim() || isProcessing}
-              className="p-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 disabled:text-slate-500 text-white transition-colors"
+              className="p-2.5 rounded-xl transition-colors disabled:opacity-50"
+              style={{ backgroundColor: 'var(--color-feature)', color: 'var(--theme-text-on-accent)' }}
             >
               {isProcessing ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -358,7 +380,7 @@ export const ComponentInspector: React.FC<ComponentInspectorProps> = ({
               )}
             </button>
           </div>
-          <p className="text-[10px] text-slate-600 mt-2 text-center">
+          <p className="text-[10px] mt-2 text-center" style={{ color: 'var(--theme-text-dim)' }}>
             {scope === 'group' && hasGroup
               ? `Changes will apply to all "${element.ffGroup}" elements`
               : hasId
@@ -431,12 +453,14 @@ const DraggableLabel: React.FC<{
 
   return (
     <div
-      className={`absolute px-2 py-1.5 bg-purple-600 text-white text-[10px] rounded-lg shadow-xl whitespace-nowrap flex items-center gap-1.5 pointer-events-auto cursor-move select-none z-[150] ${
-        isDragging ? 'ring-2 ring-white/50 scale-105' : 'hover:ring-2 hover:ring-white/30'
-      } transition-all`}
+      className="absolute px-2 py-1.5 text-[10px] rounded-lg shadow-xl whitespace-nowrap flex items-center gap-1.5 pointer-events-auto cursor-move select-none z-[150] transition-all"
       style={{
         top: selectedRect.top + offset.y,
         left: selectedRect.left + offset.x,
+        backgroundColor: 'var(--color-feature)',
+        color: 'var(--theme-text-on-accent)',
+        boxShadow: isDragging ? '0 0 0 2px rgba(255,255,255,0.5)' : 'none',
+        transform: isDragging ? 'scale(1.05)' : 'scale(1)'
       }}
       onMouseDown={handleMouseDown}
     >
@@ -449,7 +473,7 @@ const DraggableLabel: React.FC<{
         <circle cx="5" cy="18" r="2" />
         <circle cx="12" cy="18" r="2" />
       </svg>
-      <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+      <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--theme-text-on-accent)' }} />
       <span className="font-semibold">
         {selectedElement?.componentName || selectedElement?.tagName?.toLowerCase() || 'Element'}
       </span>
@@ -477,15 +501,20 @@ export const InspectionOverlay: React.FC<{
       {/* Hovered element highlight */}
       {hoveredRect && !selectedRect && (
         <div
-          className="absolute border-2 border-blue-400 bg-blue-400/10 transition-all duration-75"
+          className="absolute transition-all duration-75"
           style={{
             top: hoveredRect.top,
             left: hoveredRect.left,
             width: hoveredRect.width,
             height: hoveredRect.height,
+            border: '2px solid var(--color-info)',
+            backgroundColor: 'var(--color-info-subtle)'
           }}
         >
-          <div className="absolute -top-6 left-0 px-2 py-0.5 bg-blue-500 text-white text-[10px] rounded whitespace-nowrap shadow-lg">
+          <div
+            className="absolute -top-6 left-0 px-2 py-0.5 text-[10px] rounded whitespace-nowrap shadow-lg"
+            style={{ backgroundColor: 'var(--color-info)', color: 'var(--theme-text-on-accent)' }}
+          >
             Click to select
           </div>
         </div>
@@ -496,29 +525,32 @@ export const InspectionOverlay: React.FC<{
         <>
           {/* Pulsing ring animation */}
           <div
-            className="absolute border-2 border-purple-400 rounded-sm animate-pulse"
+            className="absolute rounded-sm animate-pulse"
             style={{
               top: selectedRect.top - 3,
               left: selectedRect.left - 3,
               width: selectedRect.width + 6,
               height: selectedRect.height + 6,
+              border: '2px solid var(--color-feature)'
             }}
           />
           {/* Main selection box */}
           <div
-            className="absolute border-2 border-purple-500 bg-purple-500/15 shadow-lg shadow-purple-500/25"
+            className="absolute shadow-lg"
             style={{
               top: selectedRect.top,
               left: selectedRect.left,
               width: selectedRect.width,
               height: selectedRect.height,
+              border: '2px solid var(--color-feature)',
+              backgroundColor: 'var(--color-feature-subtle)'
             }}
           >
             {/* Corner markers */}
-            <div className="absolute -top-1 -left-1 w-2.5 h-2.5 border-t-2 border-l-2 border-purple-400" />
-            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 border-t-2 border-r-2 border-purple-400" />
-            <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 border-b-2 border-l-2 border-purple-400" />
-            <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 border-b-2 border-r-2 border-purple-400" />
+            <div className="absolute -top-1 -left-1 w-2.5 h-2.5" style={{ borderTop: '2px solid var(--color-feature)', borderLeft: '2px solid var(--color-feature)' }} />
+            <div className="absolute -top-1 -right-1 w-2.5 h-2.5" style={{ borderTop: '2px solid var(--color-feature)', borderRight: '2px solid var(--color-feature)' }} />
+            <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5" style={{ borderBottom: '2px solid var(--color-feature)', borderLeft: '2px solid var(--color-feature)' }} />
+            <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5" style={{ borderBottom: '2px solid var(--color-feature)', borderRight: '2px solid var(--color-feature)' }} />
           </div>
           {/* Draggable selection label */}
           <DraggableLabel selectedRect={selectedRect} selectedElement={selectedElement} />
@@ -527,7 +559,10 @@ export const InspectionOverlay: React.FC<{
 
       {/* Info banner when in inspect mode */}
       {!selectedRect && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-blue-500/90 backdrop-blur text-white text-sm font-medium rounded-full shadow-lg flex items-center gap-2">
+        <div
+          className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 backdrop-blur text-sm font-medium rounded-full shadow-lg flex items-center gap-2"
+          style={{ backgroundColor: 'var(--color-info)', color: 'var(--theme-text-on-accent)' }}
+        >
           <MousePointer2 className="w-4 h-4" />
           Hover & click to select a component
         </div>

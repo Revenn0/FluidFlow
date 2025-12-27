@@ -4,17 +4,17 @@ import { CommitFileChange } from '@/services/projectApi';
 import { CommitFileIconProps } from './types';
 
 const iconConfigs: Record<CommitFileChange['status'], { Icon: LucideIcon; color: string }> = {
-  added: { Icon: FilePlus, color: 'text-emerald-400' },
-  modified: { Icon: FileText, color: 'text-amber-400' },
-  deleted: { Icon: FileX, color: 'text-red-400' },
-  renamed: { Icon: GitMerge, color: 'text-purple-400' },
-  copied: { Icon: Copy, color: 'text-blue-400' },
-  unknown: { Icon: FileText, color: 'text-slate-400' },
+  added: { Icon: FilePlus, color: 'var(--color-success)' },
+  modified: { Icon: FileText, color: 'var(--color-warning)' },
+  deleted: { Icon: FileX, color: 'var(--color-error)' },
+  renamed: { Icon: GitMerge, color: 'var(--color-feature)' },
+  copied: { Icon: Copy, color: 'var(--color-info)' },
+  unknown: { Icon: FileText, color: 'var(--theme-text-muted)' },
 };
 
 export const CommitFileIcon: React.FC<CommitFileIconProps> = ({ status }) => {
   const { Icon, color } = iconConfigs[status] || iconConfigs.unknown;
-  return <Icon className={`w-4 h-4 flex-shrink-0 ${color}`} />;
+  return <Icon className="w-4 h-4 shrink-0" style={{ color }} />;
 };
 
 export default CommitFileIcon;

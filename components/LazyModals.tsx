@@ -25,10 +25,10 @@ const CodebaseSyncModalLazy = lazy(() => import('./CodebaseSyncModal').then(m =>
  */
 function ModalLoadingFallback() {
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="flex flex-col items-center gap-3 p-6 bg-slate-900 border border-white/10 rounded-xl">
-        <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
-        <span className="text-sm text-slate-400">Loading...</span>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm" style={{ backgroundColor: 'var(--theme-modal-overlay)' }}>
+      <div className="flex flex-col items-center gap-3 p-6 rounded-xl" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
+        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--color-info)' }} />
+        <span className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>Loading...</span>
       </div>
     </div>
   );

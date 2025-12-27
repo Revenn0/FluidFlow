@@ -14,23 +14,23 @@ interface ProviderIconProps {
 export const ProviderIcon: React.FC<ProviderIconProps> = ({ type, className = "w-5 h-5" }) => {
   switch (type) {
     case 'gemini':
-      return <Sparkles className={`${className} text-blue-400`} />;
+      return <Sparkles className={className} style={{ color: 'var(--color-info)' }} />;
     case 'openai':
-      return <div className={`${className} rounded-sm bg-emerald-500 flex items-center justify-center text-[10px] font-bold text-white`}>AI</div>;
+      return <div className={`${className} rounded-sm flex items-center justify-center text-[10px] font-bold`} style={{ backgroundColor: 'var(--color-success)', color: 'var(--theme-text-on-accent)' }}>AI</div>;
     case 'anthropic':
-      return <div className={`${className} rounded-sm bg-orange-500 flex items-center justify-center text-[10px] font-bold text-white`}>A</div>;
+      return <div className={`${className} rounded-sm flex items-center justify-center text-[10px] font-bold`} style={{ backgroundColor: 'var(--color-warning)', color: 'var(--theme-text-on-accent)' }}>A</div>;
     case 'zai':
-      return <div className={`${className} rounded-sm bg-indigo-500 flex items-center justify-center text-[10px] font-bold text-white`}>Z</div>;
+      return <div className={`${className} rounded-sm flex items-center justify-center text-[10px] font-bold`} style={{ backgroundColor: 'var(--color-feature)', color: 'var(--theme-text-on-accent)' }}>Z</div>;
     case 'ollama':
-      return <Server className={`${className} text-purple-400`} />;
+      return <Server className={className} style={{ color: 'var(--color-feature)' }} />;
     case 'lmstudio':
-      return <Monitor className={`${className} text-pink-400`} />;
+      return <Monitor className={className} style={{ color: 'var(--color-error)' }} />;
     case 'openrouter':
-      return <Cloud className={`${className} text-cyan-400`} />;
+      return <Cloud className={className} style={{ color: 'var(--color-info)' }} />;
     case 'custom':
-      return <Cpu className={`${className} text-amber-400`} />;
+      return <Cpu className={className} style={{ color: 'var(--color-warning)' }} />;
     default:
-      return <Cpu className={`${className} text-slate-400`} />;
+      return <Cpu className={className} style={{ color: 'var(--theme-text-muted)' }} />;
   }
 };
 

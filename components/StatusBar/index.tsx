@@ -171,43 +171,49 @@ export const StatusBar = memo(function StatusBar({
         {/* Project Name */}
         <button
           onClick={onOpenProjectsTab}
-          className="flex items-center gap-1.5 hover:bg-white/5 px-2 h-full cursor-pointer transition-colors rounded group"
+          className="flex items-center gap-1.5 px-2 h-full cursor-pointer transition-colors rounded group"
+          style={{ ['--hover-bg' as string]: 'var(--theme-surface-hover)' }}
           title={projectName ? `Project: ${projectName}` : 'No project - Click to open projects'}
         >
-          <FolderOpen className="w-3 h-3 text-blue-400" />
-          <span className="max-w-[100px] truncate text-slate-300">
+          <FolderOpen className="w-3 h-3" style={{ color: 'var(--theme-accent)' }} />
+          <span className="max-w-[100px] truncate" style={{ color: 'var(--theme-text-primary)' }}>
             {projectName || 'No Project'}
           </span>
-          <ChevronDown className="w-3 h-3 text-slate-500 group-hover:text-slate-300 transition-colors" />
+          <ChevronDown className="w-3 h-3 transition-colors" style={{ color: 'var(--theme-text-muted)' }} />
         </button>
 
         {/* Separator */}
-        <div className="w-px h-3 bg-white/10 mx-1" />
+        <div className="w-px h-3 mx-1" style={{ backgroundColor: 'var(--theme-border)' }} />
 
         {/* Git Branch - clickable to open git tab */}
         <button
           onClick={onOpenGitTab}
-          className={`flex items-center gap-1.5 hover:bg-white/5 px-2 h-full cursor-pointer transition-colors rounded ${
-            gitInitialized ? '' : 'text-slate-500'
-          }`}
+          className="flex items-center gap-1.5 px-2 h-full cursor-pointer transition-colors rounded"
+          style={{ color: gitInitialized ? undefined : 'var(--theme-text-muted)' }}
           title={
             gitInitialized
               ? `Branch: ${gitBranch}${hasUncommitted ? ' (uncommitted changes)' : ''} - Click to open Git`
               : 'No Git - Click to initialize'
           }
         >
-          <GitBranch className={`w-3 h-3 ${
-            gitInitialized
-              ? hasUncommitted ? 'text-amber-400' : 'text-emerald-400'
-              : ''
-          }`} />
+          <GitBranch
+            className="w-3 h-3"
+            style={{
+              color: gitInitialized
+                ? hasUncommitted ? 'var(--color-warning)' : 'var(--color-success)'
+                : undefined
+            }}
+          />
           {gitInitialized ? (
             <>
-              <span className={`max-w-[80px] truncate ${hasUncommitted ? 'text-amber-400' : ''}`}>
+              <span
+                className="max-w-[80px] truncate"
+                style={{ color: hasUncommitted ? 'var(--color-warning)' : undefined }}
+              >
                 {gitBranch}
               </span>
               {hasUncommitted && (
-                <Circle className="w-1.5 h-1.5 fill-amber-400 text-amber-400" />
+                <Circle className="w-1.5 h-1.5" style={{ fill: 'var(--color-warning)', color: 'var(--color-warning)' }} />
               )}
             </>
           ) : (
@@ -219,13 +225,19 @@ export const StatusBar = memo(function StatusBar({
         {gitInitialized && (
           <button
             onClick={() => setAutoCommitEnabled(!autoCommitEnabled)}
-            className={`flex items-center gap-1 px-1.5 h-full rounded transition-colors ${
-              autoCommitEnabled
+            className="flex items-center gap-1 px-1.5 h-full rounded transition-colors"
+            style={{
+              color: autoCommitEnabled
                 ? isAutoCommitting
-                  ? 'text-amber-400 bg-amber-500/10'
-                  : 'text-emerald-400 hover:bg-emerald-500/10'
-                : 'text-slate-500 hover:text-slate-400 hover:bg-white/5'
-            }`}
+                  ? 'var(--color-warning)'
+                  : 'var(--color-success)'
+                : 'var(--theme-text-muted)',
+              backgroundColor: autoCommitEnabled
+                ? isAutoCommitting
+                  ? 'var(--color-warning-subtle)'
+                  : undefined
+                : undefined
+            }}
             title={
               isAutoCommitting
                 ? 'Auto-committing...'
@@ -244,13 +256,18 @@ export const StatusBar = memo(function StatusBar({
         )}
 
         {/* Separator */}
-        <div className="w-px h-3 bg-white/10 mx-1" />
+        <div className="w-px h-3 mx-1" style={{ backgroundColor: 'var(--theme-border)' }} />
 
         {/* Backend Status */}
         <div
-          className={`flex items-center gap-1.5 px-2 h-full transition-colors rounded ${
-            isSyncing ? 'text-blue-400' : 'hover:bg-white/5 cursor-pointer'
-          }`}
+          className="flex items-center gap-1.5 px-2 h-full transition-colors rounded cursor-pointer"
+          style={{
+            color: isSyncing
+              ? 'var(--theme-accent)'
+              : isOnline
+                ? 'var(--color-success)'
+                : 'var(--color-error)'
+          }}
           title={isSyncing ? 'Syncing...' : isOnline ? 'Backend connected' : 'Backend offline'}
         >
           {isSyncing ? (
@@ -260,30 +277,36 @@ export const StatusBar = memo(function StatusBar({
             </>
           ) : isOnline ? (
             <>
-              <Cloud className="w-3 h-3 text-emerald-400" />
-              <span className="text-[10px] text-emerald-400">Backend</span>
+              <Cloud className="w-3 h-3" />
+              <span className="text-[10px]">Backend</span>
             </>
           ) : (
             <>
-              <CloudOff className="w-3 h-3 text-red-400" />
-              <span className="text-[10px] text-red-400">Offline</span>
+              <CloudOff className="w-3 h-3" />
+              <span className="text-[10px]">Offline</span>
             </>
           )}
         </div>
 
         {/* Separator */}
-        <div className="w-px h-3 bg-white/10 mx-1" />
+        <div className="w-px h-3 mx-1" style={{ backgroundColor: 'var(--theme-border)' }} />
 
         {/* Errors & Warnings */}
         <button
-          className="flex items-center gap-2 hover:bg-white/5 px-2 h-full cursor-pointer transition-colors rounded"
+          className="flex items-center gap-2 px-2 h-full cursor-pointer transition-colors rounded"
           title={`${errorCount} error(s), ${warningCount} warning(s)`}
         >
-          <div className={`flex items-center gap-1 ${errorCount > 0 ? 'text-red-400' : ''}`}>
+          <div
+            className="flex items-center gap-1"
+            style={{ color: errorCount > 0 ? 'var(--color-error)' : undefined }}
+          >
             <AlertCircle className="w-3 h-3" />
             <span>{errorCount}</span>
           </div>
-          <div className={`flex items-center gap-1 ${warningCount > 0 ? 'text-amber-400' : ''}`}>
+          <div
+            className="flex items-center gap-1"
+            style={{ color: warningCount > 0 ? 'var(--color-warning)' : undefined }}
+          >
             <AlertTriangle className="w-3 h-3" />
             <span>{warningCount}</span>
           </div>
@@ -292,12 +315,11 @@ export const StatusBar = memo(function StatusBar({
         {/* Project Health Indicator */}
         {healthStatus !== 'healthy' && (
           <>
-            <div className="w-px h-3 bg-white/10 mx-1" />
+            <div className="w-px h-3 mx-1" style={{ backgroundColor: 'var(--theme-border)' }} />
             <button
               onClick={onOpenHealthCheck}
-              className={`flex items-center gap-1 px-2 h-full rounded transition-colors hover:bg-white/5 ${
-                healthStatus === 'critical' ? 'text-red-400' : 'text-amber-400'
-              }`}
+              className="flex items-center gap-1 px-2 h-full rounded transition-colors"
+              style={{ color: healthStatus === 'critical' ? 'var(--color-error)' : 'var(--color-warning)' }}
               title={
                 healthStatus === 'critical'
                   ? 'Critical: Missing required files - Click to fix'
@@ -315,9 +337,10 @@ export const StatusBar = memo(function StatusBar({
         {/* Token Savings Indicator */}
         {tokensSaved > 0 && (
           <>
-            <div className="w-px h-3 bg-white/10 mx-1" />
+            <div className="w-px h-3 mx-1" style={{ backgroundColor: 'var(--theme-border)' }} />
             <div
-              className="flex items-center gap-1 px-2 h-full text-purple-400"
+              className="flex items-center gap-1 px-2 h-full"
+              style={{ color: 'var(--color-feature)' }}
               title={`Smart context: ${tokensSaved.toLocaleString()} tokens saved by not re-sending unchanged files`}
             >
               <Sparkles className="w-3 h-3" />
@@ -329,12 +352,13 @@ export const StatusBar = memo(function StatusBar({
         {/* Runner Status */}
         {isRunnerActive && (
           <>
-            <div className="w-px h-3 bg-white/10 mx-1" />
+            <div className="w-px h-3 mx-1" style={{ backgroundColor: 'var(--theme-border)' }} />
             <div
-              className="flex items-center gap-1.5 px-2 h-full text-emerald-400"
+              className="flex items-center gap-1.5 px-2 h-full"
+              style={{ color: 'var(--color-success)' }}
               title="Dev server running"
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--color-success)' }} />
               <span>Running</span>
             </div>
           </>
@@ -345,28 +369,27 @@ export const StatusBar = memo(function StatusBar({
       <div className="flex items-center gap-1 h-full">
         {/* Cursor Position */}
         {cursorPosition && (
-          <div className="hover:bg-white/5 px-2 h-full flex items-center cursor-pointer rounded">
+          <div className="px-2 h-full flex items-center cursor-pointer rounded">
             Ln {cursorPosition.line}, Col {cursorPosition.column}
           </div>
         )}
 
         {/* File Type */}
-        <div className="hover:bg-white/5 px-2 h-full flex items-center cursor-pointer rounded gap-1">
+        <div className="px-2 h-full flex items-center cursor-pointer rounded gap-1">
           <FileCode className="w-3 h-3" />
           <span>{fileExtension}</span>
         </div>
 
         {/* Encoding */}
-        <div className="hover:bg-white/5 px-2 h-full flex items-center cursor-pointer rounded">
+        <div className="px-2 h-full flex items-center cursor-pointer rounded">
           UTF-8
         </div>
 
         {/* Auto-fix Status */}
         {autoFixEnabled && (
           <div
-            className={`flex items-center gap-1 px-2 h-full rounded ${
-              isAutoFixing ? 'text-amber-400' : 'text-emerald-400'
-            }`}
+            className="flex items-center gap-1 px-2 h-full rounded"
+            style={{ color: isAutoFixing ? 'var(--color-warning)' : 'var(--color-success)' }}
             title={isAutoFixing ? 'Auto-fixing error...' : 'Auto-fix enabled'}
           >
             {isAutoFixing ? (
@@ -379,7 +402,7 @@ export const StatusBar = memo(function StatusBar({
         )}
 
         {/* Separator */}
-        <div className="w-px h-3 bg-white/10 mx-0.5" />
+        <div className="w-px h-3 mx-0.5" style={{ backgroundColor: 'var(--theme-border)' }} />
 
         {/* History Controls */}
         <div className="flex items-center h-full">
@@ -387,11 +410,12 @@ export const StatusBar = memo(function StatusBar({
           <button
             onClick={ctx.undo}
             disabled={!canUndo}
-            className={`px-1.5 h-full flex items-center rounded transition-colors ${
-              canUndo
-                ? 'hover:bg-white/5 text-slate-300'
-                : 'text-slate-600 cursor-not-allowed'
-            }`}
+            className="px-1.5 h-full flex items-center rounded transition-colors"
+            style={{
+              color: canUndo ? 'var(--theme-text-secondary)' : 'var(--theme-text-muted)',
+              cursor: canUndo ? 'pointer' : 'not-allowed',
+              opacity: canUndo ? 1 : 0.5
+            }}
             title="Undo"
           >
             <Undo2 className="w-3 h-3" />
@@ -400,24 +424,26 @@ export const StatusBar = memo(function StatusBar({
           {/* Position Indicator - opens History Panel */}
           <button
             onClick={onOpenHistoryPanel}
-            className="flex items-center gap-0.5 px-1 h-full hover:bg-white/5 rounded transition-colors group"
+            className="flex items-center gap-0.5 px-1 h-full rounded transition-colors group"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="History Timeline"
           >
-            <span className="text-slate-400 group-hover:text-white transition-colors text-[10px] tabular-nums">
+            <span className="text-[10px] tabular-nums" style={{ color: 'var(--theme-text-muted)' }}>
               {currentIndex + 1}/{historyLength}
             </span>
-            <History className="w-3 h-3 text-slate-500 group-hover:text-blue-400 transition-colors" />
+            <History className="w-3 h-3" style={{ color: 'var(--theme-text-muted)' }} />
           </button>
 
           {/* Redo */}
           <button
             onClick={ctx.redo}
             disabled={!canRedo}
-            className={`px-1.5 h-full flex items-center rounded transition-colors ${
-              canRedo
-                ? 'hover:bg-white/5 text-slate-300'
-                : 'text-slate-600 cursor-not-allowed'
-            }`}
+            className="px-1.5 h-full flex items-center rounded transition-colors"
+            style={{
+              color: canRedo ? 'var(--theme-text-secondary)' : 'var(--theme-text-muted)',
+              cursor: canRedo ? 'pointer' : 'not-allowed',
+              opacity: canRedo ? 1 : 0.5
+            }}
             title="Redo"
           >
             <Redo2 className="w-3 h-3" />
@@ -425,15 +451,15 @@ export const StatusBar = memo(function StatusBar({
         </div>
 
         {/* Separator */}
-        <div className="w-px h-3 bg-white/10 mx-0.5" />
+        <div className="w-px h-3 mx-0.5" style={{ backgroundColor: 'var(--theme-border)' }} />
 
         {/* AI Model & Status */}
         <div
-          className={`flex items-center gap-1.5 px-2 h-full rounded ${
-            isGenerating
-              ? 'text-blue-400 bg-blue-500/10'
-              : 'hover:bg-white/5 cursor-pointer'
-          }`}
+          className="flex items-center gap-1.5 px-2 h-full rounded cursor-pointer"
+          style={{
+            color: isGenerating ? 'var(--theme-accent)' : 'var(--theme-text-secondary)',
+            backgroundColor: isGenerating ? 'var(--theme-accent-subtle)' : undefined
+          }}
           title={isGenerating ? 'AI is generating...' : `Model: ${selectedModel}`}
         >
           {isGenerating ? (
@@ -449,7 +475,8 @@ export const StatusBar = memo(function StatusBar({
         {/* AI Usage Stats */}
         <button
           onClick={onOpenAIUsage}
-          className="px-2 h-full flex items-center gap-1 hover:bg-white/5 rounded transition-colors text-slate-400 hover:text-blue-400"
+          className="px-2 h-full flex items-center gap-1 rounded transition-colors"
+          style={{ color: 'var(--theme-text-muted)' }}
           title="AI Usage Analytics"
         >
           <BarChart3 className="w-3 h-3" />
@@ -458,9 +485,8 @@ export const StatusBar = memo(function StatusBar({
 
         {/* Connection Status */}
         <div
-          className={`px-2 h-full flex items-center rounded ${
-            isOnline ? 'text-emerald-400' : 'text-red-400'
-          }`}
+          className="px-2 h-full flex items-center rounded"
+          style={{ color: isOnline ? 'var(--color-success)' : 'var(--color-error)' }}
           title={isOnline ? 'Online' : 'Offline'}
         >
           {isOnline ? (
@@ -473,9 +499,8 @@ export const StatusBar = memo(function StatusBar({
         {/* Version & About FluidFlow */}
         <button
           onClick={onOpenCredits}
-          className={`px-2 h-full flex items-center gap-1 hover:bg-white/5 rounded transition-colors ${
-            updateCheck?.hasUpdate ? 'text-emerald-400' : 'text-slate-400 hover:text-white'
-          }`}
+          className="px-2 h-full flex items-center gap-1 rounded transition-colors"
+          style={{ color: updateCheck?.hasUpdate ? 'var(--color-success)' : 'var(--theme-text-muted)' }}
           title={
             updateCheck?.hasUpdate
               ? `Update available: v${updateCheck.latestVersion} (current: v${APP_VERSION})`

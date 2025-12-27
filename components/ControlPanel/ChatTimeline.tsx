@@ -59,15 +59,15 @@ export const ChatTimeline: React.FC<ChatTimelineProps> = ({
   };
 
   return (
-    <div className="flex items-center gap-1 px-2 py-1 bg-slate-800/50 rounded-lg border border-white/5">
+    <div className="flex items-center gap-1 px-2 py-1 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
       <button
         onClick={handleBack}
         disabled={!canGoBack}
-        className={`p-1 rounded transition-colors ${
-          canGoBack
-            ? 'hover:bg-white/10 text-slate-300'
-            : 'text-slate-600 cursor-not-allowed'
-        }`}
+        className="p-1 rounded transition-colors"
+        style={{
+          color: canGoBack ? 'var(--theme-text-secondary)' : 'var(--theme-text-dim)',
+          cursor: canGoBack ? 'pointer' : 'not-allowed'
+        }}
         title="Previous state"
       >
         <ChevronLeft className="w-4 h-4" />
@@ -75,13 +75,17 @@ export const ChatTimeline: React.FC<ChatTimelineProps> = ({
 
       <div className="flex items-center gap-1.5 px-2 min-w-[90px] justify-center">
         {currentViewIndex !== null ? (
-          <History className="w-3 h-3 text-amber-400" />
+          <History className="w-3 h-3" style={{ color: 'var(--color-warning)' }} />
         ) : (
-          <Clock className="w-3 h-3 text-slate-500" />
+          <Clock className="w-3 h-3" style={{ color: 'var(--theme-text-muted)' }} />
         )}
-        <span className={`text-xs ${
-          currentViewIndex !== null ? 'text-amber-400 font-medium' : 'text-slate-400'
-        }`}>
+        <span
+          className="text-xs"
+          style={{
+            color: currentViewIndex !== null ? 'var(--color-warning)' : 'var(--theme-text-muted)',
+            fontWeight: currentViewIndex !== null ? 500 : 400
+          }}
+        >
           {getLabel()}
         </span>
       </div>
@@ -89,11 +93,11 @@ export const ChatTimeline: React.FC<ChatTimelineProps> = ({
       <button
         onClick={handleForward}
         disabled={!canGoForward}
-        className={`p-1 rounded transition-colors ${
-          canGoForward
-            ? 'hover:bg-white/10 text-slate-300'
-            : 'text-slate-600 cursor-not-allowed'
-        }`}
+        className="p-1 rounded transition-colors"
+        style={{
+          color: canGoForward ? 'var(--theme-text-secondary)' : 'var(--theme-text-dim)',
+          cursor: canGoForward ? 'pointer' : 'not-allowed'
+        }}
         title={currentPos < snapshotMessages.length - 1 ? "Next state" : "Return to current"}
       >
         <ChevronRight className="w-4 h-4" />

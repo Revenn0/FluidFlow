@@ -159,13 +159,26 @@ const TreeNodeView: React.FC<{
   const getIcon = () => {
     switch (node.type) {
       case 'component':
-        return <Component className="w-4 h-4 text-blue-400" />;
+        return <Component className="w-4 h-4" style={{ color: 'var(--theme-accent)' }} />;
       case 'hook':
-        return <Code2 className="w-4 h-4 text-purple-400" />;
+        return <Code2 className="w-4 h-4" style={{ color: 'var(--theme-tertiary)' }} />;
       case 'file':
-        return <FileCode className="w-4 h-4 text-yellow-400" />;
+        return <FileCode className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />;
       default:
-        return <Box className="w-4 h-4 text-slate-400" />;
+        return <Box className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />;
+    }
+  };
+
+  const getTextColor = () => {
+    switch (node.type) {
+      case 'component':
+        return 'var(--theme-accent-light)';
+      case 'hook':
+        return 'var(--theme-tertiary-light)';
+      case 'file':
+        return 'var(--color-warning-light)';
+      default:
+        return 'var(--theme-text-muted)';
     }
   };
 
@@ -179,18 +192,20 @@ const TreeNodeView: React.FC<{
             onSelect(node.file, node.line);
           }
         }}
-        className={`w-full flex items-center gap-1.5 py-1 px-2 rounded hover:bg-white/5 transition-colors text-left ${
-          node.type === 'component' ? 'text-blue-300' :
-          node.type === 'hook' ? 'text-purple-300' :
-          node.type === 'file' ? 'text-yellow-300' : 'text-slate-400'
-        }`}
-        style={{ paddingLeft: `${depth * 12 + 8}px` }}
+        className="w-full flex items-center gap-1.5 py-1 px-2 rounded transition-colors text-left hover:opacity-80"
+        style={{
+          paddingLeft: `${depth * 12 + 8}px`,
+          color: getTextColor(),
+          backgroundColor: 'transparent'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--theme-glass-100)'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
       >
         {hasChildren ? (
           isExpanded ? (
-            <ChevronDown className="w-3 h-3 text-slate-500 flex-shrink-0" />
+            <ChevronDown className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--theme-text-dim)' }} />
           ) : (
-            <ChevronRight className="w-3 h-3 text-slate-500 flex-shrink-0" />
+            <ChevronRight className="w-3 h-3 flex-shrink-0" style={{ color: 'var(--theme-text-dim)' }} />
           )
         ) : (
           <span className="w-3" />
@@ -198,7 +213,7 @@ const TreeNodeView: React.FC<{
         {getIcon()}
         <span className="text-sm truncate">{node.name}</span>
         {node.props && node.props.length > 0 && (
-          <span className="text-[10px] text-slate-600 ml-auto">
+          <span className="text-[10px] ml-auto" style={{ color: 'var(--theme-text-dim)' }}>
             {node.props.length} props
           </span>
         )}
@@ -206,14 +221,14 @@ const TreeNodeView: React.FC<{
 
       {/* Props preview for components */}
       {isExpanded && node.props && node.props.length > 0 && (
-        <div className="ml-8 pl-4 border-l border-white/5 mb-1">
+        <div className="ml-8 pl-4 mb-1" style={{ borderLeft: '1px solid var(--theme-border-light)' }}>
           {node.props.slice(0, 5).map(prop => (
-            <div key={prop} className="text-[10px] text-slate-500 py-0.5 px-2">
+            <div key={prop} className="text-[10px] py-0.5 px-2" style={{ color: 'var(--theme-text-dim)' }}>
               • {prop}
             </div>
           ))}
           {node.props.length > 5 && (
-            <div className="text-[10px] text-slate-600 py-0.5 px-2">
+            <div className="text-[10px] py-0.5 px-2" style={{ color: 'var(--theme-text-dim)' }}>
               +{node.props.length - 5} more
             </div>
           )}
@@ -301,58 +316,76 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
+      className="fixed inset-0 z-[150] flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-150"
+      style={{ backgroundColor: 'var(--theme-modal-overlay)' }}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg h-[70vh] bg-slate-900 border border-white/10 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-full max-w-lg h-[70vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        style={{ backgroundColor: 'var(--theme-modal-bg)', border: '1px solid var(--theme-border)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
           <div className="flex items-center gap-3">
-            <Layers className="w-5 h-5 text-green-400" />
-            <h2 className="text-lg font-semibold text-white">Component Tree</h2>
+            <Layers className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Component Tree</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--theme-glass-100)';
+              e.currentTarget.style.color = 'var(--theme-text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.color = 'var(--theme-text-muted)';
+            }}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Stats */}
-        <div className="flex items-center gap-4 px-4 py-2 border-b border-white/5 bg-slate-950/50">
+        <div className="flex items-center gap-4 px-4 py-2" style={{ borderBottom: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-100)' }}>
           <div className="flex items-center gap-1.5 text-xs">
-            <Component className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-slate-400">{stats.components} components</span>
+            <Component className="w-3.5 h-3.5" style={{ color: 'var(--theme-accent)' }} />
+            <span style={{ color: 'var(--theme-text-muted)' }}>{stats.components} components</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs">
-            <Code2 className="w-3.5 h-3.5 text-purple-400" />
-            <span className="text-slate-400">{stats.hooks} hooks</span>
+            <Code2 className="w-3.5 h-3.5" style={{ color: 'var(--theme-tertiary)' }} />
+            <span style={{ color: 'var(--theme-text-muted)' }}>{stats.hooks} hooks</span>
           </div>
           <div className="flex items-center gap-1.5 text-xs">
-            <FileCode className="w-3.5 h-3.5 text-yellow-400" />
-            <span className="text-slate-400">{stats.files} files</span>
+            <FileCode className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)' }} />
+            <span style={{ color: 'var(--theme-text-muted)' }}>{stats.files} files</span>
           </div>
         </div>
 
         {/* Search */}
-        <div className="px-4 py-2 border-b border-white/5">
+        <div className="px-4 py-2" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Filter components..."
-            className="w-full px-3 py-1.5 bg-slate-800/50 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+            className="w-full px-3 py-1.5 rounded-lg text-sm outline-none transition-colors"
+            style={{
+              backgroundColor: 'var(--theme-glass-200)',
+              border: '1px solid var(--theme-border)',
+              color: 'var(--theme-text-primary)'
+            }}
+            onFocus={(e) => e.currentTarget.style.borderColor = 'var(--theme-accent)'}
+            onBlur={(e) => e.currentTarget.style.borderColor = 'var(--theme-border)'}
           />
         </div>
 
         {/* Tree */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
           {filteredTree.length === 0 ? (
-            <div className="text-center text-slate-500 py-8">
+            <div className="text-center py-8" style={{ color: 'var(--theme-text-dim)' }}>
               {search ? 'No matching components found' : 'No components found in project'}
             </div>
           ) : (
@@ -368,8 +401,8 @@ export const ComponentTree: React.FC<ComponentTreeProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 border-t border-white/5 bg-slate-950/50">
-          <p className="text-[10px] text-slate-600 text-center">
+        <div className="px-4 py-2" style={{ borderTop: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-100)' }}>
+          <p className="text-[10px] text-center" style={{ color: 'var(--theme-text-dim)' }}>
             Click component to open file
           </p>
         </div>

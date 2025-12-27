@@ -82,14 +82,14 @@ function buildProjectStats(files: FileSystem) {
 // Get type icon
 const getTypeIcon = (type: FileAnalysis['type']) => {
   switch (type) {
-    case 'component': return <Component className="w-3.5 h-3.5 text-blue-400" />;
-    case 'hook': return <GitBranch className="w-3.5 h-3.5 text-purple-400" />;
-    case 'util': return <Braces className="w-3.5 h-3.5 text-amber-400" />;
-    case 'type': return <Type className="w-3.5 h-3.5 text-cyan-400" />;
-    case 'style': return <Hash className="w-3.5 h-3.5 text-pink-400" />;
-    case 'config': return <FileJson className="w-3.5 h-3.5 text-amber-400" />;
-    case 'data': return <Database className="w-3.5 h-3.5 text-emerald-400" />;
-    default: return <FileCode className="w-3.5 h-3.5 text-slate-400" />;
+    case 'component': return <Component className="w-3.5 h-3.5" style={{ color: 'var(--color-info)' }} />;
+    case 'hook': return <GitBranch className="w-3.5 h-3.5" style={{ color: 'var(--color-feature)' }} />;
+    case 'util': return <Braces className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)' }} />;
+    case 'type': return <Type className="w-3.5 h-3.5" style={{ color: 'var(--theme-tertiary)' }} />;
+    case 'style': return <Hash className="w-3.5 h-3.5" style={{ color: 'var(--color-error-light)' }} />;
+    case 'config': return <FileJson className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)' }} />;
+    case 'data': return <Database className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} />;
+    default: return <FileCode className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} />;
   }
 };
 
@@ -98,35 +98,36 @@ const FileCard: React.FC<{ analysis: FileAnalysis }> = ({ analysis }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="bg-slate-800/50 border border-white/5 rounded-lg overflow-hidden">
+    <div className="rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-3 hover:bg-white/5 transition-colors"
+        className="w-full flex items-center justify-between p-3 transition-colors"
+        style={{ backgroundColor: 'transparent' }}
       >
         <div className="flex items-center gap-2">
           {getTypeIcon(analysis.type)}
-          <span className="text-sm text-slate-200 font-mono">{analysis.name}</span>
-          <span className="text-[10px] px-1.5 py-0.5 bg-slate-700 text-slate-400 rounded capitalize">
+          <span className="text-sm font-mono" style={{ color: 'var(--theme-text-secondary)' }}>{analysis.name}</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded capitalize" style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-muted)' }}>
             {analysis.type}
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-[10px] text-slate-500">{analysis.lines} lines</span>
-          <span className="text-[10px] text-slate-500">{analysis.size}</span>
-          {isExpanded ? <ChevronDown className="w-3 h-3 text-slate-500" /> : <ChevronRight className="w-3 h-3 text-slate-500" />}
+          <span className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>{analysis.lines} lines</span>
+          <span className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>{analysis.size}</span>
+          {isExpanded ? <ChevronDown className="w-3 h-3" style={{ color: 'var(--theme-text-dim)' }} /> : <ChevronRight className="w-3 h-3" style={{ color: 'var(--theme-text-dim)' }} />}
         </div>
       </button>
 
       {isExpanded && (
-        <div className="px-3 pb-3 pt-1 border-t border-white/5 space-y-3">
-          <div className="text-[10px] text-slate-500 font-mono">{analysis.path}</div>
+        <div className="px-3 pb-3 pt-1 space-y-3" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
+          <div className="text-[10px] font-mono" style={{ color: 'var(--theme-text-dim)' }}>{analysis.path}</div>
 
           {analysis.exports.length > 0 && (
             <div>
-              <div className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">Exports</div>
+              <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: 'var(--theme-text-dim)' }}>Exports</div>
               <div className="flex flex-wrap gap-1">
                 {analysis.exports.map((exp, i) => (
-                  <span key={i} className="text-[11px] px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 rounded font-mono">
+                  <span key={i} className="text-[11px] px-1.5 py-0.5 rounded font-mono" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
                     {exp}
                   </span>
                 ))}
@@ -136,10 +137,10 @@ const FileCard: React.FC<{ analysis: FileAnalysis }> = ({ analysis }) => {
 
           {analysis.dependencies.length > 0 && (
             <div>
-              <div className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">Dependencies</div>
+              <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: 'var(--theme-text-dim)' }}>Dependencies</div>
               <div className="flex flex-wrap gap-1">
                 {analysis.dependencies.map((dep, i) => (
-                  <span key={i} className="text-[11px] px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded font-mono">
+                  <span key={i} className="text-[11px] px-1.5 py-0.5 rounded font-mono" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
                     {dep}
                   </span>
                 ))}
@@ -149,10 +150,10 @@ const FileCard: React.FC<{ analysis: FileAnalysis }> = ({ analysis }) => {
 
           {analysis.imports.filter(i => i.startsWith('.')).length > 0 && (
             <div>
-              <div className="text-[10px] text-slate-500 uppercase tracking-wide mb-1">Local Imports</div>
+              <div className="text-[10px] uppercase tracking-wide mb-1" style={{ color: 'var(--theme-text-dim)' }}>Local Imports</div>
               <div className="flex flex-wrap gap-1">
                 {analysis.imports.filter(i => i.startsWith('.')).map((imp, i) => (
-                  <span key={i} className="text-[11px] px-1.5 py-0.5 bg-slate-600/50 text-slate-300 rounded font-mono">
+                  <span key={i} className="text-[11px] px-1.5 py-0.5 rounded font-mono" style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}>
                     {imp}
                   </span>
                 ))}
@@ -189,14 +190,14 @@ export const ProjectStructure: React.FC<ProjectStructureProps> = ({ files }) => 
   }, [analyses]);
 
   return (
-    <div className="flex flex-col h-full w-full bg-[#0d1117] overflow-hidden">
+    <div className="flex flex-col h-full w-full overflow-hidden" style={{ backgroundColor: 'var(--theme-background)' }}>
       {/* Header */}
-      <div className="flex-none flex items-center justify-between px-4 py-3 bg-[#0a0e16] border-b border-white/5">
+      <div className="flex-none flex items-center justify-between px-4 py-3" style={{ backgroundColor: 'var(--theme-surface)', borderBottom: '1px solid var(--theme-border)' }}>
         <div className="flex items-center gap-2">
-          <Layers className="w-4 h-4 text-purple-400" />
-          <span className="text-sm font-medium text-slate-200">Project Structure</span>
+          <Layers className="w-4 h-4" style={{ color: 'var(--color-feature)' }} />
+          <span className="text-sm font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Project Structure</span>
         </div>
-        <div className="flex p-0.5 bg-slate-800/50 rounded-lg">
+        <div className="flex p-0.5 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
           {[
             { id: 'overview', label: 'Overview', icon: Box },
             { id: 'files', label: 'Files', icon: FileCode },
@@ -205,9 +206,11 @@ export const ProjectStructure: React.FC<ProjectStructureProps> = ({ files }) => 
             <button
               key={id}
               onClick={() => setActiveView(id as ViewType)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md transition-colors ${
-                activeView === id ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-white'
-              }`}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-md transition-colors"
+              style={{
+                backgroundColor: activeView === id ? 'var(--theme-glass-300)' : 'transparent',
+                color: activeView === id ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)'
+              }}
             >
               <Icon className="w-3 h-3" />
               {label}
@@ -222,66 +225,66 @@ export const ProjectStructure: React.FC<ProjectStructureProps> = ({ files }) => 
           <div className="space-y-6">
             {/* Stats Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-slate-800/50 border border-white/5 rounded-xl p-4">
-                <div className="text-2xl font-bold text-white">{stats.totalFiles}</div>
-                <div className="text-xs text-slate-500">Total Files</div>
+              <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+                <div className="text-2xl font-bold" style={{ color: 'var(--theme-text-primary)' }}>{stats.totalFiles}</div>
+                <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Total Files</div>
               </div>
-              <div className="bg-slate-800/50 border border-white/5 rounded-xl p-4">
-                <div className="text-2xl font-bold text-white">{stats.totalLines.toLocaleString()}</div>
-                <div className="text-xs text-slate-500">Lines of Code</div>
+              <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+                <div className="text-2xl font-bold" style={{ color: 'var(--theme-text-primary)' }}>{stats.totalLines.toLocaleString()}</div>
+                <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Lines of Code</div>
               </div>
-              <div className="bg-slate-800/50 border border-white/5 rounded-xl p-4">
-                <div className="text-2xl font-bold text-blue-400">{stats.components}</div>
-                <div className="text-xs text-slate-500">Components</div>
+              <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+                <div className="text-2xl font-bold" style={{ color: 'var(--color-info)' }}>{stats.components}</div>
+                <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Components</div>
               </div>
-              <div className="bg-slate-800/50 border border-white/5 rounded-xl p-4">
-                <div className="text-2xl font-bold text-purple-400">{stats.hooks}</div>
-                <div className="text-xs text-slate-500">Hooks</div>
+              <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+                <div className="text-2xl font-bold" style={{ color: 'var(--color-feature)' }}>{stats.hooks}</div>
+                <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Hooks</div>
               </div>
             </div>
 
             {/* Type Breakdown */}
-            <div className="bg-slate-800/50 border border-white/5 rounded-xl p-4">
-              <h3 className="text-sm font-medium text-slate-200 mb-4">File Types</h3>
+            <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+              <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--theme-text-secondary)' }}>File Types</h3>
               <div className="space-y-2">
                 {[
-                  { type: 'component', count: stats.components, color: 'bg-blue-500' },
-                  { type: 'hook', count: stats.hooks, color: 'bg-purple-500' },
-                  { type: 'util', count: stats.utils, color: 'bg-amber-500' },
-                  { type: 'type', count: stats.types, color: 'bg-cyan-500' },
-                  { type: 'style', count: stats.styles, color: 'bg-pink-500' },
-                  { type: 'config', count: stats.configs, color: 'bg-amber-600' },
-                  { type: 'data', count: stats.data, color: 'bg-emerald-500' }
+                  { type: 'component', count: stats.components, color: 'var(--color-info)' },
+                  { type: 'hook', count: stats.hooks, color: 'var(--color-feature)' },
+                  { type: 'util', count: stats.utils, color: 'var(--color-warning)' },
+                  { type: 'type', count: stats.types, color: 'var(--theme-tertiary)' },
+                  { type: 'style', count: stats.styles, color: 'var(--color-error-light)' },
+                  { type: 'config', count: stats.configs, color: 'var(--color-warning)' },
+                  { type: 'data', count: stats.data, color: 'var(--color-success)' }
                 ].filter(t => t.count > 0).map(({ type, count, color }) => (
                   <div key={type} className="flex items-center gap-3">
-                    <span className="text-xs text-slate-400 capitalize w-20">{type}</span>
-                    <div className="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <span className="text-xs capitalize w-20" style={{ color: 'var(--theme-text-muted)' }}>{type}</span>
+                    <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--theme-glass-300)' }}>
                       <div
-                        className={`h-full ${color} rounded-full transition-all`}
-                        style={{ width: `${(count / stats.totalFiles) * 100}%` }}
+                        className="h-full rounded-full transition-all"
+                        style={{ width: `${(count / stats.totalFiles) * 100}%`, backgroundColor: color }}
                       />
                     </div>
-                    <span className="text-xs text-slate-500 w-8 text-right">{count}</span>
+                    <span className="text-xs w-8 text-right" style={{ color: 'var(--theme-text-dim)' }}>{count}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Component Tree Preview */}
-            <div className="bg-slate-800/50 border border-white/5 rounded-xl p-4">
-              <h3 className="text-sm font-medium text-slate-200 mb-4">Component Hierarchy</h3>
+            <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+              <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--theme-text-secondary)' }}>Component Hierarchy</h3>
               <div className="space-y-1 font-mono text-xs">
                 {groupedFiles.component.slice(0, 10).map((comp, i) => (
-                  <div key={i} className="flex items-center gap-2 py-1 px-2 rounded hover:bg-white/5">
-                    <Component className="w-3 h-3 text-blue-400" />
-                    <span className="text-slate-300">{comp.name}</span>
+                  <div key={i} className="flex items-center gap-2 py-1 px-2 rounded">
+                    <Component className="w-3 h-3" style={{ color: 'var(--color-info)' }} />
+                    <span style={{ color: 'var(--theme-text-secondary)' }}>{comp.name}</span>
                     {comp.exports.length > 1 && (
-                      <span className="text-[10px] text-slate-500">+{comp.exports.length - 1} exports</span>
+                      <span className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>+{comp.exports.length - 1} exports</span>
                     )}
                   </div>
                 ))}
                 {groupedFiles.component.length > 10 && (
-                  <div className="text-slate-500 text-[10px] pl-5">
+                  <div className="text-[10px] pl-5" style={{ color: 'var(--theme-text-dim)' }}>
                     ...and {groupedFiles.component.length - 10} more
                   </div>
                 )}
@@ -296,7 +299,7 @@ export const ProjectStructure: React.FC<ProjectStructureProps> = ({ files }) => 
               if (fileList.length === 0) return null;
               return (
                 <div key={type}>
-                  <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-2 flex items-center gap-2">
+                  <h3 className="text-xs font-medium uppercase tracking-wide mb-2 flex items-center gap-2" style={{ color: 'var(--theme-text-muted)' }}>
                     {getTypeIcon(type as FileAnalysis['type'])}
                     {type}s ({fileList.length})
                   </h3>
@@ -313,39 +316,40 @@ export const ProjectStructure: React.FC<ProjectStructureProps> = ({ files }) => 
 
         {activeView === 'deps' && (
           <div className="space-y-4">
-            <div className="bg-slate-800/50 border border-white/5 rounded-xl p-4">
-              <h3 className="text-sm font-medium text-slate-200 mb-4">
+            <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+              <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--theme-text-secondary)' }}>
                 External Dependencies ({stats.dependencies.length})
               </h3>
               <div className="flex flex-wrap gap-2">
                 {stats.dependencies.map((dep, i) => (
                   <span
                     key={i}
-                    className="px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 text-blue-300 rounded-lg text-sm font-mono"
+                    className="px-3 py-1.5 rounded-lg text-sm font-mono"
+                    style={{ backgroundColor: 'var(--color-info-subtle)', border: '1px solid var(--color-info-border)', color: 'var(--color-info)' }}
                   >
                     {dep}
                   </span>
                 ))}
                 {stats.dependencies.length === 0 && (
-                  <span className="text-slate-500 text-sm">No external dependencies detected</span>
+                  <span className="text-sm" style={{ color: 'var(--theme-text-dim)' }}>No external dependencies detected</span>
                 )}
               </div>
             </div>
 
             {/* Dependency Graph (simplified) */}
-            <div className="bg-slate-800/50 border border-white/5 rounded-xl p-4">
-              <h3 className="text-sm font-medium text-slate-200 mb-4">Import Graph</h3>
+            <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+              <h3 className="text-sm font-medium mb-4" style={{ color: 'var(--theme-text-secondary)' }}>Import Graph</h3>
               <div className="space-y-3">
                 {analyses.filter(a => a.imports.filter(i => i.startsWith('.')).length > 0).slice(0, 15).map((file, i) => (
                   <div key={i} className="flex items-start gap-3">
                     <div className="flex items-center gap-1.5 min-w-[140px]">
                       {getTypeIcon(file.type)}
-                      <span className="text-xs text-slate-300 font-mono truncate">{file.name}</span>
+                      <span className="text-xs font-mono truncate" style={{ color: 'var(--theme-text-secondary)' }}>{file.name}</span>
                     </div>
-                    <span className="text-slate-600">→</span>
+                    <span style={{ color: 'var(--theme-text-dim)' }}>→</span>
                     <div className="flex flex-wrap gap-1 flex-1">
                       {file.imports.filter(i => i.startsWith('.')).map((imp, j) => (
-                        <span key={j} className="text-[10px] px-1.5 py-0.5 bg-slate-700 text-slate-400 rounded font-mono">
+                        <span key={j} className="text-[10px] px-1.5 py-0.5 rounded font-mono" style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-muted)' }}>
                           {imp.split('/').pop()}
                         </span>
                       ))}

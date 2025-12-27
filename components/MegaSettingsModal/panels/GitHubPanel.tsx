@@ -99,12 +99,12 @@ export const GitHubPanel: React.FC = () => {
     <div className="p-6 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-slate-500/20 rounded-lg">
-          <Github className="w-5 h-5 text-white" />
+        <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+          <Github className="w-5 h-5" style={{ color: 'var(--theme-text-primary)' }} />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">GitHub Integration</h2>
-          <p className="text-xs text-slate-400">Configure GitHub sync, backup, and push settings</p>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>GitHub Integration</h2>
+          <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Configure GitHub sync, backup, and push settings</p>
         </div>
       </div>
 
@@ -114,20 +114,20 @@ export const GitHubPanel: React.FC = () => {
         description="Default settings when pushing projects to GitHub"
       >
         {/* Info Box */}
-        <div className="flex items-start gap-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg mb-4">
-          <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-          <div className="text-xs text-slate-400">
+        <div className="flex items-start gap-3 p-3 rounded-lg mb-4" style={{ backgroundColor: 'var(--color-info-subtle)', border: '1px solid var(--color-info-border)' }}>
+          <Info className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--color-info)' }} />
+          <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
             These settings control what metadata is included when pushing to GitHub.
-            The <code className="px-1 py-0.5 bg-slate-800 rounded text-slate-300">.fluidflow/</code> folder
+            The <code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-secondary)' }}>.fluidflow/</code> folder
             in your repo stores project metadata for portability between devices.
           </div>
         </div>
 
         <div className="space-y-4">
           {/* Include Project Metadata */}
-          <div className="flex items-start gap-3 p-4 bg-slate-800/30 border border-white/5 rounded-lg">
-            <div className="p-2 bg-emerald-500/20 rounded-lg flex-shrink-0">
-              <FileJson className="w-4 h-4 text-emerald-400" />
+          <div className="flex items-start gap-3 p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}>
+            <div className="p-2 rounded-lg shrink-0" style={{ backgroundColor: 'var(--color-success-subtle)' }}>
+              <FileJson className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
             </div>
             <div className="flex-1">
               <SettingsToggle
@@ -136,16 +136,16 @@ export const GitHubPanel: React.FC = () => {
                 checked={pushSettings.includeProjectMetadata}
                 onChange={(checked) => handlePushSettingChange('includeProjectMetadata', checked)}
               />
-              <p className="text-[10px] text-slate-500 mt-2">
+              <p className="text-[10px] mt-2" style={{ color: 'var(--theme-text-muted)' }}>
                 Recommended: Enables project restoration when importing from GitHub
               </p>
             </div>
           </div>
 
           {/* Include Conversation History */}
-          <div className="flex items-start gap-3 p-4 bg-slate-800/30 border border-white/5 rounded-lg">
-            <div className="p-2 bg-purple-500/20 rounded-lg flex-shrink-0">
-              <MessageSquare className="w-4 h-4 text-purple-400" />
+          <div className="flex items-start gap-3 p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}>
+            <div className="p-2 rounded-lg shrink-0" style={{ backgroundColor: 'var(--color-feature-subtle)' }}>
+              <MessageSquare className="w-4 h-4" style={{ color: 'var(--color-feature)' }} />
             </div>
             <div className="flex-1">
               <SettingsToggle
@@ -154,7 +154,7 @@ export const GitHubPanel: React.FC = () => {
                 checked={pushSettings.includeConversationHistory}
                 onChange={(checked) => handlePushSettingChange('includeConversationHistory', checked)}
               />
-              <div className="flex items-center gap-2 mt-2 text-[10px] text-amber-400">
+              <div className="flex items-center gap-2 mt-2 text-[10px]" style={{ color: 'var(--color-warning)' }}>
                 <Shield className="w-3 h-3" />
                 <span>Privacy note: Only enable for private repos or if you're okay sharing chat history</span>
               </div>
@@ -162,9 +162,9 @@ export const GitHubPanel: React.FC = () => {
           </div>
 
           {/* Default Visibility */}
-          <div className="flex items-start gap-3 p-4 bg-slate-800/30 border border-white/5 rounded-lg">
-            <div className="p-2 bg-blue-500/20 rounded-lg flex-shrink-0">
-              <Shield className="w-4 h-4 text-blue-400" />
+          <div className="flex items-start gap-3 p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}>
+            <div className="p-2 rounded-lg shrink-0" style={{ backgroundColor: 'var(--color-info-subtle)' }}>
+              <Shield className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
             </div>
             <div className="flex-1">
               <SettingsToggle
@@ -184,12 +184,12 @@ export const GitHubPanel: React.FC = () => {
         description="Automatically push commits to a backup branch on GitHub"
       >
         {/* Info Box */}
-        <div className="flex items-start gap-3 p-3 bg-slate-500/10 border border-slate-500/20 rounded-lg mb-4">
-          <CloudUpload className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-          <div className="text-xs text-slate-400">
+        <div className="flex items-start gap-3 p-3 rounded-lg mb-4" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+          <CloudUpload className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--theme-text-muted)' }} />
+          <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
             When enabled, every auto-commit will also be pushed to a backup branch on GitHub.
             This provides an automatic off-site backup of your work. Requires a GitHub token with
-            <code className="px-1 py-0.5 bg-slate-800 rounded text-slate-300 mx-1">repo</code>
+            <code className="px-1 py-0.5 rounded mx-1" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-secondary)' }}>repo</code>
             scope and a remote origin configured.
           </div>
         </div>
@@ -205,7 +205,7 @@ export const GitHubPanel: React.FC = () => {
 
           {/* Branch Name */}
           <div className="space-y-1.5">
-            <label className="text-sm text-white">Backup Branch Name</label>
+            <label className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>Backup Branch Name</label>
             <div className="flex gap-2">
               <input
                 type="text"
@@ -217,15 +217,16 @@ export const GitHubPanel: React.FC = () => {
                   }
                 }}
                 placeholder="backup/auto"
-                className="flex-1 px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-blue-500/50"
+                className="flex-1 px-3 py-2 rounded-lg text-sm outline-none"
+                style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
               />
             </div>
-            <p className="text-xs text-slate-500">Branch where backups will be pushed (e.g., backup/auto)</p>
+            <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Branch where backups will be pushed (e.g., backup/auto)</p>
           </div>
 
           {/* Token */}
           <div className="space-y-1.5">
-            <label className="text-sm text-white">GitHub Token (PAT)</label>
+            <label className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>GitHub Token (PAT)</label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <input
@@ -233,12 +234,14 @@ export const GitHubPanel: React.FC = () => {
                   value={backupToken}
                   onChange={(e) => setBackupToken(e.target.value)}
                   placeholder="ghp_xxxxxxxxxxxx"
-                  className="w-full px-3 py-2 pr-10 bg-slate-800 border border-white/10 rounded-lg text-sm text-white outline-none focus:border-blue-500/50"
+                  className="w-full px-3 py-2 pr-10 rounded-lg text-sm outline-none"
+                  style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowBackupToken(!showBackupToken)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-500 hover:text-white"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1"
+                  style={{ color: 'var(--theme-text-muted)' }}
                 >
                   {showBackupToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -246,19 +249,21 @@ export const GitHubPanel: React.FC = () => {
               <button
                 onClick={handleSaveBackupToken}
                 disabled={backupSaving || !backupToken || backupToken.includes('****')}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors flex items-center gap-2"
+                className="px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm rounded-lg transition-colors flex items-center gap-2"
+                style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
               >
                 {backupSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CloudUpload className="w-4 h-4" />}
                 Save
               </button>
             </div>
-            <p className="text-xs text-slate-500">
-              Personal Access Token with <code className="px-1 py-0.5 bg-slate-800 rounded">repo</code> scope.{' '}
+            <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+              Personal Access Token with <code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-surface-dark)' }}>repo</code> scope.{' '}
               <a
                 href="https://github.com/settings/tokens/new?scopes=repo&description=FluidFlow%20Auto-Backup"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-400 hover:underline inline-flex items-center gap-1"
+                className="hover:underline inline-flex items-center gap-1"
+                style={{ color: 'var(--color-info)' }}
               >
                 Create token <ExternalLink className="w-3 h-3" />
               </a>
@@ -267,22 +272,24 @@ export const GitHubPanel: React.FC = () => {
 
           {/* Status Message */}
           {backupMessage && (
-            <div className={`text-sm px-3 py-2 rounded-lg ${
-              backupMessage.type === 'success'
-                ? 'bg-green-500/20 text-green-400'
-                : 'bg-red-500/20 text-red-400'
-            }`}>
+            <div
+              className="text-sm px-3 py-2 rounded-lg"
+              style={{
+                backgroundColor: backupMessage.type === 'success' ? 'var(--color-success-subtle)' : 'var(--color-error-subtle)',
+                color: backupMessage.type === 'success' ? 'var(--color-success)' : 'var(--color-error)'
+              }}
+            >
               {backupMessage.text}
             </div>
           )}
 
           {/* Last Backup Info */}
           {backupSettings.lastBackupAt && (
-            <div className="text-xs text-slate-500 flex items-center gap-2">
-              <Check className="w-3 h-3 text-green-400" />
+            <div className="text-xs flex items-center gap-2" style={{ color: 'var(--theme-text-muted)' }}>
+              <Check className="w-3 h-3" style={{ color: 'var(--color-success)' }} />
               Last backup: {new Date(backupSettings.lastBackupAt).toLocaleString()}
               {backupSettings.lastBackupCommit && (
-                <code className="px-1 py-0.5 bg-slate-800 rounded text-slate-400">
+                <code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-muted)' }}>
                   {backupSettings.lastBackupCommit}
                 </code>
               )}

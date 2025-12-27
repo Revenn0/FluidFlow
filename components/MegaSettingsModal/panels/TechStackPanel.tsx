@@ -50,9 +50,9 @@ export const TechStackPanel: React.FC = () => {
   return (
     <div className="flex h-full">
       {/* Category List - Left */}
-      <div className="w-48 border-r border-white/5 flex flex-col bg-slate-950/30">
-        <div className="p-3 border-b border-white/5">
-          <h3 className="text-xs font-medium text-slate-400 uppercase tracking-wider">Categories</h3>
+      <div className="w-48 flex flex-col" style={{ borderRight: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-100)' }}>
+        <div className="p-3" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+          <h3 className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>Categories</h3>
         </div>
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {(Object.entries(CATEGORY_INFO) as [TechCategory, { label: string; description: string }][]).map(([key, info]) => {
@@ -64,14 +64,14 @@ export const TechStackPanel: React.FC = () => {
               <button
                 key={key}
                 onClick={() => setSelectedCategory(key)}
-                className={`w-full p-2.5 rounded-lg text-left transition-all ${
-                  isSelected
-                    ? 'bg-white/10 border border-white/20'
-                    : 'hover:bg-white/5 border border-transparent'
-                }`}
+                className="w-full p-2.5 rounded-lg text-left transition-all"
+                style={{
+                  backgroundColor: isSelected ? 'var(--theme-sidebar-item-active)' : 'transparent',
+                  border: isSelected ? '1px solid var(--theme-border)' : '1px solid transparent'
+                }}
               >
-                <div className="text-sm text-white">{info.label}</div>
-                <div className="text-[10px] text-slate-500 truncate">
+                <div className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>{info.label}</div>
+                <div className="text-[10px] truncate" style={{ color: 'var(--theme-text-dim)' }}>
                   {option?.label || 'None'}
                 </div>
               </button>
@@ -82,23 +82,23 @@ export const TechStackPanel: React.FC = () => {
 
       {/* Options - Right */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-white/5">
+        <div className="p-4" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/20 rounded-lg">
-              <Package className="w-5 h-5 text-blue-400" />
+            <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-accent-subtle)' }}>
+              <Package className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">{CATEGORY_INFO[selectedCategory].label}</h2>
-              <p className="text-xs text-slate-400">{CATEGORY_INFO[selectedCategory].description}</p>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>{CATEGORY_INFO[selectedCategory].label}</h2>
+              <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>{CATEGORY_INFO[selectedCategory].description}</p>
             </div>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4">
           {/* Info Box */}
-          <div className="flex items-start gap-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg mb-4">
-            <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-400">
+          <div className="flex items-start gap-3 p-3 rounded-lg mb-4" style={{ backgroundColor: 'var(--color-info-subtle)', border: '1px solid var(--color-info-border)' }}>
+            <Info className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--color-info)' }} />
+            <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
               Selected technologies will be used as defaults when generating new code.
               The AI will follow these preferences unless you specify otherwise.
             </p>
@@ -113,25 +113,25 @@ export const TechStackPanel: React.FC = () => {
                 <button
                   key={option.value}
                   onClick={() => updateTechStack(selectedCategory, option.value)}
-                  className={`p-4 rounded-lg border text-left transition-all ${
-                    isSelected
-                      ? 'bg-blue-500/20 border-blue-500/30'
-                      : 'bg-slate-800/50 border-white/5 hover:border-white/20'
-                  }`}
+                  className="p-4 rounded-lg text-left transition-all"
+                  style={{
+                    backgroundColor: isSelected ? 'var(--theme-accent-subtle)' : 'var(--theme-glass-100)',
+                    border: isSelected ? '1px solid var(--theme-accent-muted)' : '1px solid var(--theme-border-light)'
+                  }}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <div className="text-sm font-medium text-white">{option.label}</div>
-                        <span className="text-[10px] px-1.5 py-0.5 bg-slate-700/50 rounded text-slate-400">
+                        <div className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>{option.label}</div>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}>
                           {option.version}
                         </span>
                       </div>
-                      <div className="text-xs text-slate-500 mt-1">{option.description}</div>
+                      <div className="text-xs mt-1" style={{ color: 'var(--theme-text-dim)' }}>{option.description}</div>
                     </div>
                     {isSelected && (
-                      <div className="p-1 bg-blue-500 rounded-full flex-shrink-0 ml-2">
-                        <Check className="w-3 h-3 text-white" />
+                      <div className="p-1 rounded-full shrink-0 ml-2" style={{ backgroundColor: 'var(--theme-accent)' }}>
+                        <Check className="w-3 h-3" style={{ color: 'var(--theme-text-on-accent)' }} />
                       </div>
                     )}
                   </div>
@@ -142,8 +142,8 @@ export const TechStackPanel: React.FC = () => {
         </div>
 
         {/* Current Stack Summary */}
-        <div className="p-3 border-t border-white/5 bg-slate-950/30">
-          <div className="text-xs text-slate-500 mb-2">Current Stack:</div>
+        <div className="p-3" style={{ borderTop: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-100)' }}>
+          <div className="text-xs mb-2" style={{ color: 'var(--theme-text-dim)' }}>Current Stack:</div>
           <div className="flex flex-wrap gap-2">
             {(Object.entries(techStack) as [TechCategory, { library: string; version: string }][])
               .filter(([_, val]) => val.library !== 'none')
@@ -152,7 +152,8 @@ export const TechStackPanel: React.FC = () => {
                 return (
                   <span
                     key={key}
-                    className="px-2 py-1 bg-slate-800 rounded text-xs text-slate-300"
+                    className="px-2 py-1 rounded text-xs"
+                    style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-secondary)' }}
                   >
                     {option?.label || val.library}
                   </span>

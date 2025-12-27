@@ -97,23 +97,25 @@ const TableNode: React.FC<{
   };
 
   return (
-    <div className="bg-slate-800 border border-slate-600 rounded-lg shadow-xl min-w-[220px] overflow-hidden">
+    <div className="rounded-lg shadow-xl min-w-[220px] overflow-hidden" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
       {/* Table Header */}
-      <div className="bg-gradient-to-r from-emerald-600 to-teal-600 px-3 py-2 flex items-center justify-between">
+      <div className="px-3 py-2 flex items-center justify-between" style={{ background: 'linear-gradient(to right, var(--color-success), var(--color-info))' }}>
         <div className="flex items-center gap-2">
-          <Table2 className="w-4 h-4 text-white" />
+          <Table2 className="w-4 h-4" style={{ color: 'white' }} />
           {isEditing ? (
             <input
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
               onBlur={handleNameSubmit}
               onKeyDown={(e) => e.key === 'Enter' && handleNameSubmit()}
-              className="bg-transparent border-b border-white/50 text-white text-sm font-semibold outline-none w-28"
+              className="bg-transparent border-b border-white/50 text-sm font-semibold outline-none w-28"
+              style={{ color: 'white' }}
               autoFocus
             />
           ) : (
             <span
-              className="text-white text-sm font-semibold cursor-pointer hover:underline"
+              className="text-sm font-semibold cursor-pointer hover:underline"
+              style={{ color: 'white' }}
               onClick={() => setIsEditing(true)}
             >
               {table.name}
@@ -126,39 +128,44 @@ const TableNode: React.FC<{
             className="p-1 hover:bg-white/20 rounded transition-colors"
             title="Add column"
           >
-            <Plus className="w-3 h-3 text-white" />
+            <Plus className="w-3 h-3" style={{ color: 'white' }} />
           </button>
           <button
             onClick={onDelete}
-            className="p-1 hover:bg-red-500/50 rounded transition-colors"
+            className="p-1 rounded transition-colors"
+            style={{ ['--hover-bg' as string]: 'rgba(var(--color-error-rgb), 0.5)' }}
+            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.5)')}
+            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             title="Delete table"
           >
-            <Trash2 className="w-3 h-3 text-white" />
+            <Trash2 className="w-3 h-3" style={{ color: 'white' }} />
           </button>
         </div>
       </div>
 
       {/* Columns */}
-      <div className="divide-y divide-slate-700">
+      <div style={{ borderTop: '1px solid var(--theme-border-light)' }}>
         {table.columns.map((column, index) => (
-          <div key={index} className="px-3 py-1.5 flex items-center gap-2 text-xs hover:bg-slate-700/50 group relative">
+          <div key={index} className="px-3 py-1.5 flex items-center gap-2 text-xs group relative" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
             <Handle
               type="source"
               position={Position.Right}
               id={`${table.name}-${column.name}-source`}
-              className="!w-2 !h-2 !bg-blue-400 !border-slate-800"
+              className="!w-2 !h-2"
+              style={{ borderColor: 'var(--theme-surface)', backgroundColor: 'var(--color-info)' }}
             />
             <Handle
               type="target"
               position={Position.Left}
               id={`${table.name}-${column.name}-target`}
-              className="!w-2 !h-2 !bg-purple-400 !border-slate-800"
+              className="!w-2 !h-2"
+              style={{ borderColor: 'var(--theme-surface)', backgroundColor: 'var(--color-feature)' }}
             />
 
             <button
               onClick={() => togglePrimaryKey(index)}
-              className={`flex-shrink-0 ${column.isPrimaryKey ? 'text-amber-400' : 'text-slate-600 hover:text-amber-400'}`}
               title="Toggle Primary Key"
+              style={{ color: column.isPrimaryKey ? 'var(--color-warning)' : 'var(--theme-text-dim)' }}
             >
               <Key className="w-3 h-3" />
             </button>
@@ -166,12 +173,14 @@ const TableNode: React.FC<{
             <input
               value={column.name}
               onChange={(e) => updateColumn(index, { name: e.target.value })}
-              className="bg-transparent text-slate-200 flex-1 outline-none min-w-0 text-xs"
+              className="bg-transparent flex-1 outline-none min-w-0 text-xs"
+              style={{ color: 'var(--theme-text-secondary)' }}
             />
             <select
               value={column.type}
               onChange={(e) => updateColumn(index, { type: e.target.value })}
-              className="bg-slate-700 text-slate-400 text-[10px] rounded px-1 py-0.5 outline-none cursor-pointer"
+              className="text-[10px] rounded px-1 py-0.5 outline-none cursor-pointer"
+              style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-muted)' }}
             >
               <option value="INT">INT</option>
               <option value="BIGINT">BIGINT</option>
@@ -189,9 +198,11 @@ const TableNode: React.FC<{
             </select>
             <button
               onClick={() => deleteColumn(index)}
-              className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-500/30 rounded transition-all"
+              className="opacity-0 group-hover:opacity-100 p-0.5 rounded transition-all"
+              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.3)')}
+              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
-              <Trash2 className="w-3 h-3 text-red-400" />
+              <Trash2 className="w-3 h-3" style={{ color: 'var(--color-error)' }} />
             </button>
           </div>
         ))}
@@ -587,26 +598,26 @@ Use appropriate SQL types: INT, BIGINT, SERIAL, VARCHAR(255), TEXT, BOOLEAN, DAT
   };
 
   return (
-    <div className="flex flex-col h-full w-full bg-slate-900 relative">
+    <div className="flex flex-col h-full w-full relative" style={{ backgroundColor: 'var(--theme-background)' }}>
       {/* Toast */}
       {toast && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-slate-800 border border-white/10 rounded-lg shadow-lg text-sm text-white animate-in fade-in slide-in-from-top-2">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-lg shadow-lg text-sm animate-in fade-in slide-in-from-top-2" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}>
           {toast}
         </div>
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[#0a0e16] border-b border-white/5">
+      <div className="flex items-center justify-between px-4 py-2" style={{ backgroundColor: 'var(--theme-surface)', borderBottom: '1px solid var(--theme-border)' }}>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <Database className="w-5 h-5 text-emerald-400" />
-            <span className="text-sm font-semibold text-white">DB Studio</span>
+            <Database className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
+            <span className="text-sm font-semibold" style={{ color: 'var(--theme-text-primary)' }}>DB Studio</span>
           </div>
-          <span className="text-[10px] px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded">
+          <span className="text-[10px] px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
             {tables.length} tables
           </span>
           {hasUnsavedChanges && (
-            <span className="text-[10px] px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded animate-pulse">
+            <span className="text-[10px] px-2 py-0.5 rounded animate-pulse" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
               unsaved
             </span>
           )}
@@ -616,19 +627,21 @@ Use appropriate SQL types: INT, BIGINT, SERIAL, VARCHAR(255), TEXT, BOOLEAN, DAT
           <div className="relative">
             <button
               onClick={() => setShowSettings(!showSettings)}
-              className="flex items-center gap-1.5 px-2 py-1.5 text-xs bg-white/5 text-slate-400 hover:text-white rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1.5 text-xs rounded-lg transition-colors"
+              style={{ backgroundColor: 'var(--theme-glass-100)', color: 'var(--theme-text-muted)' }}
             >
               <Settings className="w-3.5 h-3.5" />
               <ChevronDown className="w-3 h-3" />
             </button>
             {showSettings && (
-              <div className="absolute right-0 mt-1 w-48 bg-slate-800 border border-white/10 rounded-lg shadow-xl z-50 p-3">
-                <label className="text-[10px] text-slate-500 uppercase">Seed Rows</label>
+              <div className="absolute right-0 mt-1 w-48 rounded-lg shadow-xl z-50 p-3" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
+                <label className="text-[10px] uppercase" style={{ color: 'var(--theme-text-dim)' }}>Seed Rows</label>
                 <input
                   type="number"
                   value={rowCount}
                   onChange={(e) => setRowCount(Math.max(1, parseInt(e.target.value, 10) || 10))}
-                  className="w-full mt-1 px-2 py-1 bg-slate-900 border border-white/10 rounded text-sm text-white outline-none"
+                  className="w-full mt-1 px-2 py-1 rounded text-sm outline-none"
+                  style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                   min="1"
                   max="1000"
                 />
@@ -638,41 +651,46 @@ Use appropriate SQL types: INT, BIGINT, SERIAL, VARCHAR(255), TEXT, BOOLEAN, DAT
 
           <button
             onClick={() => setShowAiPanel(!showAiPanel)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors ${
-              showAiPanel ? 'bg-purple-500/20 text-purple-400' : 'bg-white/5 text-slate-400 hover:text-white'
-            }`}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+            style={{
+              backgroundColor: showAiPanel ? 'var(--color-feature-subtle)' : 'var(--theme-glass-100)',
+              color: showAiPanel ? 'var(--color-feature)' : 'var(--theme-text-muted)'
+            }}
           >
             <Wand2 className="w-3.5 h-3.5" />
             AI
           </button>
           <button
             onClick={addTable}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+            style={{ backgroundColor: 'var(--color-success)', color: 'white' }}
           >
             <Plus className="w-3.5 h-3.5" />
             Table
           </button>
           <button
             onClick={refreshFromFile}
-            className="p-1.5 text-xs bg-white/5 text-slate-400 hover:text-white rounded-lg transition-colors"
+            className="p-1.5 text-xs rounded-lg transition-colors"
+            style={{ backgroundColor: 'var(--theme-glass-100)', color: 'var(--theme-text-muted)' }}
             title="Reload from file"
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={copySQL}
-            className="p-1.5 text-xs bg-white/5 text-slate-400 hover:text-white rounded-lg transition-colors"
+            className="p-1.5 text-xs rounded-lg transition-colors"
+            style={{ backgroundColor: 'var(--theme-glass-100)', color: 'var(--theme-text-muted)' }}
             title="Copy SQL"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} /> : <Copy className="w-3.5 h-3.5" />}
           </button>
           <button
             onClick={saveToFiles}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors ${
-              hasUnsavedChanges
-                ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                : 'bg-white/5 text-slate-400 hover:text-white'
-            }`}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+            style={{
+              backgroundColor: hasUnsavedChanges ? 'var(--color-info)' : 'var(--theme-glass-100)',
+              color: hasUnsavedChanges ? 'white' : 'var(--theme-text-muted)'
+            }}
             title="Save to schema.sql"
           >
             <Save className="w-3.5 h-3.5" />
@@ -680,7 +698,8 @@ Use appropriate SQL types: INT, BIGINT, SERIAL, VARCHAR(255), TEXT, BOOLEAN, DAT
           </button>
           <button
             onClick={exportWithData}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+            style={{ backgroundColor: 'var(--color-warning)', color: 'white' }}
             title={`Export with ${rowCount} rows per table`}
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -691,9 +710,9 @@ Use appropriate SQL types: INT, BIGINT, SERIAL, VARCHAR(255), TEXT, BOOLEAN, DAT
 
       {/* AI Panel */}
       {showAiPanel && (
-        <div className="px-4 py-3 bg-purple-500/10 border-b border-purple-500/20">
+        <div className="px-4 py-3" style={{ backgroundColor: 'var(--color-feature-subtle)', borderBottom: '1px solid var(--color-feature-border)' }}>
           <div className="flex items-center gap-2">
-            <Wand2 className="w-4 h-4 text-purple-400 flex-shrink-0" />
+            <Wand2 className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-feature)' }} />
             <input
               value={aiPrompt}
               onChange={(e) => setAiPrompt(e.target.value)}
@@ -702,13 +721,15 @@ Use appropriate SQL types: INT, BIGINT, SERIAL, VARCHAR(255), TEXT, BOOLEAN, DAT
                 ? "Extend schema... (e.g., 'add reviews table with ratings')"
                 : "Describe your schema... (e.g., 'E-commerce with users, products, orders')"
               }
-              className="flex-1 px-3 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-purple-500/50"
+              className="flex-1 px-3 py-2 rounded-lg text-sm outline-none"
+              style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
               disabled={isGenerating}
             />
             <button
               onClick={() => generateWithAI(false)}
               disabled={isGenerating || !aiPrompt.trim()}
-              className="px-3 py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5"
+              className="px-3 py-2 text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              style={{ backgroundColor: 'var(--color-feature)', color: 'white' }}
               title="Generate new schema"
             >
               {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
@@ -718,7 +739,8 @@ Use appropriate SQL types: INT, BIGINT, SERIAL, VARCHAR(255), TEXT, BOOLEAN, DAT
               <button
                 onClick={() => generateWithAI(true)}
                 disabled={isGenerating || !aiPrompt.trim()}
-                className="px-3 py-2 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-700 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5"
+                className="px-3 py-2 text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                style={{ backgroundColor: 'var(--color-info)', color: 'white' }}
                 title="Extend existing schema"
               >
                 {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
@@ -732,10 +754,10 @@ Use appropriate SQL types: INT, BIGINT, SERIAL, VARCHAR(255), TEXT, BOOLEAN, DAT
       {/* React Flow Canvas */}
       <div className="flex-1">
         {tables.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-500">
+          <div className="h-full flex flex-col items-center justify-center" style={{ color: 'var(--theme-text-dim)' }}>
             <Database className="w-16 h-16 mb-4 opacity-30" />
-            <h3 className="text-lg font-medium text-slate-400 mb-2">No tables yet</h3>
-            <p className="text-sm mb-4 text-center max-w-md">
+            <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--theme-text-muted)' }}>No tables yet</h3>
+            <p className="text-sm mb-4 text-center max-w-md" style={{ color: 'var(--theme-text-dim)' }}>
               {files['db/schema.sql']
                 ? 'Schema file exists but no tables could be parsed. Try refreshing or create new tables.'
                 : 'Create a table manually or use AI to generate a complete schema.'
@@ -744,14 +766,16 @@ Use appropriate SQL types: INT, BIGINT, SERIAL, VARCHAR(255), TEXT, BOOLEAN, DAT
             <div className="flex items-center gap-3">
               <button
                 onClick={addTable}
-                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--color-success)', color: 'white' }}
               >
                 <Plus className="w-4 h-4" />
                 Add Table
               </button>
               <button
                 onClick={() => setShowAiPanel(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg transition-colors"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--color-feature)', color: 'white' }}
               >
                 <Wand2 className="w-4 h-4" />
                 AI Generate
@@ -759,7 +783,8 @@ Use appropriate SQL types: INT, BIGINT, SERIAL, VARCHAR(255), TEXT, BOOLEAN, DAT
               {files['db/schema.sql'] && (
                 <button
                   onClick={refreshFromFile}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+                  style={{ backgroundColor: 'var(--color-info)', color: 'white' }}
                 >
                   <RefreshCw className="w-4 h-4" />
                   Reload File
@@ -776,13 +801,13 @@ Use appropriate SQL types: INT, BIGINT, SERIAL, VARCHAR(255), TEXT, BOOLEAN, DAT
             onConnect={onConnect}
             nodeTypes={nodeTypes}
             fitView
-            className="bg-slate-950"
+            style={{ backgroundColor: 'var(--theme-surface-dark)' }}
           >
-            <Background color="#334155" gap={16} />
-            <Controls className="!bg-slate-800 !border-slate-700 !rounded-lg [&>button]:!bg-slate-800 [&>button]:!border-slate-700 [&>button]:!text-slate-400 [&>button:hover]:!bg-slate-700" />
+            <Background color="var(--theme-border)" gap={16} />
+            <Controls className="[&]:rounded-lg" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }} />
             <MiniMap
-              className="!bg-slate-800 !rounded-lg"
-              nodeColor="#10b981"
+              style={{ backgroundColor: 'var(--theme-surface)' }}
+              nodeColor="var(--color-success)"
               maskColor="rgba(0,0,0,0.5)"
             />
           </ReactFlow>

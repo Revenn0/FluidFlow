@@ -138,33 +138,34 @@ export function ContextMenuProvider({ children }: ContextMenuProviderProps) {
           style={{ left: 0, top: 0, width: '100vw', height: '100vh' }}
         >
           <div
-            className="absolute bg-slate-800 border border-white/10 rounded-lg shadow-2xl overflow-hidden min-w-[180px] py-1"
+            className="absolute rounded-lg shadow-2xl overflow-hidden min-w-[180px] py-1"
             style={{
               left: adjustedPosition().x,
               top: adjustedPosition().y,
+              backgroundColor: 'var(--theme-surface)',
+              border: '1px solid var(--theme-border)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {state.items.map((item, _index) => (
               <React.Fragment key={item.id}>
-                {item.separator && <div className="my-1 border-t border-white/10" />}
+                {item.separator && <div className="my-1" style={{ borderTop: '1px solid var(--theme-border)' }} />}
                 <button
                   onClick={() => handleItemClick(item)}
                   disabled={item.disabled}
-                  className={`w-full px-3 py-2 flex items-center gap-2 text-sm transition-colors pointer-events-auto ${
-                    item.danger
-                      ? 'text-red-400 hover:bg-red-500/10'
-                      : 'text-slate-300 hover:bg-white/5'
-                  } ${item.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`w-full px-3 py-2 flex items-center gap-2 text-sm transition-colors pointer-events-auto ${item.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  style={{
+                    color: item.danger ? 'var(--color-error)' : 'var(--theme-text-secondary)'
+                  }}
                 >
-                  {item.icon && <span className="w-4 h-4 flex-shrink-0">{item.icon}</span>}
+                  {item.icon && <span className="w-4 h-4 shrink-0">{item.icon}</span>}
                   <span className="flex-1 text-left">{item.label}</span>
                 </button>
               </React.Fragment>
             ))}
 
             {state.items.length === 0 && (
-              <div className="px-3 py-2 text-sm text-slate-500">No actions</div>
+              <div className="px-3 py-2 text-sm" style={{ color: 'var(--theme-text-muted)' }}>No actions</div>
             )}
           </div>
         </div>

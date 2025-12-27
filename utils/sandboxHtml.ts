@@ -18,6 +18,8 @@ import { analyzeFilesForImports } from './importResolver';
 // Import script generators from submodules
 import {
   getInspectModeScript,
+  getFetchMockingScript,
+  getAssetHandlingScript,
   getHistoryEmulationScript,
   getLinkInterceptionScript,
   getLocationOverrideScript,
@@ -26,6 +28,21 @@ import {
   getComponentTreeScript,
   getComputedStylesScript,
   getRouteContextScript,
+  getEnvVariablesScript,
+  getStoragePersistenceScript,
+  getConsoleEnhancementsScript,
+  getTimerManagementScript,
+  getErrorRecoveryScript,
+  getPerformanceMetricsScript,
+  getEventListenerCleanupScript,
+  getClipboardMockScript,
+  getIntersectionObserverScript,
+  getMediaQueryHooksScript,
+  getDragDropEnhancementScript,
+  getNetworkStatusScript,
+  getFormHelpersScript,
+  getScrollUtilitiesScript,
+  getScreenshotCaptureScript,
 } from './sandboxHtml/scripts';
 
 // Re-export script generators for potential external use
@@ -76,8 +93,80 @@ function buildIframeHtmlTemplate(files: FileSystem, isInspectMode: boolean): str
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #1a1a1a; min-height: 100vh; margin: 0; }
-    #root { min-height: 100vh; }
+    /* CRITICAL: Prevent ANY content from affecting parent layout */
+    html {
+      font-family: 'Inter', sans-serif;
+      background-color: #ffffff;
+      color: #1a1a1a;
+      /* Fixed positioning locks the viewport */
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      /* Hidden (not clip) allows positioned elements to render */
+      overflow: hidden !important;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #ffffff;
+      color: #1a1a1a;
+      /* Fixed positioning locks the body */
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      /* Hidden (not clip) allows positioned elements to render */
+      overflow: hidden !important;
+    }
+    #root {
+      /* Fixed positioning for root as well */
+      position: fixed !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      /* Visible allows dropdowns/menus to overflow */
+      overflow: visible !important;
+    }
+    /* Scrollable app container - allows internal content scrolling */
+    #__app_scroll_container__ {
+      position: absolute !important;
+      inset: 0 !important;
+      width: 100% !important;
+      height: 100% !important;
+      overflow: auto !important;
+      /* Prevent scroll from propagating to parent */
+      overscroll-behavior: contain;
+    }
+    /* NUCLEAR: Hide ALL elements with negative positioning using max specificity */
+    body [class*="bottom-\\5b -"],
+    body [class*="top-\\5b -"],
+    body [class*="left-\\5b -"],
+    body [class*="right-\\5b -"],
+    body *[class*="bottom-[-"],
+    body *[class*="top-[-"],
+    body *[class*="left-[-"],
+    body *[class*="right-[-"] {
+      display: none !important;
+      visibility: hidden !important;
+      width: 0 !important;
+      height: 0 !important;
+      opacity: 0 !important;
+      overflow: hidden !important;
+      position: absolute !important;
+      pointer-events: none !important;
+    }
+    /* Also target by common decorative patterns */
+    body .blur-\\[120px\\],
+    body .blur-\\[100px\\],
+    body .blur-\\[80px\\],
+    body [class*="blur-["][class*="rounded-full"][class*="absolute"],
+    body [class*="blur-["][class*="rounded-full"][class*="fixed"] {
+      display: none !important;
+    }
     .sandbox-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
     .sandbox-loading .spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; }
     .sandbox-error { padding: 20px; background: #fee2e2; color: #dc2626; border-radius: 8px; margin: 20px; font-family: monospace; font-size: 14px; white-space: pre-wrap; }
@@ -99,8 +188,170 @@ function buildIframeHtmlTemplate(files: FileSystem, isInspectMode: boolean): str
   </div>
   <script>
     // Sandbox environment setup
-    window.process = { env: { NODE_ENV: 'development' } };
     window.__SANDBOX_READY__ = false;
+
+    // Environment Variables (process.env, import.meta.env)
+    ${getEnvVariablesScript()}
+
+    // Storage shim for sandboxed iframe (no allow-same-origin)
+    // Provides in-memory localStorage/sessionStorage to prevent SecurityErrors
+    (function() {
+      function createStorageShim() {
+        var data = {};
+        return {
+          getItem: function(key) { return data.hasOwnProperty(key) ? data[key] : null; },
+          setItem: function(key, value) { data[key] = String(value); },
+          removeItem: function(key) { delete data[key]; },
+          clear: function() { data = {}; },
+          key: function(index) { var keys = Object.keys(data); return index < keys.length ? keys[index] : null; },
+          get length() { return Object.keys(data).length; }
+        };
+      }
+      try {
+        // Test if localStorage is accessible
+        window.localStorage.getItem('__test__');
+      } catch (e) {
+        // localStorage blocked - install shim
+        Object.defineProperty(window, 'localStorage', { value: createStorageShim(), writable: false });
+        Object.defineProperty(window, 'sessionStorage', { value: createStorageShim(), writable: false });
+        console.log('[Sandbox] Storage shim installed (in-memory)');
+      }
+    })();
+
+    // Storage Persistence (sync with parent window)
+    ${getStoragePersistenceScript()}
+
+    // Timer Management (tracking and cleanup)
+    ${getTimerManagementScript()}
+
+    // Error Recovery (crash detection and graceful recovery)
+    ${getErrorRecoveryScript()}
+
+    // Performance Metrics (FPS, render time, memory tracking)
+    ${getPerformanceMetricsScript()}
+
+    // Event Listener Cleanup (tracking and leak detection)
+    ${getEventListenerCleanupScript()}
+
+    // Clipboard API Mock (copy/paste support)
+    ${getClipboardMockScript()}
+
+    // Intersection Observer (lazy loading, infinite scroll)
+    ${getIntersectionObserverScript()}
+
+    // Media Query Hooks (responsive design utilities)
+    ${getMediaQueryHooksScript()}
+
+    // Drag & Drop Enhancement (file handling)
+    ${getDragDropEnhancementScript()}
+
+    // Network Status (online/offline detection)
+    ${getNetworkStatusScript()}
+
+    // Form Helpers (validation, auto-save)
+    ${getFormHelpersScript()}
+
+    // Scroll Utilities (smooth scroll, position tracking)
+    ${getScrollUtilitiesScript()}
+
+    // Screenshot Capture (preview to image)
+    ${getScreenshotCaptureScript()}
+
+    // CRITICAL: Prevent any scroll from happening at document level
+    // This ensures negative positioned elements can't trigger scroll
+    window.addEventListener('scroll', function(e) {
+      window.scrollTo(0, 0);
+      e.stopPropagation();
+    }, { capture: true, passive: false });
+
+    document.addEventListener('scroll', function(e) {
+      window.scrollTo(0, 0);
+      e.stopPropagation();
+    }, { capture: true, passive: false });
+
+    // Also prevent wheel events from causing any document scroll
+    // But allow wheel events inside the app scroll container
+    document.addEventListener('wheel', function(e) {
+      // Only prevent if target is document or body (not inside scroll container)
+      if (e.target === document || e.target === document.body || e.target === document.documentElement) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      // Allow scrolling inside the app container
+      var scrollContainer = document.getElementById('__app_scroll_container__');
+      if (scrollContainer && scrollContainer.contains(e.target)) {
+        // Allow the event to proceed naturally
+        return;
+      }
+    }, { capture: true, passive: false });
+
+    // CRITICAL: Inject styles AFTER Tailwind loads to override it
+    function injectOverrideStyles() {
+      const styleId = '__sandbox_override_styles__';
+      if (document.getElementById(styleId)) return;
+
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = \`
+        /* Override Tailwind - highest specificity */
+        html body *[class*="bottom-[-"],
+        html body *[class*="top-[-"],
+        html body *[class*="left-[-"],
+        html body *[class*="right-[-"],
+        html body div[class*="blur-"][class*="absolute"],
+        html body div[class*="blur-"][class*="fixed"] {
+          display: none !important;
+          visibility: hidden !important;
+          width: 0 !important;
+          height: 0 !important;
+          overflow: hidden !important;
+        }
+      \`;
+      document.head.appendChild(style);
+    }
+
+    // Hide decorative elements via CSS only (no DOM removal to avoid framer-motion conflicts)
+    function hideDecorativeElements() {
+      document.querySelectorAll('*').forEach(el => {
+        // Skip critical elements
+        if (el.id === 'root' || el.tagName === 'HTML' || el.tagName === 'BODY' || el.tagName === 'HEAD') return;
+        if (el.closest('nav') || el.closest('header') || el.closest('[role="navigation"]') || el.closest('[role="menu"]')) return;
+
+        const cn = el.className;
+        if (typeof cn !== 'string') return;
+
+        // ONLY target clearly decorative blur backgrounds with negative positioning
+        const isNegativelyPositioned = cn.includes('bottom-[-') || cn.includes('top-[-') || cn.includes('left-[-') || cn.includes('right-[-');
+        const isDecorativeBlur = cn.includes('blur-') && cn.includes('rounded-full') && (cn.includes('absolute') || cn.includes('fixed'));
+
+        if (isNegativelyPositioned || isDecorativeBlur) {
+          // Just hide with CSS, don't remove from DOM
+          el.style.cssText += ';display:none!important;visibility:hidden!important;';
+        }
+      });
+    }
+
+    // Inject styles immediately and on DOM ready
+    injectOverrideStyles();
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        injectOverrideStyles();
+        hideDecorativeElements();
+      });
+    }
+
+    // Note: MutationObserver removed - was causing conflicts with framer-motion animations
+    // CSS hiding is sufficient and won't cause "removeChild" errors
+
+    // Run hideDecorativeElements only a few times at startup (not continuously)
+    // This avoids conflicts with framer-motion animations
+    [0, 100, 500, 1500].forEach(ms => {
+      setTimeout(() => {
+        injectOverrideStyles();
+        hideDecorativeElements();
+      }, ms);
+    });
 
     // XSS-safe error display helper - escapes HTML entities
     const escapeHtmlForError = (text) => {
@@ -120,9 +371,6 @@ function buildIframeHtmlTemplate(files: FileSystem, isInspectMode: boolean): str
         root.appendChild(errorDiv);
       }
     };
-
-    // Console forwarding with error filtering
-    const notify = (type, msg) => window.parent.postMessage({ type: 'CONSOLE_LOG', logType: type, message: typeof msg === 'object' ? JSON.stringify(msg) : String(msg), timestamp: Date.now() }, '*');
 
     // Filter transient/harmless errors that shouldn't trigger auto-fix
     // IMPORTANT: Do NOT ignore fixable errors like "is not defined", "is not a function"
@@ -165,22 +413,30 @@ function buildIframeHtmlTemplate(files: FileSystem, isInspectMode: boolean): str
       return ignorePatterns.some(p => str.includes(p));
     };
 
-    console.log = (...args) => { notify('log', args.join(' ')); };
-    console.warn = (...args) => { notify('warn', args.join(' ')); };
-    console.error = (...args) => {
-      const msg = args.join(' ');
-      // Still log to console but mark as ignorable for auto-fix
-      notify('error', isIgnorableError(msg) ? '[TRANSIENT] ' + msg : msg);
-    };
+    // Enhanced Console (better formatting, timing, grouping, object inspection)
+    ${getConsoleEnhancementsScript()}
+
+    // Global error handlers (use isIgnorableError for auto-fix filtering)
     window.onerror = function(msg) {
-      notify('error', isIgnorableError(msg) ? '[TRANSIENT] ' + msg : msg);
+      var errMsg = String(msg || 'Unknown error');
+      window.parent.postMessage({
+        type: 'CONSOLE_LOG',
+        logType: 'error',
+        message: isIgnorableError(errMsg) ? '[TRANSIENT] ' + errMsg : errMsg,
+        timestamp: Date.now()
+      }, '*');
       return false;
     };
 
     // Handle unhandled promise rejections (async errors)
     window.onunhandledrejection = function(event) {
-      const msg = event.reason?.message || String(event.reason) || 'Unhandled Promise rejection';
-      notify('error', isIgnorableError(msg) ? '[TRANSIENT] ' + msg : msg);
+      var msg = event.reason?.message || String(event.reason) || 'Unhandled Promise rejection';
+      window.parent.postMessage({
+        type: 'CONSOLE_LOG',
+        logType: 'error',
+        message: isIgnorableError(msg) ? '[TRANSIENT] ' + msg : msg,
+        timestamp: Date.now()
+      }, '*');
     };
 
     // Patch URL constructor FIRST - before any library loads
@@ -208,6 +464,12 @@ function buildIframeHtmlTemplate(files: FileSystem, isInspectMode: boolean): str
       window.URL.revokeObjectURL = OriginalURL.revokeObjectURL;
       window.URL.canParse = OriginalURL.canParse;
     })();
+
+    // Fetch/XHR Mocking - intercepts API calls
+    ${getFetchMockingScript()}
+
+    // Asset/Image Handling - provides placeholders for missing assets
+    ${getAssetHandlingScript()}
 
     // Inspect Mode
     window.__INSPECT_MODE__ = ${isInspectMode};

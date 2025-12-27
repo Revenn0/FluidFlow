@@ -43,29 +43,32 @@ interface ErrorFixPanelProps {
   canUndo?: boolean;
 }
 
-// State colors and icons
-const stateConfig: Record<AgentState, { color: string; icon: React.ReactNode; label: string }> = {
-  idle: { color: 'text-gray-400', icon: <Bot className="w-4 h-4" />, label: 'Idle' },
-  analyzing: { color: 'text-blue-400', icon: <Loader2 className="w-4 h-4 animate-spin" />, label: 'Analyzing' },
-  'local-fix': { color: 'text-cyan-400', icon: <Wrench className="w-4 h-4 animate-pulse" />, label: 'Local Fix' },
-  'ai-fix': { color: 'text-indigo-400', icon: <Bot className="w-4 h-4 animate-pulse" />, label: 'AI Fix' },
-  fixing: { color: 'text-yellow-400', icon: <Loader2 className="w-4 h-4 animate-spin" />, label: 'Fixing' },
-  applying: { color: 'text-orange-400', icon: <Wrench className="w-4 h-4" />, label: 'Applying' },
-  verifying: { color: 'text-purple-400', icon: <Loader2 className="w-4 h-4 animate-spin" />, label: 'Verifying' },
-  success: { color: 'text-green-400', icon: <CheckCircle className="w-4 h-4" />, label: 'Success' },
-  failed: { color: 'text-red-400', icon: <XCircle className="w-4 h-4" />, label: 'Failed' },
-  max_attempts_reached: { color: 'text-orange-400', icon: <AlertTriangle className="w-4 h-4" />, label: 'Max Attempts' }
+// State colors and icons - using CSS variables
+const stateConfig: Record<AgentState, { colorVar: string; icon: React.ReactNode; label: string }> = {
+  idle: { colorVar: 'var(--theme-text-muted)', icon: <Bot className="w-4 h-4" />, label: 'Idle' },
+  analyzing: { colorVar: 'var(--theme-accent)', icon: <Loader2 className="w-4 h-4 animate-spin" />, label: 'Analyzing' },
+  'local-fix': { colorVar: 'var(--color-info)', icon: <Wrench className="w-4 h-4 animate-pulse" />, label: 'Local Fix' },
+  'ai-fix': { colorVar: 'var(--theme-ai-accent)', icon: <Bot className="w-4 h-4 animate-pulse" />, label: 'AI Fix' },
+  fixing: { colorVar: 'var(--color-warning)', icon: <Loader2 className="w-4 h-4 animate-spin" />, label: 'Fixing' },
+  applying: { colorVar: 'var(--color-warning)', icon: <Wrench className="w-4 h-4" />, label: 'Applying' },
+  verifying: { colorVar: 'var(--theme-ai-accent)', icon: <Loader2 className="w-4 h-4 animate-spin" />, label: 'Verifying' },
+  success: { colorVar: 'var(--color-success)', icon: <CheckCircle className="w-4 h-4" />, label: 'Success' },
+  failed: { colorVar: 'var(--color-error)', icon: <XCircle className="w-4 h-4" />, label: 'Failed' },
+  max_attempts_reached: { colorVar: 'var(--color-warning)', icon: <AlertTriangle className="w-4 h-4" />, label: 'Max Attempts' }
 };
 
-// Log entry type icons
-const logTypeIcons: Record<AgentLogEntry['type'], React.ReactNode> = {
-  info: <Info className="w-3.5 h-3.5 text-blue-400" />,
-  prompt: <Send className="w-3.5 h-3.5 text-cyan-400" />,
-  response: <MessageSquare className="w-3.5 h-3.5 text-green-400" />,
-  fix: <Wrench className="w-3.5 h-3.5 text-yellow-400" />,
-  error: <AlertCircle className="w-3.5 h-3.5 text-red-400" />,
-  success: <CheckCircle className="w-3.5 h-3.5 text-green-400" />,
-  warning: <AlertTriangle className="w-3.5 h-3.5 text-orange-400" />
+// Log entry type icons - colors applied via style
+const getLogTypeIcon = (type: AgentLogEntry['type']) => {
+  const iconMap: Record<AgentLogEntry['type'], { icon: React.ReactNode; colorVar: string }> = {
+    info: { icon: <Info className="w-3.5 h-3.5" />, colorVar: 'var(--theme-accent)' },
+    prompt: { icon: <Send className="w-3.5 h-3.5" />, colorVar: 'var(--color-info)' },
+    response: { icon: <MessageSquare className="w-3.5 h-3.5" />, colorVar: 'var(--color-success)' },
+    fix: { icon: <Wrench className="w-3.5 h-3.5" />, colorVar: 'var(--color-warning)' },
+    error: { icon: <AlertCircle className="w-3.5 h-3.5" />, colorVar: 'var(--color-error)' },
+    success: { icon: <CheckCircle className="w-3.5 h-3.5" />, colorVar: 'var(--color-success)' },
+    warning: { icon: <AlertTriangle className="w-3.5 h-3.5" />, colorVar: 'var(--color-warning)' }
+  };
+  return iconMap[type];
 };
 
 export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
@@ -197,13 +200,16 @@ export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
   const stateInfo = stateConfig[agentState];
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-[#0d1117] text-gray-200 overflow-hidden">
+    <div className="flex-1 min-h-0 flex flex-col overflow-hidden" style={{ backgroundColor: 'var(--theme-code-bg)', color: 'var(--theme-text-secondary)' }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/50 bg-[#161b22]">
+      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-surface-elevated)' }}>
         <div className="flex items-center gap-3">
-          <Bot className="w-5 h-5 text-blue-400" />
-          <span className="font-medium">Error Fix Agent</span>
-          <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs ${stateInfo.color} bg-gray-800`}>
+          <Bot className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
+          <span className="font-medium" style={{ color: 'var(--theme-text-primary)' }}>Error Fix Agent</span>
+          <div
+            className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs"
+            style={{ color: stateInfo.colorVar, backgroundColor: 'var(--theme-surface)' }}
+          >
             {stateInfo.icon}
             <span>{stateInfo.label}</span>
           </div>
@@ -214,7 +220,8 @@ export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
           {logs.length > 0 && !isRunning && (
             <button
               onClick={handleClear}
-              className="flex items-center gap-1.5 px-2 py-1.5 text-gray-400 hover:text-gray-200 hover:bg-gray-700/50 rounded text-sm transition-colors"
+              className="flex items-center gap-1.5 px-2 py-1.5 rounded text-sm transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
               title="Clear logs"
             >
               <Trash2 className="w-4 h-4" />
@@ -222,13 +229,18 @@ export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
           )}
 
           {/* Max attempts selector */}
-          <div className="flex items-center gap-2 text-xs text-gray-400">
+          <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
             <span>Max attempts:</span>
             <select
               value={maxAttempts}
               onChange={(e) => setMaxAttempts(Number(e.target.value))}
               disabled={isRunning}
-              className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-gray-200 text-xs"
+              className="rounded px-2 py-1 text-xs"
+              style={{
+                backgroundColor: 'var(--theme-input-bg)',
+                border: '1px solid var(--theme-input-border)',
+                color: 'var(--theme-text-primary)'
+              }}
             >
               <option value={3}>3</option>
               <option value={5}>5</option>
@@ -240,7 +252,8 @@ export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
           {onUndo && canUndo && currentError && !isRunning && (
             <button
               onClick={onUndo}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 rounded text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors"
+              style={{ backgroundColor: 'var(--color-warning)', color: 'var(--theme-text-inverse)' }}
               title="Revert to last working code"
             >
               <Undo2 className="w-4 h-4" />
@@ -253,7 +266,8 @@ export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
             <button
               onClick={handleStart}
               disabled={!currentError}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-700 disabled:text-gray-500 rounded text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors disabled:opacity-50"
+              style={{ backgroundColor: 'var(--color-success)', color: 'var(--theme-text-inverse)' }}
             >
               <Play className="w-4 h-4" />
               Start
@@ -261,7 +275,8 @@ export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
           ) : (
             <button
               onClick={handleStop}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-700 rounded text-sm font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors"
+              style={{ backgroundColor: 'var(--color-error)', color: 'var(--theme-text-inverse)' }}
             >
               <Square className="w-4 h-4" />
               Stop
@@ -272,14 +287,14 @@ export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
 
       {/* Current error display */}
       {currentError && (
-        <div className="px-4 py-2 bg-red-900/20 border-b border-red-800/30">
+        <div className="px-4 py-2" style={{ backgroundColor: 'var(--color-error-subtle)', borderBottom: '1px solid var(--color-error-border)' }}>
           <div className="flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" style={{ color: 'var(--color-error)' }} />
             <div className="flex-1 min-w-0">
-              <div className="text-xs text-red-400 font-medium">Current Error</div>
-              <div className="text-sm text-red-300 font-mono break-words">{currentError}</div>
+              <div className="text-xs font-medium" style={{ color: 'var(--color-error)' }}>Current Error</div>
+              <div className="text-sm font-mono break-words" style={{ color: 'var(--color-error-text)' }}>{currentError}</div>
               {targetFile && (
-                <div className="flex items-center gap-1 mt-1 text-xs text-gray-400">
+                <div className="flex items-center gap-1 mt-1 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                   <FileCode className="w-3 h-3" />
                   <span>{targetFile}</span>
                 </div>
@@ -292,7 +307,7 @@ export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
       {/* Logs area */}
       <div className="flex-1 min-h-0 overflow-y-auto p-2 space-y-1">
         {logs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
+          <div className="flex flex-col items-center justify-center h-full" style={{ color: 'var(--theme-text-muted)' }}>
             <Bot className="w-12 h-12 mb-3 opacity-50" />
             <p className="text-sm">No logs yet</p>
             <p className="text-xs mt-1">Click "Start" to begin fixing the error</p>
@@ -305,33 +320,40 @@ export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
             return (
               <div
                 key={log.id}
-                className={`rounded border ${
-                  log.type === 'error' ? 'border-red-800/50 bg-red-900/10' :
-                  log.type === 'success' ? 'border-green-800/50 bg-green-900/10' :
-                  log.type === 'warning' ? 'border-orange-800/50 bg-orange-900/10' :
-                  'border-gray-700/50 bg-gray-800/30'
-                }`}
+                className="rounded"
+                style={{
+                  border: `1px solid ${
+                    log.type === 'error' ? 'var(--color-error-border)' :
+                    log.type === 'success' ? 'var(--color-success-border)' :
+                    log.type === 'warning' ? 'var(--color-warning-border)' :
+                    'var(--theme-border)'
+                  }`,
+                  backgroundColor: log.type === 'error' ? 'var(--color-error-subtle)' :
+                    log.type === 'success' ? 'var(--color-success-subtle)' :
+                    log.type === 'warning' ? 'var(--color-warning-subtle)' :
+                    'var(--theme-glass-100)'
+                }}
               >
                 {/* Log header */}
                 <div
-                  className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-white/5"
+                  className="flex items-center gap-2 px-3 py-2 cursor-pointer"
                   onClick={() => isLongContent && toggleLogExpand(log.id)}
                 >
                   {isLongContent && (
                     isExpanded ?
-                      <ChevronDown className="w-3.5 h-3.5 text-gray-500" /> :
-                      <ChevronRight className="w-3.5 h-3.5 text-gray-500" />
+                      <ChevronDown className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} /> :
+                      <ChevronRight className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} />
                   )}
-                  {logTypeIcons[log.type]}
-                  <span className="text-sm font-medium flex-1">{log.title}</span>
-                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                  <span style={{ color: getLogTypeIcon(log.type).colorVar }}>{getLogTypeIcon(log.type).icon}</span>
+                  <span className="text-sm font-medium flex-1" style={{ color: 'var(--theme-text-primary)' }}>{log.title}</span>
+                  <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                     {log.metadata?.attempt && (
-                      <span className="px-1.5 py-0.5 bg-gray-700/50 rounded">
+                      <span className="px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                         #{log.metadata.attempt}
                       </span>
                     )}
                     {log.metadata?.model && (
-                      <span className="px-1.5 py-0.5 bg-blue-900/30 text-blue-400 rounded">
+                      <span className="px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-accent-subtle)', color: 'var(--theme-accent)' }}>
                         {log.metadata.model}
                       </span>
                     )}
@@ -347,14 +369,17 @@ export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
 
                 {/* Log content */}
                 <div className={`px-3 pb-2 ${isLongContent && !isExpanded ? 'max-h-24 overflow-hidden' : ''}`}>
-                  <pre className="text-xs text-gray-300 font-mono whitespace-pre-wrap break-words bg-black/20 p-2 rounded">
+                  <pre
+                    className="text-xs font-mono whitespace-pre-wrap break-words p-2 rounded"
+                    style={{ color: 'var(--theme-text-secondary)', backgroundColor: 'var(--theme-glass-100)' }}
+                  >
                     {isLongContent && !isExpanded
                       ? log.content.slice(0, 200) + '...'
                       : log.content
                     }
                   </pre>
                   {log.metadata?.file && (
-                    <div className="flex items-center gap-1 mt-1.5 text-xs text-gray-500">
+                    <div className="flex items-center gap-1 mt-1.5 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                       <FileCode className="w-3 h-3" />
                       <span>{log.metadata.file}</span>
                     </div>
@@ -369,18 +394,23 @@ export const ErrorFixPanel: React.FC<ErrorFixPanelProps> = ({
 
       {/* Completion message */}
       {completionMessage && (
-        <div className={`px-4 py-3 border-t ${
-          agentState === 'success' ? 'bg-green-900/20 border-green-800/30' : 'bg-red-900/20 border-red-800/30'
-        }`}>
+        <div
+          className="px-4 py-3"
+          style={{
+            borderTop: `1px solid ${agentState === 'success' ? 'var(--color-success-border)' : 'var(--color-error-border)'}`,
+            backgroundColor: agentState === 'success' ? 'var(--color-success-subtle)' : 'var(--color-error-subtle)'
+          }}
+        >
           <div className="flex items-center gap-2">
             {agentState === 'success' ? (
-              <CheckCircle className="w-5 h-5 text-green-400" />
+              <CheckCircle className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
             ) : (
-              <XCircle className="w-5 h-5 text-red-400" />
+              <XCircle className="w-5 h-5" style={{ color: 'var(--color-error)' }} />
             )}
-            <span className={`text-sm font-medium ${
-              agentState === 'success' ? 'text-green-400' : 'text-red-400'
-            }`}>
+            <span
+              className="text-sm font-medium"
+              style={{ color: agentState === 'success' ? 'var(--color-success)' : 'var(--color-error)' }}
+            >
               {completionMessage}
             </span>
           </div>

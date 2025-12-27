@@ -44,8 +44,8 @@ const renderMarkdown = (text: string): React.ReactNode => {
     if (line.startsWith('```')) {
       if (inCodeBlock) {
         elements.push(
-          <pre key={`code-${idx}`} className="bg-slate-950 rounded-lg p-3 my-2 overflow-x-auto text-xs">
-            <code className="text-slate-300">{codeContent.trim()}</code>
+          <pre key={`code-${idx}`} className="rounded-lg p-3 my-2 overflow-x-auto text-xs" style={{ backgroundColor: 'var(--theme-surface-dark)' }}>
+            <code style={{ color: 'var(--theme-text-secondary)' }}>{codeContent.trim()}</code>
           </pre>
         );
         codeContent = '';
@@ -63,31 +63,31 @@ const renderMarkdown = (text: string): React.ReactNode => {
 
     // Headers
     if (line.startsWith('### ')) {
-      elements.push(<h4 key={idx} className="text-sm font-semibold text-slate-200 mt-3 mb-1">{line.slice(4)}</h4>);
+      elements.push(<h4 key={idx} className="text-sm font-semibold mt-3 mb-1" style={{ color: 'var(--theme-text-secondary)' }}>{line.slice(4)}</h4>);
     } else if (line.startsWith('## ')) {
-      elements.push(<h3 key={idx} className="text-base font-semibold text-slate-100 mt-4 mb-2">{line.slice(3)}</h3>);
+      elements.push(<h3 key={idx} className="text-base font-semibold mt-4 mb-2" style={{ color: 'var(--theme-text-primary)' }}>{line.slice(3)}</h3>);
     } else if (line.startsWith('# ')) {
-      elements.push(<h2 key={idx} className="text-lg font-bold text-white mt-4 mb-2">{line.slice(2)}</h2>);
+      elements.push(<h2 key={idx} className="text-lg font-bold mt-4 mb-2" style={{ color: 'var(--theme-text-primary)' }}>{line.slice(2)}</h2>);
     }
     // Lists
     else if (line.startsWith('- ') || line.startsWith('* ')) {
       elements.push(
-        <li key={idx} className="text-slate-300 text-sm ml-4 list-disc">{line.slice(2)}</li>
+        <li key={idx} className="text-sm ml-4 list-disc" style={{ color: 'var(--theme-text-secondary)' }}>{line.slice(2)}</li>
       );
     }
     // Bold and inline code - SECURITY: Content is escaped first, then sanitized with DOMPurify
     else if (line.trim()) {
       const escaped = escapeHtml(line);
       const formatted = escaped
-        .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>')
-        .replace(/`(.+?)`/g, '<code class="bg-slate-800 px-1 rounded text-blue-300">$1</code>');
+        .replace(/\*\*(.+?)\*\*/g, '<strong style="color: var(--theme-text-primary)">$1</strong>')
+        .replace(/`(.+?)`/g, '<code style="background-color: var(--theme-glass-300); padding: 0 4px; border-radius: 4px; color: var(--color-info)">$1</code>');
       // DOMPurify sanitizes to prevent XSS - only allows safe tags/attrs
       const sanitized = DOMPurify.sanitize(formatted, {
         ALLOWED_TAGS: ['strong', 'code'],
-        ALLOWED_ATTR: ['class']
+        ALLOWED_ATTR: ['class', 'style']
       });
       elements.push(
-        <p key={idx} className="text-slate-300 text-sm my-1">
+        <p key={idx} className="text-sm my-1" style={{ color: 'var(--theme-text-secondary)' }}>
           <span dangerouslySetInnerHTML={{ __html: sanitized }} />
         </p>
       );
@@ -138,24 +138,26 @@ export const TextExpandModal: React.FC<TextExpandModalProps> = ({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm"
+        className="fixed inset-0 z-[9999] backdrop-blur-sm"
+        style={{ backgroundColor: 'var(--theme-overlay)' }}
         onClick={onClose}
       />
       {/* Modal */}
       <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none p-4">
-        <div className="w-full max-w-2xl max-h-[80vh] bg-slate-900 border border-white/10 rounded-xl shadow-2xl flex flex-col pointer-events-auto">
+        <div className="w-full max-w-2xl max-h-[80vh] rounded-xl shadow-2xl flex flex-col pointer-events-auto" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0">
-            <h3 className="text-sm font-medium text-white">{title}</h3>
+          <div className="flex items-center justify-between px-4 py-3 flex-shrink-0" style={{ borderBottom: '1px solid var(--theme-border)' }}>
+            <h3 className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>{title}</h3>
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopy}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-lg transition-colors"
+                style={{ color: copied ? 'var(--color-success)' : 'var(--theme-text-muted)' }}
               >
                 {copied ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-green-400" />
-                    <span className="text-green-400">Copied!</span>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>Copied!</span>
                   </>
                 ) : (
                   <>
@@ -166,7 +168,8 @@ export const TextExpandModal: React.FC<TextExpandModalProps> = ({
               </button>
               <button
                 onClick={onClose}
-                className="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -179,7 +182,7 @@ export const TextExpandModal: React.FC<TextExpandModalProps> = ({
                 {renderMarkdown(content)}
               </div>
             ) : (
-              <p className="text-sm text-slate-200 whitespace-pre-wrap break-words">{content}</p>
+              <p className="text-sm whitespace-pre-wrap break-words" style={{ color: 'var(--theme-text-secondary)' }}>{content}</p>
             )}
           </div>
         </div>

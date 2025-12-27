@@ -151,10 +151,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     : (!!sketchAttachment || prompt.trim().length > 0);
 
   return (
-    <div className="flex-shrink-0 border-t border-white/5 bg-slate-900/50">
+    <div className="flex-shrink-0" style={{ borderTop: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-surface)' }}>
       {/* Error message */}
       {error && (
-        <div className="mx-3 mt-3 p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-400">
+        <div className="mx-3 mt-3 p-2 rounded-lg text-xs" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)', color: 'var(--color-error)' }}>
           {error}
         </div>
       )}
@@ -179,20 +179,22 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 <img
                   src={att.preview}
                   alt={att.type}
-                  className="w-14 h-14 object-cover rounded-lg border border-white/10"
+                  className="w-14 h-14 object-cover rounded-lg"
+                  style={{ border: '1px solid var(--theme-border)' }}
                 />
               ) : (
-                <div className="w-14 h-14 bg-slate-800 rounded-lg border border-white/10 flex items-center justify-center">
-                  {att.type === 'sketch' ? <Image className="w-6 h-6 text-blue-400" /> : <Palette className="w-6 h-6 text-purple-400" />}
+                <div className="w-14 h-14 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
+                  {att.type === 'sketch' ? <Image className="w-6 h-6" style={{ color: 'var(--theme-accent)' }} /> : <Palette className="w-6 h-6" style={{ color: 'var(--theme-ai-accent)' }} />}
                 </div>
               )}
               <button
                 onClick={() => handleRemove(att.type)}
-                className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ backgroundColor: 'var(--color-error)', color: 'white' }}
               >
-                <X className="w-3 h-3 text-white" />
+                <X className="w-3 h-3" />
               </button>
-              <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-[8px] text-center py-0.5 rounded-b-lg flex items-center justify-center gap-1">
+              <div className="absolute bottom-0 left-0 right-0 text-[8px] text-center py-0.5 rounded-b-lg flex items-center justify-center gap-1" style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}>
                 {att.type === 'sketch' ? <Image className="w-2.5 h-2.5" /> : <Palette className="w-2.5 h-2.5" />}
                 {att.type}
               </div>
@@ -202,18 +204,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       )}
 
       {/* Top toolbar - move icons here */}
-      <div className="px-3 py-2 border-b border-white/5">
+      <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--theme-border)' }}>
         <div className="flex items-center gap-2">
           {/* Attach button - only show when existing app */}
           {hasExistingApp && (
             <div className="relative">
               <button
                 onClick={() => setShowAttachMenu(!showAttachMenu)}
-                className={`p-1.5 rounded-md transition-colors ${
-                  attachments.length > 0
-                    ? 'bg-blue-500/20 text-blue-400'
-                    : 'hover:bg-white/5 text-slate-400 hover:text-white'
-                }`}
+                className="p-1.5 rounded-md transition-colors"
+                style={{
+                  backgroundColor: attachments.length > 0 ? 'var(--theme-accent-subtle)' : undefined,
+                  color: attachments.length > 0 ? 'var(--theme-accent)' : 'var(--theme-text-muted)'
+                }}
                 title="Attach image"
               >
                 <Paperclip className="w-4 h-4" />
@@ -223,22 +225,24 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               {showAttachMenu && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setShowAttachMenu(false)} />
-                  <div className="absolute top-full left-0 mt-1 w-48 bg-slate-800 border border-white/10 rounded-lg shadow-lg overflow-hidden z-50">
+                  <div className="absolute top-full left-0 mt-1 w-48 rounded-lg shadow-lg overflow-hidden z-50" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
                     <button
                       onClick={() => openFileDialog('sketch')}
-                      className="flex items-center gap-2 px-3 py-2 hover:bg-white/5 text-sm text-slate-300 w-full"
+                      className="flex items-center gap-2 px-3 py-2 text-sm w-full"
+                      style={{ color: 'var(--theme-text-secondary)' }}
                     >
-                      <Image className="w-4 h-4 text-blue-400" />
+                      <Image className="w-4 h-4" style={{ color: 'var(--theme-accent)' }} />
                       <span className="flex-1 text-left">Sketch / Wireframe</span>
-                      {sketchAttachment && <span className="text-[10px] text-green-400">✓</span>}
+                      {sketchAttachment && <span className="text-[10px]" style={{ color: 'var(--color-success)' }}>✓</span>}
                     </button>
                     <button
                       onClick={() => openFileDialog('brand')}
-                      className="flex items-center gap-2 px-3 py-2 hover:bg-white/5 text-sm text-slate-300 w-full"
+                      className="flex items-center gap-2 px-3 py-2 text-sm w-full"
+                      style={{ color: 'var(--theme-text-secondary)' }}
                     >
-                      <Palette className="w-4 h-4 text-purple-400" />
+                      <Palette className="w-4 h-4" style={{ color: 'var(--theme-ai-accent)' }} />
                       <span className="flex-1 text-left">Brand Logo</span>
-                      {brandAttachment && <span className="text-[10px] text-green-400">✓</span>}
+                      {brandAttachment && <span className="text-[10px]" style={{ color: 'var(--color-success)' }}>✓</span>}
                     </button>
                   </div>
                 </>
@@ -250,11 +254,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowPromptDropdown(!showPromptDropdown)}
-              className={`p-1.5 rounded-md transition-colors ${
-                showPromptDropdown
-                  ? 'bg-purple-500/20 text-purple-400'
-                  : 'hover:bg-white/5 text-slate-400 hover:text-white'
-              }`}
+              className="p-1.5 rounded-md transition-colors"
+              style={{
+                backgroundColor: showPromptDropdown ? 'var(--theme-ai-accent-subtle)' : undefined,
+                color: showPromptDropdown ? 'var(--theme-ai-accent)' : 'var(--theme-text-muted)'
+              }}
               title="Prompt Library"
             >
               <Wand2 className="w-4 h-4" />
@@ -272,11 +276,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <div className="relative">
             <button
               onClick={() => setShowTemplateSelector(!showTemplateSelector)}
-              className={`p-1.5 rounded-md transition-colors ${
-                showTemplateSelector
-                  ? 'bg-blue-500/20 text-blue-400'
-                  : 'hover:bg-white/5 text-slate-400 hover:text-white'
-              }`}
+              className="p-1.5 rounded-md transition-colors"
+              style={{
+                backgroundColor: showTemplateSelector ? 'var(--theme-accent-subtle)' : undefined,
+                color: showTemplateSelector ? 'var(--theme-accent)' : 'var(--theme-text-muted)'
+              }}
               title="Saved Templates"
             >
               <FileText className="w-4 h-4" />
@@ -294,7 +298,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           {onOpenHistory && (
             <button
               onClick={onOpenHistory}
-              className="p-1.5 rounded-md hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 rounded-md transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
               title="Prompt History"
             >
               <Clock className="w-4 h-4" />
@@ -305,7 +310,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           {onOpenPromptEngineer && (
             <button
               onClick={onOpenPromptEngineer}
-              className="p-1.5 rounded-md hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 rounded-md transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
               title="AI Prompt Engineer (Create from scratch)"
             >
               <Brain className="w-4 h-4" />
@@ -316,11 +322,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <button
             onClick={() => setShowImproverModal(true)}
             disabled={isGenerating || !prompt.trim()}
-            className={`p-1.5 rounded-md transition-colors ${
-              prompt.trim()
-                ? 'bg-purple-500/20 text-purple-400 hover:bg-purple-500/30'
-                : 'text-slate-600 cursor-not-allowed'
-            } disabled:opacity-50`}
+            className="p-1.5 rounded-md transition-colors disabled:opacity-50"
+            style={{
+              backgroundColor: prompt.trim() ? 'var(--theme-ai-accent-subtle)' : undefined,
+              color: prompt.trim() ? 'var(--theme-ai-accent)' : 'var(--theme-text-muted)',
+              cursor: prompt.trim() ? 'pointer' : 'not-allowed'
+            }}
             title="Improve prompt with AI (Enhance existing)"
           >
             <Sparkles className="w-4 h-4" />
@@ -332,7 +339,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           {/* Expand button */}
           <button
             onClick={() => setShowExpandedModal(true)}
-            className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-md transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Expand editor"
           >
             <Maximize2 className="w-4 h-4" />
@@ -352,12 +360,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               placeholder={placeholder || (hasExistingApp ? "Describe changes or ask questions..." : "Describe your app or paste a prompt...")}
               disabled={isGenerating}
               rows={2}
-              className="w-full bg-slate-800/50 border border-white/10 rounded-xl px-4 py-3 pr-16 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 resize-none disabled:opacity-50"
-              style={{ minHeight: '60px', maxHeight: '200px' }}
+              className="w-full rounded-xl px-4 py-3 pr-16 text-sm focus:outline-none resize-none disabled:opacity-50"
+              style={{
+                backgroundColor: 'var(--theme-input-bg)',
+                border: '1px solid var(--theme-input-border)',
+                color: 'var(--theme-text-primary)',
+                minHeight: '60px',
+                maxHeight: '200px'
+              }}
             />
             {/* Character count for very long prompts */}
             {prompt.length > 500 && (
-              <div className="absolute bottom-2 right-2 text-[10px] text-slate-500">
+              <div className="absolute bottom-2 right-2 text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>
                 {prompt.length}
               </div>
             )}
@@ -367,7 +381,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           <button
             onClick={handleSend}
             disabled={isGenerating || !canSend}
-            className="p-3 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white transition-colors h-fit"
+            className="p-3 rounded-xl transition-colors h-fit disabled:opacity-50"
+            style={{
+              backgroundColor: canSend && !isGenerating ? 'var(--theme-accent)' : 'var(--theme-surface)',
+              color: canSend && !isGenerating ? 'white' : 'var(--theme-text-muted)'
+            }}
           >
             {isGenerating ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -381,12 +399,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         {!hasExistingApp && (
           <div className="mt-2 flex items-center justify-center gap-2">
             {canSend ? (
-              <p className="text-[10px] text-green-400 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
+              <p className="text-[10px] flex items-center gap-1" style={{ color: 'var(--color-success)' }}>
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--color-success)' }} />
                 Ready to generate {sketchAttachment ? '(with sketch)' : '(text only)'}
               </p>
             ) : (
-              <p className="text-[10px] text-slate-500">
+              <p className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>
                 Upload a sketch or describe your app
               </p>
             )}

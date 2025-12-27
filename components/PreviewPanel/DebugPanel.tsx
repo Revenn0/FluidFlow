@@ -32,24 +32,24 @@ interface JsonViewerProps {
 function JsonViewer({ data, collapsed = false, depth = 0 }: JsonViewerProps) {
   const [isCollapsed, setIsCollapsed] = useState(collapsed || depth > 2);
 
-  if (data === null) return <span className="text-orange-400">null</span>;
-  if (data === undefined) return <span className="text-gray-500">undefined</span>;
-  if (typeof data === 'boolean') return <span className="text-purple-400">{String(data)}</span>;
-  if (typeof data === 'number') return <span className="text-blue-400">{data}</span>;
+  if (data === null) return <span style={{ color: 'var(--color-warning)' }}>null</span>;
+  if (data === undefined) return <span style={{ color: 'var(--theme-text-dim)' }}>undefined</span>;
+  if (typeof data === 'boolean') return <span style={{ color: 'var(--color-feature)' }}>{String(data)}</span>;
+  if (typeof data === 'number') return <span style={{ color: 'var(--color-info)' }}>{data}</span>;
   if (typeof data === 'string') {
     if (data.length > 500) {
       return (
-        <span className="text-green-400">
+        <span style={{ color: 'var(--color-success)' }}>
           "{data.slice(0, 500)}
-          <span className="text-gray-500">... ({data.length} chars)</span>"
+          <span style={{ color: 'var(--theme-text-dim)' }}>... ({data.length} chars)</span>"
         </span>
       );
     }
-    return <span className="text-green-400">"{data}"</span>;
+    return <span style={{ color: 'var(--color-success)' }}>"{data}"</span>;
   }
 
   if (Array.isArray(data)) {
-    if (data.length === 0) return <span className="text-gray-400">[]</span>;
+    if (data.length === 0) return <span style={{ color: 'var(--theme-text-muted)' }}>[]</span>;
     return (
       <div className="inline">
         <button
@@ -57,28 +57,28 @@ function JsonViewer({ data, collapsed = false, depth = 0 }: JsonViewerProps) {
           className="inline-flex items-center hover:bg-white/5 rounded px-0.5"
         >
           {isCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
-          <span className="text-gray-400">[</span>
-          {isCollapsed && <span className="text-gray-500 text-xs ml-1">{data.length} items</span>}
+          <span style={{ color: 'var(--theme-text-muted)' }}>[</span>
+          {isCollapsed && <span className="text-xs ml-1" style={{ color: 'var(--theme-text-dim)' }}>{data.length} items</span>}
         </button>
         {!isCollapsed && (
-          <div className="ml-4 border-l border-white/10 pl-2">
+          <div className="ml-4 pl-2" style={{ borderLeft: '1px solid var(--theme-border-subtle)' }}>
             {data.map((item, i) => (
               <div key={i} className="leading-relaxed">
-                <span className="text-gray-500 text-xs mr-2">{i}:</span>
+                <span className="text-xs mr-2" style={{ color: 'var(--theme-text-dim)' }}>{i}:</span>
                 <JsonViewer data={item} depth={depth + 1} />
-                {i < data.length - 1 && <span className="text-gray-500">,</span>}
+                {i < data.length - 1 && <span style={{ color: 'var(--theme-text-dim)' }}>,</span>}
               </div>
             ))}
           </div>
         )}
-        {!isCollapsed && <span className="text-gray-400">]</span>}
+        {!isCollapsed && <span style={{ color: 'var(--theme-text-muted)' }}>]</span>}
       </div>
     );
   }
 
   if (typeof data === 'object') {
     const entries = Object.entries(data as Record<string, unknown>);
-    if (entries.length === 0) return <span className="text-gray-400">{'{}'}</span>;
+    if (entries.length === 0) return <span style={{ color: 'var(--theme-text-muted)' }}>{'{}'}</span>;
     return (
       <div className="inline">
         <button
@@ -86,27 +86,27 @@ function JsonViewer({ data, collapsed = false, depth = 0 }: JsonViewerProps) {
           className="inline-flex items-center hover:bg-white/5 rounded px-0.5"
         >
           {isCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
-          <span className="text-gray-400">{'{'}</span>
-          {isCollapsed && <span className="text-gray-500 text-xs ml-1">{entries.length} keys</span>}
+          <span style={{ color: 'var(--theme-text-muted)' }}>{'{'}</span>
+          {isCollapsed && <span className="text-xs ml-1" style={{ color: 'var(--theme-text-dim)' }}>{entries.length} keys</span>}
         </button>
         {!isCollapsed && (
-          <div className="ml-4 border-l border-white/10 pl-2">
+          <div className="ml-4 pl-2" style={{ borderLeft: '1px solid var(--theme-border-subtle)' }}>
             {entries.map(([key, value], i) => (
               <div key={key} className="leading-relaxed">
-                <span className="text-cyan-400">"{key}"</span>
-                <span className="text-gray-400">: </span>
+                <span style={{ color: 'var(--color-info)' }}>"{key}"</span>
+                <span style={{ color: 'var(--theme-text-muted)' }}>: </span>
                 <JsonViewer data={value} depth={depth + 1} />
-                {i < entries.length - 1 && <span className="text-gray-500">,</span>}
+                {i < entries.length - 1 && <span style={{ color: 'var(--theme-text-dim)' }}>,</span>}
               </div>
             ))}
           </div>
         )}
-        {!isCollapsed && <span className="text-gray-400">{'}'}</span>}
+        {!isCollapsed && <span style={{ color: 'var(--theme-text-muted)' }}>{'}'}</span>}
       </div>
     );
   }
 
-  return <span className="text-gray-400">{String(data)}</span>;
+  return <span style={{ color: 'var(--theme-text-muted)' }}>{String(data)}</span>;
 }
 
 // Safe JSON display component with error handling
@@ -114,7 +114,7 @@ function SafeJsonDisplay({ content }: { content: string }) {
   // Check if it looks like JSON
   const trimmed = content.trim();
   if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
-    return <pre className="whitespace-pre-wrap text-gray-300">{content}</pre>;
+    return <pre className="whitespace-pre-wrap" style={{ color: 'var(--theme-text-secondary)' }}>{content}</pre>;
   }
 
   // Try to parse JSON safely
@@ -125,11 +125,11 @@ function SafeJsonDisplay({ content }: { content: string }) {
     // Show as text with warning for malformed JSON
     return (
       <div>
-        <div className="flex items-center gap-1.5 text-yellow-400 text-xs mb-2 pb-2 border-b border-white/10">
+        <div className="flex items-center gap-1.5 text-xs mb-2 pb-2" style={{ color: 'var(--color-warning)', borderBottom: '1px solid var(--theme-border-subtle)' }}>
           <AlertCircle size={12} />
           <span>Malformed JSON (truncated or invalid)</span>
         </div>
-        <pre className="whitespace-pre-wrap text-gray-300">{content}</pre>
+        <pre className="whitespace-pre-wrap" style={{ color: 'var(--theme-text-secondary)' }}>{content}</pre>
       </div>
     );
   }
@@ -145,11 +145,11 @@ const LogEntryCard: React.FC<LogEntryCardProps> = ({ entry, isExpanded, onToggle
   const [copied, setCopied] = useState(false);
 
   const typeConfig = {
-    request: { icon: ArrowUpCircle, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    response: { icon: ArrowDownCircle, color: 'text-green-400', bg: 'bg-green-500/10' },
-    stream: { icon: Radio, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-    error: { icon: AlertCircle, color: 'text-red-400', bg: 'bg-red-500/10' },
-    info: { icon: Info, color: 'text-gray-400', bg: 'bg-gray-500/10' },
+    request: { icon: ArrowUpCircle, colorVar: 'var(--color-info)', bgVar: 'var(--color-info-subtle)' },
+    response: { icon: ArrowDownCircle, colorVar: 'var(--color-success)', bgVar: 'var(--color-success-subtle)' },
+    stream: { icon: Radio, colorVar: 'var(--color-feature)', bgVar: 'var(--color-feature-subtle)' },
+    error: { icon: AlertCircle, colorVar: 'var(--color-error)', bgVar: 'var(--color-error-subtle)' },
+    info: { icon: Info, colorVar: 'var(--theme-text-muted)', bgVar: 'var(--theme-glass-100)' },
   };
 
   const config = typeConfig[entry.type];
@@ -174,56 +174,59 @@ const LogEntryCard: React.FC<LogEntryCardProps> = ({ entry, isExpanded, onToggle
   };
 
   return (
-    <div className={`rounded-lg border border-white/10 overflow-hidden ${config.bg}`}>
+    <div className="rounded-lg overflow-hidden" style={{ backgroundColor: config.bgVar, border: '1px solid var(--theme-border-subtle)' }}>
       <button
         onClick={onToggle}
         className="w-full flex items-center gap-2 p-3 hover:bg-white/5 transition-colors text-left"
       >
         {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        <Icon size={14} className={config.color} />
-        <span className={`text-xs font-medium uppercase ${config.color}`}>{entry.type}</span>
-        <span className="text-xs text-gray-500 px-1.5 py-0.5 bg-white/5 rounded">{entry.category}</span>
+        <Icon size={14} style={{ color: config.colorVar }} />
+        <span className="text-xs font-medium uppercase" style={{ color: config.colorVar }}>{entry.type}</span>
+        <span className="text-xs px-1.5 py-0.5 rounded" style={{ color: 'var(--theme-text-dim)', backgroundColor: 'var(--theme-glass-100)' }}>{entry.category}</span>
         {entry.provider && (
-          <span className="text-xs text-gray-500 px-1.5 py-0.5 bg-white/5 rounded">
+          <span className="text-xs px-1.5 py-0.5 rounded" style={{ color: 'var(--theme-text-dim)', backgroundColor: 'var(--theme-glass-100)' }}>
             {entry.provider}
           </span>
         )}
         {entry.model && (
-          <span className="text-xs text-gray-400 px-1.5 py-0.5 bg-white/5 rounded flex items-center gap-1">
+          <span className="text-xs px-1.5 py-0.5 rounded flex items-center gap-1" style={{ color: 'var(--theme-text-muted)', backgroundColor: 'var(--theme-glass-100)' }}>
             <Zap size={10} />
             {entry.model}
           </span>
         )}
         {entry.duration !== undefined && (
-          <span className="text-xs text-gray-400 flex items-center gap-1">
+          <span className="text-xs flex items-center gap-1" style={{ color: 'var(--theme-text-muted)' }}>
             <Clock size={10} />
             {entry.duration}ms
           </span>
         )}
         {/* Stream progress indicator */}
         {entry.type === 'stream' && entry.streamProgress && (
-          <span className={`text-xs px-1.5 py-0.5 rounded flex items-center gap-1 ${
-            entry.streamProgress.isComplete
-              ? 'bg-green-500/20 text-green-400'
-              : 'bg-yellow-500/20 text-yellow-400 animate-pulse'
-          }`}>
+          <span
+            className={`text-xs px-1.5 py-0.5 rounded flex items-center gap-1 ${!entry.streamProgress.isComplete ? 'animate-pulse' : ''}`}
+            style={{
+              backgroundColor: entry.streamProgress.isComplete ? 'var(--color-success-subtle)' : 'var(--color-warning-subtle)',
+              color: entry.streamProgress.isComplete ? 'var(--color-success)' : 'var(--color-warning)',
+            }}
+          >
             <Radio size={10} className={entry.streamProgress.isComplete ? '' : 'animate-spin'} />
             {entry.streamProgress.isComplete ? 'Complete' : 'Streaming'}
-            <span className="text-gray-400">
+            <span style={{ color: 'var(--theme-text-muted)' }}>
               {(entry.streamProgress.chars / 1024).toFixed(1)}KB
             </span>
           </span>
         )}
-        <span className="flex-1 text-xs text-gray-500 truncate">{getPreview()}</span>
-        <span className="text-xs text-gray-600">{formatTime(entry.timestamp)}</span>
+        <span className="flex-1 text-xs truncate" style={{ color: 'var(--theme-text-dim)' }}>{getPreview()}</span>
+        <span className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>{formatTime(entry.timestamp)}</span>
       </button>
 
       {isExpanded && (
-        <div className="border-t border-white/10 p-3 space-y-3 bg-black/20">
+        <div className="p-3 space-y-3" style={{ borderTop: '1px solid var(--theme-border-subtle)', backgroundColor: 'var(--theme-surface-dark)' }}>
           <div className="flex justify-end">
             <button
               onClick={copyToClipboard}
-              className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors"
+              className="flex items-center gap-1 text-xs transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               {copied ? <Check size={12} /> : <Copy size={12} />}
               {copied ? 'Copied!' : 'Copy JSON'}
@@ -232,28 +235,28 @@ const LogEntryCard: React.FC<LogEntryCardProps> = ({ entry, isExpanded, onToggle
 
           {entry.prompt && (
             <div>
-              <div className="text-xs text-gray-400 mb-1 font-medium">Prompt:</div>
-              <div className="bg-black/30 rounded p-2 text-xs font-mono overflow-auto max-h-48">
-                <pre className="whitespace-pre-wrap text-gray-300">{entry.prompt}</pre>
+              <div className="text-xs mb-1 font-medium" style={{ color: 'var(--theme-text-muted)' }}>Prompt:</div>
+              <div className="rounded p-2 text-xs font-mono overflow-auto max-h-48" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                <pre className="whitespace-pre-wrap" style={{ color: 'var(--theme-text-secondary)' }}>{entry.prompt}</pre>
               </div>
             </div>
           )}
 
           {entry.systemInstruction && (
             <div>
-              <div className="text-xs text-gray-400 mb-1 font-medium">System Instruction:</div>
-              <div className="bg-black/30 rounded p-2 text-xs font-mono overflow-auto max-h-48">
-                <pre className="whitespace-pre-wrap text-gray-300">{entry.systemInstruction}</pre>
+              <div className="text-xs mb-1 font-medium" style={{ color: 'var(--theme-text-muted)' }}>System Instruction:</div>
+              <div className="rounded p-2 text-xs font-mono overflow-auto max-h-48" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                <pre className="whitespace-pre-wrap" style={{ color: 'var(--theme-text-secondary)' }}>{entry.systemInstruction}</pre>
               </div>
             </div>
           )}
 
           {entry.attachments && entry.attachments.length > 0 && (
             <div>
-              <div className="text-xs text-gray-400 mb-1 font-medium">Attachments:</div>
+              <div className="text-xs mb-1 font-medium" style={{ color: 'var(--theme-text-muted)' }}>Attachments:</div>
               <div className="flex flex-wrap gap-2">
                 {entry.attachments.map((att, i) => (
-                  <span key={i} className="text-xs bg-white/5 px-2 py-1 rounded">
+                  <span key={i} className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                     {att.type} ({(att.size / 1024).toFixed(1)} KB)
                   </span>
                 ))}
@@ -263,8 +266,8 @@ const LogEntryCard: React.FC<LogEntryCardProps> = ({ entry, isExpanded, onToggle
 
           {entry.response && (
             <div>
-              <div className="text-xs text-gray-400 mb-1 font-medium">Response:</div>
-              <div className="bg-black/30 rounded p-2 text-xs font-mono overflow-auto max-h-96">
+              <div className="text-xs mb-1 font-medium" style={{ color: 'var(--theme-text-muted)' }}>Response:</div>
+              <div className="rounded p-2 text-xs font-mono overflow-auto max-h-96" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                 <SafeJsonDisplay content={entry.response} />
               </div>
             </div>
@@ -272,8 +275,8 @@ const LogEntryCard: React.FC<LogEntryCardProps> = ({ entry, isExpanded, onToggle
 
           {entry.error && (
             <div>
-              <div className="text-xs text-red-400 mb-1 font-medium">Error:</div>
-              <div className="bg-red-500/10 rounded p-2 text-xs font-mono text-red-300">
+              <div className="text-xs mb-1 font-medium" style={{ color: 'var(--color-error)' }}>Error:</div>
+              <div className="rounded p-2 text-xs font-mono" style={{ backgroundColor: 'var(--color-error-subtle)', color: 'var(--color-error)' }}>
                 {entry.error}
               </div>
             </div>
@@ -282,24 +285,24 @@ const LogEntryCard: React.FC<LogEntryCardProps> = ({ entry, isExpanded, onToggle
           {entry.tokenCount && (
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-xs">
-                <span className="text-gray-400 font-medium">
-                  Tokens{entry.tokenCount.isEstimated && <span className="text-yellow-500 ml-1">(estimated)</span>}:
+                <span className="font-medium" style={{ color: 'var(--theme-text-muted)' }}>
+                  Tokens{entry.tokenCount.isEstimated && <span className="ml-1" style={{ color: 'var(--color-warning)' }}>(estimated)</span>}:
                 </span>
               </div>
               <div className="flex gap-4 text-xs">
                 {entry.tokenCount.input !== undefined && (
-                  <span className="text-gray-400">
-                    Input: <span className="text-blue-400">{entry.tokenCount.input.toLocaleString()}</span>
+                  <span style={{ color: 'var(--theme-text-muted)' }}>
+                    Input: <span style={{ color: 'var(--color-info)' }}>{entry.tokenCount.input.toLocaleString()}</span>
                   </span>
                 )}
                 {entry.tokenCount.output !== undefined && (
-                  <span className="text-gray-400">
-                    Output: <span className="text-green-400">{entry.tokenCount.output.toLocaleString()}</span>
+                  <span style={{ color: 'var(--theme-text-muted)' }}>
+                    Output: <span style={{ color: 'var(--color-success)' }}>{entry.tokenCount.output.toLocaleString()}</span>
                   </span>
                 )}
                 {entry.tokenCount.input !== undefined && entry.tokenCount.output !== undefined && (
-                  <span className="text-gray-400">
-                    Total: <span className="text-purple-400">{(entry.tokenCount.input + entry.tokenCount.output).toLocaleString()}</span>
+                  <span style={{ color: 'var(--theme-text-muted)' }}>
+                    Total: <span style={{ color: 'var(--color-feature)' }}>{(entry.tokenCount.input + entry.tokenCount.output).toLocaleString()}</span>
                   </span>
                 )}
               </div>
@@ -309,26 +312,26 @@ const LogEntryCard: React.FC<LogEntryCardProps> = ({ entry, isExpanded, onToggle
           {/* Stream progress details */}
           {entry.streamProgress && (
             <div className="space-y-2">
-              <div className="text-xs text-gray-400 font-medium">Stream Progress:</div>
+              <div className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>Stream Progress:</div>
               <div className="flex gap-4 text-xs">
-                <span className="text-gray-400">
-                  Characters: <span className="text-purple-400">{entry.streamProgress.chars.toLocaleString()}</span>
+                <span style={{ color: 'var(--theme-text-muted)' }}>
+                  Characters: <span style={{ color: 'var(--color-feature)' }}>{entry.streamProgress.chars.toLocaleString()}</span>
                 </span>
-                <span className="text-gray-400">
-                  Chunks: <span className="text-purple-400">{entry.streamProgress.chunks}</span>
+                <span style={{ color: 'var(--theme-text-muted)' }}>
+                  Chunks: <span style={{ color: 'var(--color-feature)' }}>{entry.streamProgress.chunks}</span>
                 </span>
-                <span className="text-gray-400">
-                  Status: <span className={entry.streamProgress.isComplete ? 'text-green-400' : 'text-yellow-400'}>
+                <span style={{ color: 'var(--theme-text-muted)' }}>
+                  Status: <span style={{ color: entry.streamProgress.isComplete ? 'var(--color-success)' : 'var(--color-warning)' }}>
                     {entry.streamProgress.isComplete ? 'Complete' : 'In Progress'}
                   </span>
                 </span>
               </div>
               {/* Progress bar */}
               {!entry.streamProgress.isComplete && (
-                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                <div className="h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                   <div
-                    className="h-full bg-purple-500 animate-pulse"
-                    style={{ width: '100%' }}
+                    className="h-full animate-pulse"
+                    style={{ backgroundColor: 'var(--color-feature)', width: '100%' }}
                   />
                 </div>
               )}
@@ -337,8 +340,8 @@ const LogEntryCard: React.FC<LogEntryCardProps> = ({ entry, isExpanded, onToggle
 
           {entry.metadata && Object.keys(entry.metadata).length > 0 && (
             <div>
-              <div className="text-xs text-gray-400 mb-1 font-medium">Metadata:</div>
-              <div className="bg-black/30 rounded p-2 text-xs font-mono overflow-auto max-h-48">
+              <div className="text-xs mb-1 font-medium" style={{ color: 'var(--theme-text-muted)' }}>Metadata:</div>
+              <div className="rounded p-2 text-xs font-mono overflow-auto max-h-48" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                 <JsonViewer data={entry.metadata} />
               </div>
             </div>
@@ -377,19 +380,20 @@ export default function DebugPanel() {
   const categoryOptions: DebugLogEntry['category'][] = ['generation', 'accessibility', 'quick-edit', 'auto-fix', 'other'];
 
   return (
-    <div className="h-full flex flex-col bg-black/20">
+    <div className="h-full flex flex-col" style={{ backgroundColor: 'var(--theme-surface-dark)' }}>
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-white/10">
+      <div className="flex items-center justify-between p-3" style={{ borderBottom: '1px solid var(--theme-border-subtle)' }}>
         <div className="flex items-center gap-3">
-          <Bug size={16} className="text-purple-400" />
+          <Bug size={16} style={{ color: 'var(--color-feature)' }} />
           <span className="font-medium">Debug Console</span>
           <button
             onClick={() => setEnabled(!enabled)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-colors ${
-              enabled
-                ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                : 'bg-white/5 text-gray-400 border border-white/10'
-            }`}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs transition-colors"
+            style={{
+              backgroundColor: enabled ? 'var(--color-success-subtle)' : 'var(--theme-glass-100)',
+              color: enabled ? 'var(--color-success)' : 'var(--theme-text-muted)',
+              border: enabled ? '1px solid var(--color-success-border)' : '1px solid var(--theme-border-subtle)',
+            }}
           >
             {enabled ? <Eye size={12} /> : <EyeOff size={12} />}
             {enabled ? 'Logging Active' : 'Logging Disabled'}
@@ -397,24 +401,27 @@ export default function DebugPanel() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span className="px-2 py-0.5 bg-blue-500/10 rounded text-blue-400">{stats.requests} req</span>
-            <span className="px-2 py-0.5 bg-green-500/10 rounded text-green-400">{stats.responses} res</span>
+          <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--theme-text-dim)' }}>
+            <span className="px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>{stats.requests} req</span>
+            <span className="px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>{stats.responses} res</span>
             {stats.errors > 0 && (
-              <span className="px-2 py-0.5 bg-red-500/10 rounded text-red-400">{stats.errors} err</span>
+              <span className="px-2 py-0.5 rounded" style={{ backgroundColor: 'var(--color-error-subtle)', color: 'var(--color-error)' }}>{stats.errors} err</span>
             )}
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`p-1.5 rounded transition-colors ${
-              showFilters ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-gray-400'
-            }`}
+            className="p-1.5 rounded transition-colors"
+            style={{
+              backgroundColor: showFilters ? 'var(--theme-glass-200)' : 'transparent',
+              color: showFilters ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)',
+            }}
           >
             <Filter size={14} />
           </button>
           <button
             onClick={clearLogs}
-            className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-red-400 transition-colors"
+            className="p-1.5 rounded transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Clear logs"
           >
             <Trash2 size={14} />
@@ -424,21 +431,23 @@ export default function DebugPanel() {
 
       {/* Filters */}
       {showFilters && (
-        <div className="p-3 border-b border-white/10 space-y-3 bg-black/20">
+        <div className="p-3 space-y-3" style={{ borderBottom: '1px solid var(--theme-border-subtle)', backgroundColor: 'var(--theme-surface-dark)' }}>
           {/* Search */}
           <div className="relative">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--theme-text-dim)' }} />
             <input
               type="text"
               placeholder="Search logs..."
               value={filter.searchQuery}
               onChange={e => setFilter({ searchQuery: e.target.value })}
-              className="w-full pl-9 pr-8 py-2 bg-white/5 border border-white/10 rounded-lg text-sm focus:outline-none focus:border-purple-500/50"
+              className="w-full pl-9 pr-8 py-2 rounded-lg text-sm focus:outline-none"
+              style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
             />
             {filter.searchQuery && (
               <button
                 onClick={() => setFilter({ searchQuery: '' })}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
+                className="absolute right-3 top-1/2 -translate-y-1/2"
+                style={{ color: 'var(--theme-text-dim)' }}
               >
                 <X size={14} />
               </button>
@@ -447,7 +456,7 @@ export default function DebugPanel() {
 
           {/* Type filter */}
           <div>
-            <div className="text-xs text-gray-400 mb-1.5">Type</div>
+            <div className="text-xs mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>Type</div>
             <div className="flex flex-wrap gap-1.5">
               {typeOptions.map(type => (
                 <button
@@ -458,11 +467,12 @@ export default function DebugPanel() {
                       : [...filter.types, type];
                     setFilter({ types: newTypes });
                   }}
-                  className={`px-2 py-1 text-xs rounded transition-colors ${
-                    filter.types.includes(type)
-                      ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                      : 'bg-white/5 text-gray-500 border border-white/10'
-                  }`}
+                  className="px-2 py-1 text-xs rounded transition-colors"
+                  style={{
+                    backgroundColor: filter.types.includes(type) ? 'var(--color-feature-subtle)' : 'var(--theme-glass-100)',
+                    color: filter.types.includes(type) ? 'var(--color-feature)' : 'var(--theme-text-dim)',
+                    border: filter.types.includes(type) ? '1px solid var(--color-feature-border)' : '1px solid var(--theme-border-subtle)',
+                  }}
                 >
                   {type}
                 </button>
@@ -472,7 +482,7 @@ export default function DebugPanel() {
 
           {/* Category filter */}
           <div>
-            <div className="text-xs text-gray-400 mb-1.5">Category</div>
+            <div className="text-xs mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>Category</div>
             <div className="flex flex-wrap gap-1.5">
               {categoryOptions.map(cat => (
                 <button
@@ -483,11 +493,12 @@ export default function DebugPanel() {
                       : [...filter.categories, cat];
                     setFilter({ categories: newCats });
                   }}
-                  className={`px-2 py-1 text-xs rounded transition-colors ${
-                    filter.categories.includes(cat)
-                      ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
-                      : 'bg-white/5 text-gray-500 border border-white/10'
-                  }`}
+                  className="px-2 py-1 text-xs rounded transition-colors"
+                  style={{
+                    backgroundColor: filter.categories.includes(cat) ? 'var(--color-feature-subtle)' : 'var(--theme-glass-100)',
+                    color: filter.categories.includes(cat) ? 'var(--color-feature)' : 'var(--theme-text-dim)',
+                    border: filter.categories.includes(cat) ? '1px solid var(--color-feature-border)' : '1px solid var(--theme-border-subtle)',
+                  }}
                 >
                   {cat}
                 </button>
@@ -500,19 +511,20 @@ export default function DebugPanel() {
       {/* Logs */}
       <div className="flex-1 overflow-auto p-3 space-y-2">
         {!enabled ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
+          <div className="flex flex-col items-center justify-center h-full" style={{ color: 'var(--theme-text-dim)' }}>
             <EyeOff size={48} className="mb-4 opacity-50" />
             <p className="text-lg font-medium">Debug logging is disabled</p>
             <p className="text-sm mt-1">Enable logging to monitor API calls</p>
             <button
               onClick={() => setEnabled(true)}
-              className="mt-4 px-4 py-2 bg-purple-500/20 text-purple-400 rounded-lg hover:bg-purple-500/30 transition-colors"
+              className="mt-4 px-4 py-2 rounded-lg transition-colors"
+              style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}
             >
               Enable Debug Mode
             </button>
           </div>
         ) : filteredLogs.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500">
+          <div className="flex flex-col items-center justify-center h-full" style={{ color: 'var(--theme-text-dim)' }}>
             <MessageSquare size={48} className="mb-4 opacity-50" />
             <p className="text-lg font-medium">No logs yet</p>
             <p className="text-sm mt-1">API calls will appear here</p>

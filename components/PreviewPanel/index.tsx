@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef, memo, useCallback } from 'react';
+import React, { useEffect, useState, useRef, memo, useCallback, useMemo } from 'react';
 import {
   Monitor, Smartphone, Tablet, RefreshCw, Eye, Code2, Copy, Check, Download, Database,
-  ShieldCheck, FileText, Wrench, Package, Loader2,
+  ShieldCheck, FileText, Wrench, Package, Loader2, Camera,
   SplitSquareVertical, X, Zap, ZapOff, MousePointer2, Bug, Settings, ChevronDown,
   Play, Bot, Map, GitBranch, Activity, FolderOpen
 } from 'lucide-react';
@@ -21,6 +21,7 @@ import { useStatusBar } from '../../contexts/StatusBarContext';
 
 // Local hooks
 import { useIframeMessaging, useInspectMode, useComponentTree, useInspectorPanel } from './hooks';
+import { useScreenshot } from '../../hooks/useScreenshot';
 
 // Sub-components
 import { CodeEditor } from './CodeEditor';
@@ -86,6 +87,7 @@ export const PreviewPanel = memo(function PreviewPanel({
     revertToCommit: onRevertToCommit,
     undo: onUndo,
     canUndo,
+    refreshProjects,
   } = ctx;
 
   // Destructure commonly used values from UIContext
@@ -363,6 +365,34 @@ export const PreviewPanel = memo(function PreviewPanel({
           await onInspectEdit(prompt, minimalElement, scope);
         }
       }
+    },
+  });
+
+  // Create a trigger hash for auto-capture based on file content
+  // This changes when files are added/removed or content significantly changes
+  const filesTriggerHash = useMemo(() => {
+    if (!files || Object.keys(files).length === 0) return null;
+    const fileNames = Object.keys(files).sort();
+    const totalLength = Object.values(files).reduce((sum, content) => sum + content.length, 0);
+    // Simple hash: file count + first/last file names + total content length
+    return `${fileNames.length}-${fileNames[0] || ''}-${fileNames[fileNames.length - 1] || ''}-${totalLength}`;
+  }, [files]);
+
+  // Screenshot capture hook with auto-capture on file changes
+  const {
+    isCapturing: isCapturingScreenshot,
+    capture: captureScreenshot,
+    lastScreenshot,
+  } = useScreenshot({
+    projectId: currentProject?.id || null,
+    iframeRef,
+    autoCapture: !!currentProject, // Only auto-capture when a project is open
+    autoCaptureDelay: 3000, // Wait 3 seconds for preview to stabilize
+    triggerOnChange: filesTriggerHash,
+    autoCaptureThrottle: 60000, // Limit to once per minute
+    onCapture: () => {
+      // Refresh project list to update thumbnails
+      refreshProjects();
     },
   });
 
@@ -695,22 +725,22 @@ export const PreviewPanel = memo(function PreviewPanel({
                 {/* Quick Access Buttons - Preview & Code always visible */}
                 <button
                   onClick={() => ui.setActiveTab('preview')}
-                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-colors ${
-                    activeTab === 'preview'
-                      ? 'bg-slate-800 text-white'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
-                  }`}
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-colors"
+                  style={{
+                    backgroundColor: activeTab === 'preview' ? 'var(--theme-glass-200)' : undefined,
+                    color: activeTab === 'preview' ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)'
+                  }}
                   title="Preview"
                 >
                   <Eye className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => ui.setActiveTab('code')}
-                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-colors ${
-                    activeTab === 'code'
-                      ? 'bg-slate-800 text-white'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
-                  }`}
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-colors"
+                  style={{
+                    backgroundColor: activeTab === 'code' ? 'var(--theme-glass-200)' : undefined,
+                    color: activeTab === 'code' ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)'
+                  }}
                   title="Code"
                 >
                   <Code2 className="w-4 h-4" />
@@ -719,16 +749,16 @@ export const PreviewPanel = memo(function PreviewPanel({
                 {/* Separator if not on preview/code */}
                 {activeTab !== 'preview' && activeTab !== 'code' && (
                   <>
-                    <div className="h-4 w-px bg-white/10 mx-1" />
+                    <div className="h-4 w-px mx-1" style={{ backgroundColor: 'var(--theme-border)' }} />
                     {/* Current Tab */}
                     <div className="flex items-center gap-2 px-2 py-1.5">
                       <div className="relative">
-                        <Icon className={`w-4 h-4 ${isRunner ? 'text-emerald-400' : 'text-slate-300'}`} />
+                        <Icon className="w-4 h-4" style={{ color: isRunner ? 'var(--color-success)' : 'var(--theme-text-secondary)' }} />
                         {isRunner && (
-                          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--color-success)' }} />
                         )}
                       </div>
-                      <span className="text-sm font-medium text-white">{activeTabConfig.label}</span>
+                      <span className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>{activeTabConfig.label}</span>
                     </div>
                   </>
                 )}
@@ -738,8 +768,8 @@ export const PreviewPanel = memo(function PreviewPanel({
 
           {activeTab === 'preview' && (
             <>
-              <div className="h-6 w-px bg-white/10 mx-1 hidden sm:block" />
-              <div className="hidden sm:flex items-center gap-1 bg-slate-950/30 p-1 rounded-lg border border-white/5">
+              <div className="h-6 w-px mx-1 hidden sm:block" style={{ backgroundColor: 'var(--theme-border)' }} />
+              <div className="hidden sm:flex items-center gap-1 p-1 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border)' }}>
                 {[
                   { id: 'desktop', icon: Monitor },
                   { id: 'tablet', icon: Tablet },
@@ -748,7 +778,11 @@ export const PreviewPanel = memo(function PreviewPanel({
                   <button
                     key={id}
                     onClick={() => setPreviewDevice(id as PreviewDevice)}
-                    className={`p-2 rounded-md transition-colors ${previewDevice === id ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                    className="p-2 rounded-md transition-colors"
+                    style={{
+                      backgroundColor: previewDevice === id ? 'var(--theme-glass-300)' : undefined,
+                      color: previewDevice === id ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)'
+                    }}
                     title={id.charAt(0).toUpperCase() + id.slice(1)}
                     aria-label={`${id} view`}
                   >
@@ -767,11 +801,12 @@ export const PreviewPanel = memo(function PreviewPanel({
                 <>
                   <button
                     onClick={handleToggleInspectMode}
-                    className={`p-2 rounded-lg border transition-all ${
-                      isInspectMode
-                        ? 'bg-purple-500/10 text-purple-300 border-purple-500/20'
-                        : 'bg-slate-500/10 text-slate-400 border-transparent hover:text-white'
-                    }`}
+                    className="p-2 rounded-lg border transition-all"
+                    style={{
+                      backgroundColor: isInspectMode ? 'var(--theme-ai-accent-subtle)' : 'var(--theme-glass-100)',
+                      color: isInspectMode ? 'var(--theme-ai-accent)' : 'var(--theme-text-muted)',
+                      borderColor: isInspectMode ? 'var(--theme-ai-accent)' : 'transparent'
+                    }}
                     title="Inspect Components"
                   >
                     <MousePointer2 className="w-4 h-4" />
@@ -781,9 +816,12 @@ export const PreviewPanel = memo(function PreviewPanel({
                   <div className="relative" ref={settingsRef}>
                     <button
                       onClick={() => setShowSettings(!showSettings)}
-                      className={`flex items-center gap-1 p-2 rounded-lg border transition-all ${
-                        showSettings ? 'bg-slate-700 text-white border-slate-600' : 'bg-slate-500/10 text-slate-400 border-transparent hover:text-white'
-                      }`}
+                      className="flex items-center gap-1 p-2 rounded-lg border transition-all"
+                      style={{
+                        backgroundColor: showSettings ? 'var(--theme-glass-300)' : 'var(--theme-glass-100)',
+                        color: showSettings ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)',
+                        borderColor: showSettings ? 'var(--theme-border)' : 'transparent'
+                      }}
                       title="Settings"
                     >
                       <Settings className="w-4 h-4" />
@@ -791,27 +829,28 @@ export const PreviewPanel = memo(function PreviewPanel({
                     </button>
 
                     {showSettings && (
-                      <div className="absolute right-0 top-full mt-2 w-56 bg-slate-800 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                        <div className="p-2 border-b border-white/5">
-                          <span className="text-[10px] text-slate-500 uppercase tracking-wide px-2">Preview Settings</span>
+                      <div className="absolute right-0 top-full mt-2 w-56 rounded-xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
+                        <div className="p-2" style={{ borderBottom: '1px solid var(--theme-border)' }}>
+                          <span className="text-[10px] uppercase tracking-wide px-2" style={{ color: 'var(--theme-text-muted)' }}>Preview Settings</span>
                         </div>
 
                         {/* Auto-fix Toggle */}
                         <button
                           onClick={() => setAutoFixEnabled(!autoFixEnabled)}
-                          className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-white/5 transition-colors"
+                          className="w-full flex items-center justify-between px-3 py-2.5 transition-colors"
+                          style={{ ['--hover-bg' as string]: 'var(--theme-surface-hover)' }}
                         >
                           <div className="flex items-center gap-2">
                             {isAutoFixing ? (
-                              <Loader2 className="w-4 h-4 text-emerald-400 animate-spin" />
+                              <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--color-success)' }} />
                             ) : autoFixEnabled ? (
-                              <Zap className="w-4 h-4 text-emerald-400" />
+                              <Zap className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                             ) : (
-                              <ZapOff className="w-4 h-4 text-slate-500" />
+                              <ZapOff className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                             )}
-                            <span className="text-sm text-slate-200">Auto-fix Errors</span>
+                            <span className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>Auto-fix Errors</span>
                           </div>
-                          <div className={`relative w-9 h-5 rounded-full transition-colors ${autoFixEnabled ? 'bg-emerald-500' : 'bg-slate-600'}`}>
+                          <div className="relative w-9 h-5 rounded-full transition-colors" style={{ backgroundColor: autoFixEnabled ? 'var(--color-success)' : 'var(--theme-glass-300)' }}>
                             <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${autoFixEnabled ? 'left-[18px]' : 'left-0.5'}`} />
                           </div>
                         </button>
@@ -821,56 +860,70 @@ export const PreviewPanel = memo(function PreviewPanel({
                           <button
                             onClick={() => { fixResponsiveness(); setShowSettings(false); }}
                             disabled={isFixingResponsiveness}
-                            className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-white/5 transition-colors disabled:opacity-50"
+                            className="w-full flex items-center gap-2 px-3 py-2.5 transition-colors disabled:opacity-50"
                           >
                             {isFixingResponsiveness ? (
-                              <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
+                              <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--theme-accent)' }} />
                             ) : (
-                              <Wrench className="w-4 h-4 text-indigo-400" />
+                              <Wrench className="w-4 h-4" style={{ color: 'var(--theme-accent)' }} />
                             )}
-                            <span className="text-sm text-slate-200">{isFixingResponsiveness ? 'Fixing...' : 'Fix Responsive'}</span>
+                            <span className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>{isFixingResponsiveness ? 'Fixing...' : 'Fix Responsive'}</span>
                           </button>
                         )}
 
-                        <div className="h-px bg-white/5" />
+                        <div className="h-px" style={{ backgroundColor: 'var(--theme-border)' }} />
 
                         {/* Accessibility Audit */}
                         <button
                           onClick={() => { runAccessibilityAudit(); setShowSettings(false); }}
                           disabled={isAuditing}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 hover:bg-white/5 transition-colors disabled:opacity-50"
+                          className="w-full flex items-center gap-2 px-3 py-2.5 transition-colors disabled:opacity-50"
                         >
                           {isAuditing ? (
-                            <Loader2 className="w-4 h-4 text-indigo-400 animate-spin" />
+                            <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--theme-accent)' }} />
                           ) : (
-                            <ShieldCheck className="w-4 h-4 text-indigo-400" />
+                            <ShieldCheck className="w-4 h-4" style={{ color: 'var(--theme-accent)' }} />
                           )}
-                          <span className="text-sm text-slate-200">{isAuditing ? 'Auditing...' : 'Accessibility Audit'}</span>
+                          <span className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>{isAuditing ? 'Auditing...' : 'Accessibility Audit'}</span>
                         </button>
                       </div>
                     )}
                   </div>
                 </>
               )}
-              <div className="h-6 w-px bg-white/10" />
-              <button onClick={reloadPreview} className="p-2 hover:bg-white/5 rounded-lg text-slate-400 hover:text-white transition-colors" title="Reload Preview" aria-label="Reload Preview">
+              <div className="h-6 w-px" style={{ backgroundColor: 'var(--theme-border)' }} />
+              <button onClick={reloadPreview} className="p-2 rounded-lg transition-colors" style={{ color: 'var(--theme-text-muted)' }} title="Reload Preview" aria-label="Reload Preview">
                 <RefreshCw className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => captureScreenshot().catch(console.error)}
+                disabled={isCapturingScreenshot || !currentProject}
+                className="p-2 rounded-lg transition-colors disabled:opacity-50"
+                style={{ color: lastScreenshot ? 'var(--color-success)' : 'var(--theme-text-muted)' }}
+                title={lastScreenshot ? `Screenshot saved (${new Date(lastScreenshot.capturedAt).toLocaleTimeString()})` : 'Capture Screenshot'}
+                aria-label="Capture Screenshot"
+              >
+                {isCapturingScreenshot ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Camera className="w-4 h-4" />
+                )}
               </button>
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <button onClick={downloadCode} className="p-2 hover:bg-blue-500/10 rounded-lg text-slate-400 hover:text-blue-400" title="Download File" aria-label="Download current file">
+              <button onClick={downloadCode} className="p-2 rounded-lg transition-colors" style={{ color: 'var(--theme-text-muted)' }} title="Download File" aria-label="Download current file">
                 <Download className="w-4 h-4" />
               </button>
-              <button onClick={copyToClipboard} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-300 border border-white/5">
-                {isCopied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <button onClick={copyToClipboard} className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium" style={{ backgroundColor: 'var(--theme-glass-100)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}>
+                {isCopied ? <Check className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} /> : <Copy className="w-3.5 h-3.5" />}
                 {isCopied ? 'Copied' : 'Copy'}
               </button>
             </div>
           )}
 
           {appCode && (
-            <button onClick={() => setShowExportModal(true)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/20 text-xs font-medium">
+            <button onClick={() => setShowExportModal(true)} className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)', border: '1px solid var(--color-success)' }}>
               <Package className="w-3.5 h-3.5" />
               <span className="hidden xl:inline">Export</span>
             </button>
@@ -879,7 +932,7 @@ export const PreviewPanel = memo(function PreviewPanel({
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0 overflow-hidden bg-[#050811] group flex flex-col relative">
+      <div className="flex-1 min-h-0 overflow-hidden group flex flex-col relative" style={{ backgroundColor: 'var(--theme-background)' }}>
         {/* DBStudio - always rendered but hidden when not active to preserve state */}
         <div className={activeTab === 'database' ? 'flex-1 min-h-0 flex flex-col' : 'hidden'}>
           <DBStudio files={files} setFiles={setFiles} />
@@ -1077,13 +1130,13 @@ export const PreviewPanel = memo(function PreviewPanel({
               />
             <div className="flex-1 flex flex-col min-h-0 min-w-0">
               {/* Split View Toggle */}
-              <div className="flex items-center justify-between px-2 py-1 border-b border-white/5 bg-slate-900/50">
+              <div className="flex items-center justify-between px-2 py-1" style={{ borderBottom: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-glass-100)' }}>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 font-mono truncate max-w-[200px]">{activeFile}</span>
+                  <span className="text-xs font-mono truncate max-w-[200px]" style={{ color: 'var(--theme-text-muted)' }}>{activeFile}</span>
                   {isSplitView && splitFile && (
                     <>
-                      <span className="text-slate-600">|</span>
-                      <span className="text-xs text-slate-500 font-mono truncate max-w-[200px]">{splitFile}</span>
+                      <span style={{ color: 'var(--theme-border)' }}>|</span>
+                      <span className="text-xs font-mono truncate max-w-[200px]" style={{ color: 'var(--theme-text-muted)' }}>{splitFile}</span>
                     </>
                   )}
                 </div>
@@ -1097,7 +1150,11 @@ export const PreviewPanel = memo(function PreviewPanel({
                       }
                       setIsSplitView(!isSplitView);
                     }}
-                    className={`p-1.5 rounded transition-colors ${isSplitView ? 'bg-blue-600/20 text-blue-400' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+                    className="p-1.5 rounded transition-colors"
+                    style={{
+                      backgroundColor: isSplitView ? 'var(--theme-accent-subtle)' : undefined,
+                      color: isSplitView ? 'var(--theme-accent)' : 'var(--theme-text-muted)'
+                    }}
                     title={isSplitView ? 'Close Split View' : 'Split View'}
                   >
                     <SplitSquareVertical className="w-4 h-4" />
@@ -1105,7 +1162,8 @@ export const PreviewPanel = memo(function PreviewPanel({
                   {isSplitView && (
                     <button
                       onClick={() => setIsSplitView(false)}
-                      className="p-1.5 rounded text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-colors"
+                      className="p-1.5 rounded transition-colors"
+                      style={{ color: 'var(--theme-text-muted)' }}
                       title="Close Split"
                     >
                       <X className="w-4 h-4" />
@@ -1116,9 +1174,9 @@ export const PreviewPanel = memo(function PreviewPanel({
 
               {/* Generation Progress Toast - Non-blocking */}
               {isGeneratingDB && (
-                <div className="absolute top-2 right-2 z-50 flex items-center gap-2 px-3 py-2 bg-blue-500/20 backdrop-blur-xl border border-blue-500/30 rounded-lg shadow-lg animate-in slide-in-from-top-2 duration-300">
-                  <div className="w-4 h-4 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-                  <span className="text-xs font-medium text-blue-300">
+                <div className="absolute top-2 right-2 z-50 flex items-center gap-2 px-3 py-2 backdrop-blur-xl rounded-lg shadow-lg animate-in slide-in-from-top-2 duration-300" style={{ backgroundColor: 'var(--theme-accent-subtle)', border: '1px solid var(--theme-accent)' }}>
+                  <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--theme-accent-subtle)', borderTopColor: 'var(--theme-accent)' }} />
+                  <span className="text-xs font-medium" style={{ color: 'var(--theme-accent)' }}>
                     Generating SQL Schema...
                   </span>
                 </div>
@@ -1146,7 +1204,8 @@ export const PreviewPanel = memo(function PreviewPanel({
                       <select
                         value={splitFile}
                         onChange={(e) => setSplitFile(e.target.value)}
-                        className="flex-none w-full px-2 py-1 bg-slate-800/50 border-b border-white/5 text-xs text-slate-400 outline-none"
+                        className="flex-none w-full px-2 py-1 text-xs outline-none"
+                        style={{ backgroundColor: 'var(--theme-glass-100)', borderBottom: '1px solid var(--theme-border)', color: 'var(--theme-text-secondary)' }}
                       >
                         {Object.keys(files)
                           .filter(f => f !== activeFile)
@@ -1168,7 +1227,7 @@ export const PreviewPanel = memo(function PreviewPanel({
                   )}
                 </div>
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center text-slate-600 gap-3">
+                <div className="w-full h-full flex flex-col items-center justify-center gap-3" style={{ color: 'var(--theme-text-muted)' }}>
                   <Code2 className="w-10 h-10 opacity-50" />
                   <p className="text-sm font-medium">Select a file to edit</p>
                 </div>

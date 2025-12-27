@@ -496,26 +496,29 @@ export const SnippetsPanel: React.FC<SnippetsPanelProps> = ({ isOpen, onClose, o
       onClick={onClose}
     >
       <div
-        className="w-full max-w-4xl h-[80vh] bg-slate-900 border border-white/10 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-full max-w-4xl h-[80vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border-light)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--theme-border-subtle)' }}>
           <div className="flex items-center gap-3">
-            <Code2 className="w-5 h-5 text-blue-400" />
-            <h2 className="text-lg font-semibold text-white">Code Snippets</h2>
+            <Code2 className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Code Snippets</h2>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsAddingNew(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+              style={{ backgroundColor: 'var(--color-info)', color: 'var(--theme-text-on-accent)' }}
             >
               <Plus className="w-3.5 h-3.5" />
               Add Snippet
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               <X className="w-5 h-5" />
             </button>
@@ -524,12 +527,13 @@ export const SnippetsPanel: React.FC<SnippetsPanelProps> = ({ isOpen, onClose, o
 
         {/* Add New Snippet Form */}
         {isAddingNew && (
-          <div className="px-4 py-3 border-b border-white/5 bg-slate-800/50 space-y-3">
+          <div className="px-4 py-3 space-y-3" style={{ borderBottom: '1px solid var(--theme-border-subtle)', backgroundColor: 'var(--theme-glass-100)' }}>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-white">New Custom Snippet</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>New Custom Snippet</span>
               <button
                 onClick={() => setIsAddingNew(false)}
-                className="p-1 rounded hover:bg-white/10 text-slate-400"
+                className="p-1 rounded"
+                style={{ color: 'var(--theme-text-muted)' }}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -539,26 +543,30 @@ export const SnippetsPanel: React.FC<SnippetsPanelProps> = ({ isOpen, onClose, o
               value={newSnippet.name}
               onChange={e => setNewSnippet(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Snippet name..."
-              className="w-full px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+              className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+              style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
             />
             <textarea
               value={newSnippet.code}
               onChange={e => setNewSnippet(prev => ({ ...prev, code: e.target.value }))}
               placeholder="Paste your code here..."
               rows={5}
-              className="w-full px-3 py-2 bg-slate-900/50 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 font-mono resize-none"
+              className="w-full px-3 py-2 rounded-lg text-sm font-mono resize-none outline-none"
+              style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
             />
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setIsAddingNew(false)}
-                className="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddSnippet}
                 disabled={!newSnippet.name.trim() || !newSnippet.code.trim()}
-                className="px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg transition-colors"
+                className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+                style={{ backgroundColor: 'var(--color-info)', color: 'var(--theme-text-on-accent)' }}
               >
                 Save Snippet
               </button>
@@ -567,15 +575,16 @@ export const SnippetsPanel: React.FC<SnippetsPanelProps> = ({ isOpen, onClose, o
         )}
 
         {/* Search & Filters */}
-        <div className="px-4 py-3 border-b border-white/5 space-y-3">
+        <div className="px-4 py-3 space-y-3" style={{ borderBottom: '1px solid var(--theme-border-subtle)' }}>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search snippets..."
-              className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+              className="w-full pl-10 pr-4 py-2 rounded-lg text-sm outline-none"
+              style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-primary)' }}
             />
           </div>
           <div className="flex gap-2">
@@ -583,11 +592,12 @@ export const SnippetsPanel: React.FC<SnippetsPanelProps> = ({ isOpen, onClose, o
               <button
                 key={cat.id}
                 onClick={() => setCategory(cat.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  category === cat.id
-                    ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                }`}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                style={{
+                  backgroundColor: category === cat.id ? 'var(--color-info-subtle)' : 'transparent',
+                  color: category === cat.id ? 'var(--color-info)' : 'var(--theme-text-muted)',
+                  border: category === cat.id ? '1px solid var(--color-info-border)' : '1px solid transparent',
+                }}
               >
                 {cat.icon}
                 {cat.name}
@@ -599,56 +609,61 @@ export const SnippetsPanel: React.FC<SnippetsPanelProps> = ({ isOpen, onClose, o
         {/* Snippets List */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
           {filteredSnippets.length === 0 ? (
-            <div className="text-center text-slate-500 py-8">
+            <div className="text-center py-8" style={{ color: 'var(--theme-text-dim)' }}>
               No snippets found
             </div>
           ) : (
             filteredSnippets.map(snippet => (
               <div
                 key={snippet.id}
-                className="bg-slate-800/50 border border-white/5 rounded-lg overflow-hidden"
+                className="rounded-lg overflow-hidden"
+                style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-subtle)' }}
               >
                 {/* Snippet Header */}
                 <button
                   onClick={() => setExpandedId(expandedId === snippet.id ? null : snippet.id)}
-                  className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="text-left">
-                      <h3 className="text-sm font-medium text-white">{snippet.name}</h3>
-                      <p className="text-xs text-slate-500">{snippet.description}</p>
+                      <h3 className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>{snippet.name}</h3>
+                      <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>{snippet.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {snippet.isCustom && (
-                      <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                      <Star className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)', fill: 'var(--color-warning)' }} />
                     )}
-                    <span className={`text-[10px] px-2 py-0.5 rounded ${
-                      snippet.isCustom
-                        ? 'bg-amber-500/20 text-amber-300'
-                        : 'bg-slate-700 text-slate-400'
-                    }`}>
+                    <span
+                      className="text-[10px] px-2 py-0.5 rounded"
+                      style={{
+                        backgroundColor: snippet.isCustom ? 'var(--color-warning-subtle)' : 'var(--theme-glass-300)',
+                        color: snippet.isCustom ? 'var(--color-warning)' : 'var(--theme-text-muted)',
+                      }}
+                    >
                       {snippet.category}
                     </span>
-                    <ChevronRight className={`w-4 h-4 text-slate-500 transition-transform ${
-                      expandedId === snippet.id ? 'rotate-90' : ''
-                    }`} />
+                    <ChevronRight
+                      className={`w-4 h-4 transition-transform ${expandedId === snippet.id ? 'rotate-90' : ''}`}
+                      style={{ color: 'var(--theme-text-dim)' }}
+                    />
                   </div>
                 </button>
 
                 {/* Expanded Code */}
                 {expandedId === snippet.id && (
-                  <div className="border-t border-white/5">
-                    <pre className="p-4 text-xs text-slate-300 overflow-x-auto bg-slate-950/50">
+                  <div style={{ borderTop: '1px solid var(--theme-border-subtle)' }}>
+                    <pre className="p-4 text-xs overflow-x-auto" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-secondary)' }}>
                       <code>{snippet.code}</code>
                     </pre>
-                    <div className="flex justify-between px-4 py-2 bg-slate-900/50 border-t border-white/5">
+                    <div className="flex justify-between px-4 py-2" style={{ backgroundColor: 'var(--theme-glass-100)', borderTop: '1px solid var(--theme-border-subtle)' }}>
                       {/* Delete button for custom snippets */}
                       <div>
                         {snippet.isCustom && (
                           <button
                             onClick={() => handleDeleteSnippet(snippet.id)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+                            style={{ color: 'var(--color-error)' }}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                             Delete
@@ -658,11 +673,12 @@ export const SnippetsPanel: React.FC<SnippetsPanelProps> = ({ isOpen, onClose, o
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleCopy(snippet)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+                          style={{ color: 'var(--theme-text-muted)' }}
                         >
                           {copiedId === snippet.id ? (
                             <>
-                              <Check className="w-3.5 h-3.5 text-green-400" />
+                              <Check className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} />
                               Copied!
                             </>
                           ) : (
@@ -674,7 +690,8 @@ export const SnippetsPanel: React.FC<SnippetsPanelProps> = ({ isOpen, onClose, o
                         </button>
                         <button
                           onClick={() => handleInsert(snippet)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+                          style={{ backgroundColor: 'var(--color-info)', color: 'var(--theme-text-on-accent)' }}
                         >
                           <ChevronRight className="w-3.5 h-3.5" />
                           Insert
@@ -689,8 +706,8 @@ export const SnippetsPanel: React.FC<SnippetsPanelProps> = ({ isOpen, onClose, o
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 border-t border-white/5 bg-slate-950/50">
-          <p className="text-[10px] text-slate-600 text-center">
+        <div className="px-4 py-2" style={{ borderTop: '1px solid var(--theme-border-subtle)', backgroundColor: 'var(--theme-surface-dark)' }}>
+          <p className="text-[10px] text-center" style={{ color: 'var(--theme-text-dim)' }}>
             {filteredSnippets.length} snippets available • Click to expand • Insert adds to current file
           </p>
         </div>

@@ -408,40 +408,42 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm"
+      style={{ backgroundColor: 'var(--theme-overlay)' }}
       onClick={onClose}
     >
       <div
-        className="w-[90vw] max-w-2xl bg-slate-900 border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        className="w-[90vw] max-w-2xl rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--theme-border)' }}>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl">
-              <Wand2 className="w-5 h-5 text-purple-400" />
+              <Wand2 className="w-5 h-5" style={{ color: 'var(--color-feature)' }} />
             </div>
             <div>
-              <h2 className="font-medium text-lg flex items-center gap-2">
+              <h2 className="font-medium text-lg flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
                 Prompt Engineer
-                <span className="text-[10px] px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded-full">AI</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>AI</span>
               </h2>
-              <p className="text-xs text-slate-500">3 questions to craft the perfect prompt</p>
+              <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>3 questions to craft the perfect prompt</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleRestart}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-2 rounded-lg transition-colors"
               title="Start over"
             >
-              <RotateCcw className="w-4 h-4 text-slate-400" />
+              <RotateCcw className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
             </button>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-2 rounded-lg transition-colors"
             >
-              <X className="w-5 h-5 text-slate-400" />
+              <X className="w-5 h-5" style={{ color: 'var(--theme-text-muted)' }} />
             </button>
           </div>
         </div>
@@ -449,58 +451,59 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
         {/* Progress Bar */}
         <div className="px-4 pt-4">
           <div className="flex items-center gap-2 mb-2">
-            {STEP_LABELS.map((label, idx) => (
-              <React.Fragment key={idx}>
-                <div className="flex items-center gap-2">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
-                    idx + 1 < currentStepNum
-                      ? 'bg-purple-500 text-white'
-                      : idx + 1 === currentStepNum && wizard.step !== 'final'
-                        ? 'bg-purple-500/30 text-purple-300 ring-2 ring-purple-500/50'
-                        : wizard.step === 'final'
-                          ? 'bg-purple-500 text-white'
-                          : 'bg-slate-700 text-slate-400'
-                  }`}>
-                    {idx + 1 < currentStepNum || wizard.step === 'final' ? (
-                      <Check className="w-4 h-4" />
-                    ) : (
-                      idx + 1
-                    )}
+            {STEP_LABELS.map((label, idx) => {
+              const isCompleted = idx + 1 < currentStepNum || wizard.step === 'final';
+              const isCurrent = idx + 1 === currentStepNum && wizard.step !== 'final';
+              return (
+                <React.Fragment key={idx}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium transition-colors"
+                      style={{
+                        backgroundColor: isCompleted ? 'var(--color-feature)' : isCurrent ? 'var(--color-feature-subtle)' : 'var(--theme-glass-200)',
+                        color: isCompleted ? 'var(--theme-text-primary)' : isCurrent ? 'var(--color-feature)' : 'var(--theme-text-muted)',
+                        boxShadow: isCurrent ? '0 0 0 2px var(--color-feature-border)' : 'none'
+                      }}
+                    >
+                      {isCompleted ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        idx + 1
+                      )}
+                    </div>
+                    <span
+                      className="text-xs hidden sm:inline"
+                      style={{ color: idx + 1 <= currentStepNum || wizard.step === 'final' ? 'var(--theme-text-secondary)' : 'var(--theme-text-dim)' }}
+                    >
+                      {label}
+                    </span>
                   </div>
-                  <span className={`text-xs hidden sm:inline ${
-                    idx + 1 <= currentStepNum || wizard.step === 'final'
-                      ? 'text-slate-300'
-                      : 'text-slate-500'
-                  }`}>
-                    {label}
-                  </span>
-                </div>
-                {idx < 2 && (
-                  <div className={`flex-1 h-0.5 rounded ${
-                    idx + 1 < currentStepNum || wizard.step === 'final'
-                      ? 'bg-purple-500'
-                      : 'bg-slate-700'
-                  }`} />
-                )}
-              </React.Fragment>
-            ))}
+                  {idx < 2 && (
+                    <div
+                      className="flex-1 h-0.5 rounded"
+                      style={{ backgroundColor: isCompleted ? 'var(--color-feature)' : 'var(--theme-glass-200)' }}
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 min-h-[300px]">
           {/* Original Prompt Preview */}
-          <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border border-white/5">
+          <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}>
             <div className="flex items-center gap-2 mb-1">
-              <FileCode className="w-3.5 h-3.5 text-slate-500" />
-              <span className="text-[11px] text-slate-500 uppercase tracking-wide">Original Prompt</span>
+              <FileCode className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-dim)' }} />
+              <span className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--theme-text-dim)' }}>Original Prompt</span>
             </div>
-            <p className="text-sm text-slate-300 line-clamp-2">{originalPrompt}</p>
+            <p className="text-sm line-clamp-2" style={{ color: 'var(--theme-text-secondary)' }}>{originalPrompt}</p>
           </div>
 
           {/* Error Display */}
           {error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+            <div className="mb-4 p-3 rounded-lg text-sm" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)', color: 'var(--color-error)' }}>
               {error}
             </div>
           )}
@@ -511,11 +514,11 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
               {/* Previous Q&As */}
               {wizard.stepData.slice(0, currentStepNum - 1).map((data, idx) => data && (
                 <div key={idx} className="space-y-2 opacity-60">
-                  <div className="p-3 bg-slate-800 rounded-lg border border-white/5">
-                    <p className="text-sm text-slate-300">{data.question}</p>
+                  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+                    <p className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>{data.question}</p>
                   </div>
-                  <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20 ml-4">
-                    <p className="text-sm text-blue-200">{wizard.answers[idx]}</p>
+                  <div className="p-3 rounded-lg ml-4" style={{ backgroundColor: 'var(--color-info-subtle)', border: '1px solid var(--color-info-border)' }}>
+                    <p className="text-sm" style={{ color: 'var(--color-info)' }}>{wizard.answers[idx]}</p>
                   </div>
                 </div>
               ))}
@@ -523,19 +526,19 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
               {/* Current Question */}
               {isLoading && !currentStepData ? (
                 <div className="flex items-center gap-3 p-4">
-                  <Sparkles className="w-5 h-5 animate-pulse text-purple-400" />
-                  <span className="text-slate-400">Analyzing your prompt...</span>
+                  <Sparkles className="w-5 h-5 animate-pulse" style={{ color: 'var(--color-feature)' }} />
+                  <span style={{ color: 'var(--theme-text-muted)' }}>Analyzing your prompt...</span>
                 </div>
               ) : currentStepData ? (
                 <div className="space-y-4">
                   {/* AI Question */}
-                  <div className="p-4 bg-slate-800 rounded-xl border border-purple-500/20">
+                  <div className="p-4 rounded-xl" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--color-feature-border)' }}>
                     <div className="flex items-start gap-3">
-                      <div className="p-1.5 bg-purple-500/20 rounded-lg">
-                        <Sparkles className="w-4 h-4 text-purple-400" />
+                      <div className="p-1.5 rounded-lg" style={{ backgroundColor: 'var(--color-feature-subtle)' }}>
+                        <Sparkles className="w-4 h-4" style={{ color: 'var(--color-feature)' }} />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm text-slate-200 leading-relaxed">{currentStepData.question}</p>
+                        <p className="text-sm leading-relaxed" style={{ color: 'var(--theme-text-secondary)' }}>{currentStepData.question}</p>
                       </div>
                     </div>
                   </div>
@@ -543,7 +546,7 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
                   {/* Options Grid - AI generated options */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                         {currentStepData.multiSelect
                           ? 'Select one or more options'
                           : 'Select an option'}
@@ -551,42 +554,49 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
                       {selectedOptions.length > 0 && (
                         <button
                           onClick={() => setSelectedOptions([])}
-                          className="text-xs text-slate-500 hover:text-slate-400"
+                          className="text-xs"
+                          style={{ color: 'var(--theme-text-dim)' }}
                         >
                           Clear
                         </button>
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      {currentStepData.options.map((option) => (
-                        <button
-                          key={option.id}
-                          onClick={() => handleOptionToggle(option.id)}
-                          className={`p-3 rounded-lg border text-left transition-all ${
-                            selectedOptions.includes(option.id)
-                              ? 'bg-purple-500/20 border-purple-500/50 text-purple-200'
-                              : 'bg-slate-800/50 border-white/10 hover:bg-slate-800 hover:border-white/20 text-slate-300'
-                          }`}
-                        >
-                          <div className="flex items-start gap-2">
-                            <div className={`w-4 h-4 rounded-full border-2 mt-0.5 flex items-center justify-center shrink-0 ${
-                              selectedOptions.includes(option.id)
-                                ? 'bg-purple-500 border-purple-500'
-                                : 'border-slate-500'
-                            }`}>
-                              {selectedOptions.includes(option.id) && (
-                                <Check className="w-2.5 h-2.5 text-white" />
-                              )}
+                      {currentStepData.options.map((option) => {
+                        const isSelected = selectedOptions.includes(option.id);
+                        return (
+                          <button
+                            key={option.id}
+                            onClick={() => handleOptionToggle(option.id)}
+                            className="p-3 rounded-lg text-left transition-all"
+                            style={{
+                              backgroundColor: isSelected ? 'var(--color-feature-subtle)' : 'var(--theme-glass-100)',
+                              border: isSelected ? '1px solid var(--color-feature-border)' : '1px solid var(--theme-border)',
+                              color: isSelected ? 'var(--color-feature)' : 'var(--theme-text-secondary)'
+                            }}
+                          >
+                            <div className="flex items-start gap-2">
+                              <div
+                                className="w-4 h-4 rounded-full border-2 mt-0.5 flex items-center justify-center shrink-0"
+                                style={{
+                                  backgroundColor: isSelected ? 'var(--color-feature)' : 'transparent',
+                                  borderColor: isSelected ? 'var(--color-feature)' : 'var(--theme-text-dim)'
+                                }}
+                              >
+                                {isSelected && (
+                                  <Check className="w-2.5 h-2.5" style={{ color: 'var(--theme-text-primary)' }} />
+                                )}
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">{option.label}</div>
+                                {option.description && (
+                                  <div className="text-xs mt-0.5" style={{ color: 'var(--theme-text-dim)' }}>{option.description}</div>
+                                )}
+                              </div>
                             </div>
-                            <div>
-                              <div className="text-sm font-medium">{option.label}</div>
-                              {option.description && (
-                                <div className="text-xs text-slate-500 mt-0.5">{option.description}</div>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      ))}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -597,11 +607,11 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
           {/* Generating State */}
           {wizard.step === 'generating' && (
             <div className="flex flex-col items-center justify-center py-12">
-              <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center mb-4">
-                <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mb-4" style={{ backgroundColor: 'var(--color-feature-subtle)' }}>
+                <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--color-feature)' }} />
               </div>
-              <h3 className="text-lg font-medium text-white mb-2">Crafting Your Prompt</h3>
-              <p className="text-slate-400 text-sm text-center max-w-md">
+              <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--theme-text-primary)' }}>Crafting Your Prompt</h3>
+              <p className="text-sm text-center max-w-md" style={{ color: 'var(--theme-text-muted)' }}>
                 Combining your answers to create a detailed, actionable prompt...
               </p>
             </div>
@@ -614,31 +624,32 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
               <div className="grid gap-2">
                 {wizard.answers.map((answer, idx) => (
                   <div key={idx} className="flex items-start gap-2 text-xs">
-                    <span className="px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded font-medium">
+                    <span className="px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>
                       {idx + 1}
                     </span>
-                    <span className="text-slate-400 line-clamp-1">{answer}</span>
+                    <span className="line-clamp-1" style={{ color: 'var(--theme-text-muted)' }}>{answer}</span>
                   </div>
                 ))}
               </div>
 
               {/* Final Prompt */}
-              <div className="bg-slate-800/50 rounded-xl p-4 border border-green-500/30">
+              <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--color-success-border)' }}>
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-medium text-green-400 flex items-center gap-2">
+                  <h4 className="text-sm font-medium flex items-center gap-2" style={{ color: 'var(--color-success)' }}>
                     <Check className="w-4 h-4" />
                     Your Improved Prompt
                   </h4>
                   <button
                     onClick={handleCopy}
-                    className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-xs transition-colors"
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs transition-colors"
+                    style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-secondary)' }}
                   >
                     <Copy className="w-3.5 h-3.5" />
                     {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
-                <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700 max-h-[200px] overflow-y-auto">
-                  <p className="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed">
+                <div className="p-3 rounded-lg max-h-[200px] overflow-y-auto" style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)' }}>
+                  <p className="text-sm whitespace-pre-wrap leading-relaxed" style={{ color: 'var(--theme-text-secondary)' }}>
                     {wizard.finalPrompt}
                   </p>
                 </div>
@@ -648,13 +659,13 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/10 bg-slate-900/50">
+        <div className="p-4" style={{ borderTop: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-surface-dark)' }}>
           {wizard.step !== 'final' && wizard.step !== 'generating' && currentStepData && (
             <>
               {/* Custom Input Area */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500">Or add details:</span>
+                  <span className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Or add details:</span>
                 </div>
                 <div className="flex gap-2">
                   <textarea
@@ -665,12 +676,14 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
                     placeholder="Add custom details or requirements..."
                     disabled={isLoading}
                     rows={1}
-                    className="flex-1 bg-slate-800/50 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500/50 resize-none disabled:opacity-50"
+                    className="flex-1 rounded-xl px-4 py-2.5 text-sm focus:outline-none resize-none disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                   />
                   <button
                     onClick={handleSubmit}
                     disabled={isLoading || (selectedOptions.length === 0 && !inputValue.trim())}
-                    className="px-4 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 disabled:text-slate-500 text-white transition-colors flex items-center gap-2"
+                    className="px-4 rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--color-feature)', color: 'var(--theme-text-primary)' }}
                   >
                     <Send className="w-4 h-4" />
                     <span className="text-sm">Next</span>
@@ -679,10 +692,10 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
               </div>
 
               {/* Hint */}
-              <p className="text-[10px] text-slate-600 text-center mt-2">
+              <p className="text-[10px] text-center mt-2" style={{ color: 'var(--theme-text-dim)' }}>
                 Step {currentStepNum} of 3 - {STEP_LABELS[currentStepNum - 1]}
                 {selectedOptions.length > 0 && (
-                  <span className="text-purple-400 ml-2">
+                  <span className="ml-2" style={{ color: 'var(--color-feature)' }}>
                     ({selectedOptions.length} selected)
                   </span>
                 )}
@@ -694,13 +707,15 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
             <div className="flex items-center gap-3">
               <button
                 onClick={handleRestart}
-                className="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm font-medium transition-colors"
+                className="px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-secondary)' }}
               >
                 Start Over
               </button>
               <button
                 onClick={handleAccept}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white rounded-lg text-sm font-medium transition-all shadow-lg shadow-green-500/20"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 rounded-lg text-sm font-medium transition-all shadow-lg shadow-green-500/20"
+                style={{ color: 'var(--theme-text-primary)' }}
               >
                 <Check className="w-4 h-4" />
                 Use This Prompt
@@ -710,7 +725,7 @@ export const PromptImproverModal: React.FC<PromptImproverModalProps> = ({
 
           {wizard.step === 'generating' && (
             <div className="flex justify-center">
-              <div className="flex items-center gap-2 text-slate-400 text-sm">
+              <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Generating...</span>
               </div>

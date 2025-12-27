@@ -158,30 +158,30 @@ export function formatLogTime(timestamp: number): string {
   });
 }
 
-// Helper to get category color
+// Helper to get category color - returns CSS variable value
 export function getCategoryColor(category: LogCategory): string {
   const colors: Record<LogCategory, string> = {
-    system: 'text-slate-400',
-    ai: 'text-purple-400',
-    git: 'text-orange-400',
-    backup: 'text-blue-400',
-    autocommit: 'text-green-400',
-    preview: 'text-cyan-400',
-    api: 'text-yellow-400',
-    file: 'text-pink-400',
-    generation: 'text-indigo-400',
+    system: 'var(--theme-text-muted)',
+    ai: 'var(--color-feature)',
+    git: 'var(--color-warning)',
+    backup: 'var(--color-info)',
+    autocommit: 'var(--color-success)',
+    preview: 'var(--color-info)',
+    api: 'var(--color-warning)',
+    file: 'var(--color-feature)',
+    generation: 'var(--color-feature)',
   };
-  return colors[category] || 'text-slate-400';
+  return colors[category] || 'var(--theme-text-muted)';
 }
 
-// Helper to get level icon/color
+// Helper to get level style - returns CSS variable values
 export function getLevelStyle(level: LogLevel): { color: string; bgColor: string } {
   const styles: Record<LogLevel, { color: string; bgColor: string }> = {
-    info: { color: 'text-blue-400', bgColor: 'bg-blue-500/20' },
-    success: { color: 'text-green-400', bgColor: 'bg-green-500/20' },
-    warning: { color: 'text-yellow-400', bgColor: 'bg-yellow-500/20' },
-    error: { color: 'text-red-400', bgColor: 'bg-red-500/20' },
-    debug: { color: 'text-slate-500', bgColor: 'bg-slate-500/20' },
+    info: { color: 'var(--color-info)', bgColor: 'var(--color-info-subtle)' },
+    success: { color: 'var(--color-success)', bgColor: 'var(--color-success-subtle)' },
+    warning: { color: 'var(--color-warning)', bgColor: 'var(--color-warning-subtle)' },
+    error: { color: 'var(--color-error)', bgColor: 'var(--color-error-subtle)' },
+    debug: { color: 'var(--theme-text-dim)', bgColor: 'var(--theme-glass-200)' },
   };
   return styles[level] || styles.info;
 }

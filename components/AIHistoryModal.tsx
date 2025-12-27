@@ -78,27 +78,27 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
   const EntryCard = ({ entry, expandedId, setExpandedId, copiedId, setCopiedId: _setCopiedId, restoringId, setRestoringId: _setRestoringId, onRestore: _onRestore, onCopyRaw: _onCopyRaw, formatDuration, formatSize, formatTime }: EntryCardProps) => (
     <div
       key={entry.id}
-      className={`border rounded-lg overflow-hidden transition-colors ${
-        entry.success
-          ? 'border-white/10 bg-slate-800/30'
-          : 'border-red-500/30 bg-red-500/5'
-      }`}
+      className="rounded-lg overflow-hidden transition-colors"
+      style={{
+        border: entry.success ? '1px solid var(--theme-border)' : '1px solid var(--color-error-border)',
+        backgroundColor: entry.success ? 'var(--theme-glass-200)' : 'var(--color-error-subtle)'
+      }}
     >
       {/* Entry Header */}
       <div
-        className="flex items-center gap-3 p-3 cursor-pointer hover:bg-white/5 group"
+        className="flex items-center gap-3 p-3 cursor-pointer group"
         onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
       >
         {expandedId === entry.id ? (
-          <ChevronDown size={16} className="text-slate-500" />
+          <ChevronDown size={16} style={{ color: 'var(--theme-text-dim)' }} />
         ) : (
-          <ChevronRight size={16} className="text-slate-500" />
+          <ChevronRight size={16} style={{ color: 'var(--theme-text-dim)' }} />
         )}
 
         {entry.success ? (
-          <CheckCircle2 size={16} className="text-green-400" />
+          <CheckCircle2 size={16} style={{ color: 'var(--color-success)' }} />
         ) : (
-          <XCircle size={16} className="text-red-400" />
+          <XCircle size={16} style={{ color: 'var(--color-error)' }} />
         )}
 
         <div className="flex-1 min-w-0">
@@ -106,38 +106,42 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
             {/* Template Type Badge */}
             {entry.templateType && (
               <div className="flex items-center gap-1">
-                {entry.templateType === 'auto-fix' && <Zap size={12} className="text-orange-400" />}
-                {entry.templateType === 'inspect-edit' && <Search size={12} className="text-purple-400" />}
-                {entry.templateType === 'prompt-template' && <Settings size={12} className="text-blue-400" />}
-                {entry.templateType === 'checkpoint' && <Bookmark size={12} className="text-emerald-400" />}
-                <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                  entry.templateType === 'auto-fix'
-                    ? 'bg-orange-500/20 text-orange-400'
-                    : entry.templateType === 'inspect-edit'
-                    ? 'bg-purple-500/20 text-purple-400'
-                    : entry.templateType === 'checkpoint'
-                    ? 'bg-emerald-500/20 text-emerald-400'
-                    : 'bg-blue-500/20 text-blue-400'
-                }`}>
+                {entry.templateType === 'auto-fix' && <Zap size={12} style={{ color: 'var(--color-warning)' }} />}
+                {entry.templateType === 'inspect-edit' && <Search size={12} style={{ color: 'var(--color-feature)' }} />}
+                {entry.templateType === 'prompt-template' && <Settings size={12} style={{ color: 'var(--color-info)' }} />}
+                {entry.templateType === 'checkpoint' && <Bookmark size={12} style={{ color: 'var(--color-success)' }} />}
+                <span
+                  className="px-1.5 py-0.5 rounded text-[10px] font-medium"
+                  style={{
+                    backgroundColor: entry.templateType === 'auto-fix' ? 'var(--color-warning-subtle)'
+                      : entry.templateType === 'inspect-edit' ? 'var(--color-feature-subtle)'
+                      : entry.templateType === 'checkpoint' ? 'var(--color-success-subtle)'
+                      : 'var(--color-info-subtle)',
+                    color: entry.templateType === 'auto-fix' ? 'var(--color-warning)'
+                      : entry.templateType === 'inspect-edit' ? 'var(--color-feature)'
+                      : entry.templateType === 'checkpoint' ? 'var(--color-success)'
+                      : 'var(--color-info)'
+                  }}
+                >
                   {entry.templateType.toUpperCase().replace('-', ' ')}
                 </span>
               </div>
             )}
-            <span className="text-sm font-medium truncate">
+            <span className="text-sm font-medium truncate" style={{ color: 'var(--theme-text-primary)' }}>
               {entry.prompt.slice(0, 60)}{entry.prompt.length > 60 ? '...' : ''}
             </span>
             {entry.truncated && (
-              <span className="px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-[10px]">
+              <span className="px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
                 TRUNCATED
               </span>
             )}
             {entry.isUpdate && (
-              <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded text-[10px]">
+              <span className="px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
                 UPDATE
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5">
+          <div className="flex items-center gap-3 text-xs mt-0.5" style={{ color: 'var(--theme-text-dim)' }}>
             <span>{formatTime(entry.timestamp)}</span>
             <span>{entry.provider} / {entry.model}</span>
             <span>{formatDuration(entry.durationMs)}</span>
@@ -154,7 +158,8 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
                 handleRestore(entry);
               }}
               disabled={restoringId !== null}
-              className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-green-500/20 text-slate-500 hover:text-green-400 rounded transition-all disabled:opacity-50"
+              className="p-1.5 opacity-0 group-hover:opacity-100 rounded transition-all disabled:opacity-50"
+              style={{ color: 'var(--theme-text-dim)' }}
               title="Load this state"
             >
               {restoringId === entry.id ? (
@@ -169,7 +174,8 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
               e.stopPropagation();
               onDeleteEntry(entry.id);
             }}
-            className="p-1.5 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-slate-500 hover:text-red-400 rounded transition-all"
+            className="p-1.5 opacity-0 group-hover:opacity-100 rounded transition-all"
+            style={{ color: 'var(--theme-text-dim)' }}
             title="Delete entry"
           >
             <Trash2 size={14} />
@@ -179,48 +185,48 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
 
       {/* Expanded Content */}
       {expandedId === entry.id && (
-        <div className="border-t border-white/10 p-4 space-y-4">
+        <div className="p-4 space-y-4" style={{ borderTop: '1px solid var(--theme-border)' }}>
           {/* Info Grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-            <div className="bg-slate-800/50 rounded-lg p-2">
-              <div className="text-slate-500">Provider</div>
-              <div className="font-medium">{entry.provider}</div>
+            <div className="rounded-lg p-2" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+              <div style={{ color: 'var(--theme-text-dim)' }}>Provider</div>
+              <div className="font-medium" style={{ color: 'var(--theme-text-primary)' }}>{entry.provider}</div>
             </div>
-            <div className="bg-slate-800/50 rounded-lg p-2">
-              <div className="text-slate-500">Model</div>
-              <div className="font-medium truncate">{entry.model}</div>
+            <div className="rounded-lg p-2" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+              <div style={{ color: 'var(--theme-text-dim)' }}>Model</div>
+              <div className="font-medium truncate" style={{ color: 'var(--theme-text-primary)' }}>{entry.model}</div>
             </div>
-            <div className="bg-slate-800/50 rounded-lg p-2">
-              <div className="text-slate-500">Duration</div>
-              <div className="font-medium">{formatDuration(entry.durationMs)}</div>
+            <div className="rounded-lg p-2" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+              <div style={{ color: 'var(--theme-text-dim)' }}>Duration</div>
+              <div className="font-medium" style={{ color: 'var(--theme-text-primary)' }}>{formatDuration(entry.durationMs)}</div>
             </div>
-            <div className="bg-slate-800/50 rounded-lg p-2">
-              <div className="text-slate-500">Size</div>
-              <div className="font-medium">{formatSize(entry.responseChars)}</div>
+            <div className="rounded-lg p-2" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+              <div style={{ color: 'var(--theme-text-dim)' }}>Size</div>
+              <div className="font-medium" style={{ color: 'var(--theme-text-primary)' }}>{formatSize(entry.responseChars)}</div>
             </div>
           </div>
 
           {/* Prompt */}
-          <div className="bg-slate-800/30 rounded-lg p-3">
-            <div className="text-xs text-slate-500 mb-1">Prompt</div>
-            <div className="text-sm text-slate-300 whitespace-pre-wrap">{entry.prompt}</div>
+          <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+            <div className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>Prompt</div>
+            <div className="text-sm whitespace-pre-wrap" style={{ color: 'var(--theme-text-secondary)' }}>{entry.prompt}</div>
           </div>
 
           {/* Explanation */}
           {entry.explanation && (
-            <div className="bg-slate-800/30 rounded-lg p-3">
-              <div className="text-xs text-slate-500 mb-1">Explanation</div>
-              <div className="text-sm text-slate-300 whitespace-pre-wrap">{entry.explanation}</div>
+            <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+              <div className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>Explanation</div>
+              <div className="text-sm whitespace-pre-wrap" style={{ color: 'var(--theme-text-secondary)' }}>{entry.explanation}</div>
             </div>
           )}
 
           {/* Files Generated */}
           {entry.filesGenerated && entry.filesGenerated.length > 0 && (
-            <div className="bg-slate-800/30 rounded-lg p-3">
-              <div className="text-xs text-slate-500 mb-2">Files Generated ({entry.filesGenerated.length})</div>
+            <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+              <div className="text-xs mb-2" style={{ color: 'var(--theme-text-dim)' }}>Files Generated ({entry.filesGenerated.length})</div>
               <div className="flex flex-wrap gap-1">
                 {entry.filesGenerated.map((file: string) => (
-                  <span key={file} className="px-2 py-1 bg-slate-700 rounded text-xs text-slate-300">
+                  <span key={file} className="px-2 py-1 rounded text-xs" style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}>
                     {file}
                   </span>
                 ))}
@@ -230,35 +236,37 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
 
           {/* Error Message */}
           {entry.error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-              <div className="text-xs text-red-400 mb-1">Error</div>
-              <div className="text-sm text-red-300 whitespace-pre-wrap">{entry.error}</div>
+            <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)' }}>
+              <div className="text-xs mb-1" style={{ color: 'var(--color-error)' }}>Error</div>
+              <div className="text-sm whitespace-pre-wrap" style={{ color: 'var(--color-error)' }}>{entry.error}</div>
             </div>
           )}
 
           {/* Raw Response */}
           {entry.rawResponse && (
-            <div className="bg-slate-950 rounded-lg p-3">
+            <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--theme-surface-dark)' }}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-slate-500">Raw Response</span>
+                <span className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Raw Response</span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => handleCopyRaw(entry)}
-                    className="flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                    className="flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors"
+                    style={{ color: 'var(--theme-text-muted)' }}
                   >
                     <Copy size={12} />
                     {copiedId === entry.id ? 'Copied!' : 'Copy'}
                   </button>
                   <button
                     onClick={() => setShowRawResponse(showRawResponse === entry.id ? null : entry.id)}
-                    className="text-xs text-blue-400 hover:text-blue-300"
+                    className="text-xs"
+                    style={{ color: 'var(--color-info)' }}
                   >
                     {showRawResponse === entry.id ? 'Hide' : 'Show'}
                   </button>
                 </div>
               </div>
               {showRawResponse === entry.id && (
-                <pre className="p-3 bg-slate-950 rounded-lg text-xs text-slate-400 max-h-64 overflow-auto font-mono whitespace-pre-wrap break-all">
+                <pre className="p-3 rounded-lg text-xs max-h-64 overflow-auto font-mono whitespace-pre-wrap break-all" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-muted)' }}>
                   {entry.rawResponse}
                 </pre>
               )}
@@ -323,26 +331,29 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm"
+      style={{ backgroundColor: 'var(--theme-overlay)' }}
       onClick={onClose}
     >
       <div
-        className="w-[90vw] max-w-7xl h-[90vh] bg-slate-900 border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        className="w-[90vw] max-w-7xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex-none flex items-center justify-between p-4 border-b border-white/10">
+        <div className="flex-none flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--theme-border)' }}>
           <div className="flex items-center gap-3">
-            <Sparkles size={20} className="text-purple-400" />
-            <span className="font-medium text-lg">AI Generation History</span>
-            <span className="px-2 py-0.5 bg-slate-700 rounded text-xs text-slate-400">
+            <Sparkles size={20} style={{ color: 'var(--color-feature)' }} />
+            <span className="font-medium text-lg" style={{ color: 'var(--theme-text-primary)' }}>AI Generation History</span>
+            <span className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}>
               {history.length} entries
             </span>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={handleExport}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
               title="Export history as JSON"
             >
               <Download size={14} />
@@ -351,7 +362,8 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
             {history.length > 0 && (
               <button
                 onClick={() => setShowClearConfirm(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
               >
                 <Trash2 size={14} />
                 Clear All
@@ -359,7 +371,8 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
             )}
             <button
               onClick={onClose}
-              className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 rounded transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               <X size={18} />
             </button>
@@ -369,10 +382,10 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
         {/* Content */}
         <div className="flex-1 overflow-auto p-4">
           {history.length === 0 ? (
-            <div className="text-center py-12 text-slate-500">
+            <div className="text-center py-12" style={{ color: 'var(--theme-text-dim)' }}>
               <Clock size={48} className="mx-auto mb-4 opacity-30" />
               <p>No AI generation history yet</p>
-              <p className="text-sm text-slate-600 mt-2">
+              <p className="text-sm mt-2" style={{ color: 'var(--theme-text-dim)' }}>
                 History will appear here after generating code
               </p>
             </div>
@@ -390,11 +403,11 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
                     {checkpoints.length > 0 && (
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 px-2">
-                          <Bookmark size={16} className="text-emerald-400" />
-                          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider">
+                          <Bookmark size={16} style={{ color: 'var(--color-success)' }} />
+                          <h3 className="text-sm font-medium uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>
                             Checkpoints
                           </h3>
-                          <span className="px-2 py-0.5 bg-emerald-500/20 rounded text-xs text-emerald-400">
+                          <span className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
                             {checkpoints.length}
                           </span>
                         </div>
@@ -422,11 +435,11 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
                     {templates.length > 0 && (
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 px-2">
-                          <Settings size={16} className="text-purple-400" />
-                          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider">
+                          <Settings size={16} style={{ color: 'var(--color-feature)' }} />
+                          <h3 className="text-sm font-medium uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>
                             Prompt Templates
                           </h3>
-                          <span className="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-400">
+                          <span className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>
                             {templates.length}
                           </span>
                         </div>
@@ -454,11 +467,11 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
                     {chats.length > 0 && (
                       <div className="space-y-3">
                         <div className="flex items-center gap-2 px-2">
-                          <FileCode size={16} className="text-blue-400" />
-                          <h3 className="text-sm font-medium text-slate-400 uppercase tracking-wider">
+                          <FileCode size={16} style={{ color: 'var(--color-info)' }} />
+                          <h3 className="text-sm font-medium uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>
                             Chat History
                           </h3>
-                          <span className="px-2 py-0.5 bg-blue-500/20 rounded text-xs text-blue-400">
+                          <span className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
                             {chats.length}
                           </span>
                         </div>
@@ -489,8 +502,8 @@ export const AIHistoryModal: React.FC<AIHistoryModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex-none p-3 border-t border-white/10 bg-slate-900/50">
-          <div className="text-xs text-slate-600 text-center">
+        <div className="flex-none p-3" style={{ borderTop: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-glass-100)' }}>
+          <div className="text-xs text-center" style={{ color: 'var(--theme-text-dim)' }}>
             Click <RotateCcw size={10} className="inline mx-0.5" /> to load files and chat from a previous state.
           </div>
         </div>

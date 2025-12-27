@@ -40,6 +40,7 @@ Transform wireframes and sketches into functional React applications using AI.
 ### Project Management
 
 - **Cloud Projects** - Save and manage multiple projects with backend sync
+- **Project Screenshots** - Automatic preview thumbnails with full-size lightbox
 - **Git Integration** - Built-in version control with commit history
 - **WIP Persistence** - Uncommitted changes survive page refresh (IndexedDB)
 - **Scratch Mode** - Work without creating a project, state persists across page refresh

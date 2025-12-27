@@ -117,19 +117,26 @@ export const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
             <button
               key={category.id}
               onClick={() => onCategoryChange(category.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
-                isActive
-                  ? 'bg-white/10 text-white border border-white/20'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
-              }`}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all border"
+              style={{
+                backgroundColor: isActive ? 'var(--theme-glass-200)' : undefined,
+                color: isActive ? 'var(--theme-text-primary)' : 'var(--theme-text-secondary)',
+                borderColor: isActive ? 'var(--theme-border-hover)' : 'transparent'
+              }}
             >
-              <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-blue-400' : ''}`} />
+              <Icon
+                className="w-4 h-4 shrink-0"
+                style={{ color: isActive ? 'var(--theme-accent)' : undefined }}
+              />
               <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium truncate">{category.label}</div>
-                <div className="text-[10px] text-slate-500 truncate">{category.description}</div>
+                <div className="text-[10px] truncate" style={{ color: 'var(--theme-text-muted)' }}>{category.description}</div>
               </div>
               {category.badge && (
-                <span className="text-[9px] px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded">
+                <span
+                  className="text-[9px] px-1.5 py-0.5 rounded"
+                  style={{ backgroundColor: 'var(--theme-accent-subtle)', color: 'var(--theme-accent)' }}
+                >
                   {category.badge}
                 </span>
               )}

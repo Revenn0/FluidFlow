@@ -84,4 +84,29 @@ export const projectApi = {
     apiCall<{ message: string; id: string; freedBytes: number; freedMB: number }>(`/projects/${id}/node_modules`, {
       method: 'DELETE',
     }),
+
+  /**
+   * Read a specific file from project
+   */
+  readFile: (id: string, filePath: string) =>
+    apiCall<{ content: string; path: string }>(`/projects/${id}/file?path=${encodeURIComponent(filePath)}`).then(
+      (res) => res.content
+    ),
+
+  /**
+   * Save a specific file to project
+   */
+  saveFile: (id: string, filePath: string, content: string) =>
+    apiCall<{ message: string; path: string }>(`/projects/${id}/file`, {
+      method: 'PUT',
+      body: JSON.stringify({ path: filePath, content }),
+    }),
+
+  /**
+   * Delete a specific file from project
+   */
+  deleteFile: (id: string, filePath: string) =>
+    apiCall<{ message: string; path: string }>(`/projects/${id}/file?path=${encodeURIComponent(filePath)}`, {
+      method: 'DELETE',
+    }),
 };

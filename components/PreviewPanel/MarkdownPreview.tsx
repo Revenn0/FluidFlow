@@ -83,7 +83,7 @@ function parseMarkdown(markdown: string): string {
   let html = markdown.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
     const escapedCode = escapeHtml(code.trim());
     const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
-    codeBlocks.push(`<pre class="bg-slate-900 rounded-lg p-4 overflow-x-auto my-4 border border-white/10"><code class="text-sm font-mono text-slate-300">${escapedCode}</code></pre>`);
+    codeBlocks.push(`<pre style="background-color: var(--theme-surface-dark); border: 1px solid var(--theme-border-light);" class="rounded-lg p-4 overflow-x-auto my-4"><code style="color: var(--theme-text-secondary);" class="text-sm font-mono">${escapedCode}</code></pre>`);
     return placeholder;
   });
 
@@ -92,7 +92,7 @@ function parseMarkdown(markdown: string): string {
   html = html.replace(/`([^`]+)`/g, (_, code) => {
     const escapedCode = escapeHtml(code);
     const placeholder = `__INLINE_CODE_${inlineCodes.length}__`;
-    inlineCodes.push(`<code class="bg-slate-800 px-1.5 py-0.5 rounded text-blue-300 text-sm font-mono">${escapedCode}</code>`);
+    inlineCodes.push(`<code style="background-color: var(--theme-glass-300); color: var(--color-info);" class="px-1.5 py-0.5 rounded text-sm font-mono">${escapedCode}</code>`);
     return placeholder;
   });
 
@@ -108,60 +108,60 @@ function parseMarkdown(markdown: string): string {
   });
 
   // Headers (content is now escaped)
-  html = html.replace(/^### (.+)$/gm, '<h3 class="text-lg font-semibold text-white mt-6 mb-3">$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2 class="text-xl font-bold text-white mt-8 mb-4 pb-2 border-b border-white/10">$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1 class="text-2xl font-bold text-white mt-8 mb-4">$1</h1>');
+  html = html.replace(/^### (.+)$/gm, '<h3 style="color: var(--theme-text-primary);" class="text-lg font-semibold mt-6 mb-3">$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2 style="color: var(--theme-text-primary); border-bottom: 1px solid var(--theme-border-light);" class="text-xl font-bold mt-8 mb-4 pb-2">$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1 style="color: var(--theme-text-primary);" class="text-2xl font-bold mt-8 mb-4">$1</h1>');
 
   // Bold and italic
   html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong class="font-bold"><em>$1</em></strong>');
-  html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>');
-  html = html.replace(/\*(.+?)\*/g, '<em class="italic text-slate-300">$1</em>');
-  html = html.replace(/_(.+?)_/g, '<em class="italic text-slate-300">$1</em>');
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong style="color: var(--theme-text-primary);" class="font-semibold">$1</strong>');
+  html = html.replace(/\*(.+?)\*/g, '<em style="color: var(--theme-text-secondary);" class="italic">$1</em>');
+  html = html.replace(/_(.+?)_/g, '<em style="color: var(--theme-text-secondary);" class="italic">$1</em>');
 
   // Strikethrough
-  html = html.replace(/~~(.+?)~~/g, '<del class="line-through text-slate-500">$1</del>');
+  html = html.replace(/~~(.+?)~~/g, '<del style="color: var(--theme-text-dim);" class="line-through">$1</del>');
 
   // Links - BUG-009 fix: sanitize URLs
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, text, url) => {
     const safeUrl = sanitizeUrl(url);
-    return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300 underline">${text}</a>`;
+    return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="color: var(--color-info);" class="underline">${text}</a>`;
   });
 
   // Images - BUG-009 fix: sanitize URLs
   html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_, alt, url) => {
     const safeUrl = sanitizeUrl(url);
-    return `<img src="${safeUrl}" alt="${alt}" class="max-w-full rounded-lg my-4 border border-white/10" />`;
+    return `<img src="${safeUrl}" alt="${alt}" style="border: 1px solid var(--theme-border-light);" class="max-w-full rounded-lg my-4" />`;
   });
 
   // Blockquotes
-  html = html.replace(/^&gt; (.+)$/gm, '<blockquote class="border-l-4 border-blue-500 pl-4 py-1 my-4 bg-blue-500/5 text-slate-300 italic">$1</blockquote>');
+  html = html.replace(/^&gt; (.+)$/gm, '<blockquote style="border-left: 4px solid var(--color-info); background-color: var(--color-info-subtle); color: var(--theme-text-secondary);" class="pl-4 py-1 my-4 italic">$1</blockquote>');
 
   // Horizontal rules
-  html = html.replace(/^---$/gm, '<hr class="my-6 border-white/10" />');
-  html = html.replace(/^\*\*\*$/gm, '<hr class="my-6 border-white/10" />');
+  html = html.replace(/^---$/gm, '<hr style="border-color: var(--theme-border-light);" class="my-6" />');
+  html = html.replace(/^\*\*\*$/gm, '<hr style="border-color: var(--theme-border-light);" class="my-6" />');
 
   // Unordered lists
-  html = html.replace(/^[-*] (.+)$/gm, '<li class="ml-4 text-slate-300 py-0.5 list-disc">$1</li>');
+  html = html.replace(/^[-*] (.+)$/gm, '<li style="color: var(--theme-text-secondary);" class="ml-4 py-0.5 list-disc">$1</li>');
 
   // Ordered lists
-  html = html.replace(/^\d+\. (.+)$/gm, '<li class="ml-4 text-slate-300 py-0.5 list-decimal">$1</li>');
+  html = html.replace(/^\d+\. (.+)$/gm, '<li style="color: var(--theme-text-secondary);" class="ml-4 py-0.5 list-decimal">$1</li>');
 
   // Wrap consecutive <li> items in <ul> or <ol>
-  html = html.replace(/(<li class="ml-4 text-slate-300 py-0.5 list-disc">[\s\S]*?<\/li>)+/g, (match) => {
+  html = html.replace(/(<li style="color: var\(--theme-text-secondary\);" class="ml-4 py-0.5 list-disc">[\s\S]*?<\/li>)+/g, (match) => {
     return `<ul class="my-4 space-y-1">${match}</ul>`;
   });
-  html = html.replace(/(<li class="ml-4 text-slate-300 py-0.5 list-decimal">[\s\S]*?<\/li>)+/g, (match) => {
+  html = html.replace(/(<li style="color: var\(--theme-text-secondary\);" class="ml-4 py-0.5 list-decimal">[\s\S]*?<\/li>)+/g, (match) => {
     return `<ol class="my-4 space-y-1">${match}</ol>`;
   });
 
   // Task lists (note: [ ] becomes escaped as &amp;#91; etc, so we match the escaped version)
-  html = html.replace(/^- \[x\] (.+)$/gm, '<div class="flex items-center gap-2 py-1"><input type="checkbox" checked disabled class="rounded" /><span class="text-slate-300">$1</span></div>');
-  html = html.replace(/^- \[ \] (.+)$/gm, '<div class="flex items-center gap-2 py-1"><input type="checkbox" disabled class="rounded" /><span class="text-slate-300">$1</span></div>');
+  html = html.replace(/^- \[x\] (.+)$/gm, '<div class="flex items-center gap-2 py-1"><input type="checkbox" checked disabled class="rounded" /><span style="color: var(--theme-text-secondary);">$1</span></div>');
+  html = html.replace(/^- \[ \] (.+)$/gm, '<div class="flex items-center gap-2 py-1"><input type="checkbox" disabled class="rounded" /><span style="color: var(--theme-text-secondary);">$1</span></div>');
 
   // Paragraphs (wrap remaining text)
   html = html.split('\n\n').map(block => {
     if (block.trim() && !block.match(/^<[a-z]/)) {
-      return `<p class="text-slate-300 my-3 leading-relaxed">${block}</p>`;
+      return `<p style="color: var(--theme-text-secondary);" class="my-3 leading-relaxed">${block}</p>`;
     }
     return block;
   }).join('\n');
@@ -191,13 +191,13 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, fileN
   };
 
   return (
-    <div className="flex flex-col h-full w-full min-h-0 bg-[#0d1117]">
+    <div className="flex flex-col h-full w-full min-h-0" style={{ backgroundColor: 'var(--theme-background)' }}>
       {/* Header */}
-      <div className="flex-none flex items-center justify-between px-4 py-2 bg-[#0a0e16] border-b border-white/5">
+      <div className="flex-none flex items-center justify-between px-4 py-2" style={{ backgroundColor: 'var(--theme-surface)', borderBottom: '1px solid var(--theme-border)' }}>
         <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-orange-400" />
-          <span className="text-sm font-medium text-slate-300">{fileName}</span>
-          <span className="text-[10px] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded">
+          <FileText className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
+          <span className="text-sm font-medium" style={{ color: 'var(--theme-text-secondary)' }}>{fileName}</span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
             Markdown
           </span>
         </div>
@@ -206,11 +206,12 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, fileN
             <button
               onClick={onRegenerate}
               disabled={isGenerating}
-              className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors ${
-                isGenerating
-                  ? 'bg-orange-500/20 text-orange-400 cursor-not-allowed'
-                  : 'bg-white/5 text-slate-400 hover:text-white'
-              }`}
+              className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors"
+              style={{
+                backgroundColor: isGenerating ? 'var(--color-warning-subtle)' : 'var(--theme-glass-200)',
+                color: isGenerating ? 'var(--color-warning)' : 'var(--theme-text-muted)',
+                cursor: isGenerating ? 'not-allowed' : 'pointer'
+              }}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
               {isGenerating ? 'Generating...' : 'Re-generate'}
@@ -218,20 +219,21 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, fileN
           )}
           <button
             onClick={() => setShowSource(!showSource)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors ${
-              showSource
-                ? 'bg-blue-500/20 text-blue-400'
-                : 'bg-white/5 text-slate-400 hover:text-white'
-            }`}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors"
+            style={{
+              backgroundColor: showSource ? 'var(--color-info-subtle)' : 'var(--theme-glass-200)',
+              color: showSource ? 'var(--color-info)' : 'var(--theme-text-muted)'
+            }}
           >
             {showSource ? <Eye className="w-3.5 h-3.5" /> : <Code2 className="w-3.5 h-3.5" />}
             {showSource ? 'Preview' : 'Source'}
           </button>
           <button
             onClick={copyContent}
-            className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg bg-white/5 text-slate-400 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors"
+            style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} /> : <Copy className="w-3.5 h-3.5" />}
             {copied ? 'Copied!' : 'Copy'}
           </button>
         </div>
@@ -240,15 +242,15 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({ content, fileN
       {/* Content - scrollable area */}
       <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar relative">
         {isGenerating && (
-          <div className="absolute inset-0 bg-[#0d1117]/90 backdrop-blur-sm z-10 flex items-center justify-center">
+          <div className="absolute inset-0 backdrop-blur-sm z-10 flex items-center justify-center" style={{ backgroundColor: 'var(--theme-overlay)' }}>
             <div className="flex flex-col items-center gap-3">
-              <div className="w-10 h-10 border-3 border-orange-500/30 border-t-orange-500 rounded-full animate-spin"></div>
-              <span className="text-sm font-medium text-orange-400">Generating README.md...</span>
+              <div className="w-10 h-10 rounded-full animate-spin" style={{ border: '3px solid var(--color-warning-subtle)', borderTopColor: 'var(--color-warning)' }}></div>
+              <span className="text-sm font-medium" style={{ color: 'var(--color-warning)' }}>Generating README.md...</span>
             </div>
           </div>
         )}
         {showSource ? (
-          <pre className="p-6 text-sm font-mono text-slate-300 whitespace-pre-wrap break-words">
+          <pre className="p-6 text-sm font-mono whitespace-pre-wrap break-words" style={{ color: 'var(--theme-text-secondary)' }}>
             {content}
           </pre>
         ) : (

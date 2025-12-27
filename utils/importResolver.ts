@@ -95,6 +95,161 @@ export const PACKAGE_REGISTRY: Record<string, PackageConfig> = {
   'lodash': { package: 'lodash', version: '4.17.21' },
   'lodash-es': { package: 'lodash-es', version: '4.17.21' },
   'immer': { package: 'immer', version: '10.1.1' },
+
+  // ═══════════════════════════════════════════════════════════
+  // EXPANDED PACKAGE REGISTRY - Additional popular packages
+  // ═══════════════════════════════════════════════════════════
+
+  // More Radix UI Components
+  '@radix-ui/react-accordion': { package: '@radix-ui/react-accordion', version: '1.2.1', external: ['react', 'react-dom'] },
+  '@radix-ui/react-alert-dialog': { package: '@radix-ui/react-alert-dialog', version: '1.1.2', external: ['react', 'react-dom'] },
+  '@radix-ui/react-aspect-ratio': { package: '@radix-ui/react-aspect-ratio', version: '1.1.0', external: ['react', 'react-dom'] },
+  '@radix-ui/react-avatar': { package: '@radix-ui/react-avatar', version: '1.1.1', external: ['react', 'react-dom'] },
+  '@radix-ui/react-collapsible': { package: '@radix-ui/react-collapsible', version: '1.1.1', external: ['react', 'react-dom'] },
+  '@radix-ui/react-context-menu': { package: '@radix-ui/react-context-menu', version: '2.2.2', external: ['react', 'react-dom'] },
+  '@radix-ui/react-hover-card': { package: '@radix-ui/react-hover-card', version: '1.1.2', external: ['react', 'react-dom'] },
+  '@radix-ui/react-label': { package: '@radix-ui/react-label', version: '2.1.0', external: ['react', 'react-dom'] },
+  '@radix-ui/react-menubar': { package: '@radix-ui/react-menubar', version: '1.1.2', external: ['react', 'react-dom'] },
+  '@radix-ui/react-navigation-menu': { package: '@radix-ui/react-navigation-menu', version: '1.2.1', external: ['react', 'react-dom'] },
+  '@radix-ui/react-progress': { package: '@radix-ui/react-progress', version: '1.1.0', external: ['react', 'react-dom'] },
+  '@radix-ui/react-radio-group': { package: '@radix-ui/react-radio-group', version: '1.2.1', external: ['react', 'react-dom'] },
+  '@radix-ui/react-scroll-area': { package: '@radix-ui/react-scroll-area', version: '1.2.0', external: ['react', 'react-dom'] },
+  '@radix-ui/react-separator': { package: '@radix-ui/react-separator', version: '1.1.0', external: ['react', 'react-dom'] },
+  '@radix-ui/react-toast': { package: '@radix-ui/react-toast', version: '1.2.2', external: ['react', 'react-dom'] },
+  '@radix-ui/react-toggle': { package: '@radix-ui/react-toggle', version: '1.1.0', external: ['react', 'react-dom'] },
+  '@radix-ui/react-toggle-group': { package: '@radix-ui/react-toggle-group', version: '1.1.0', external: ['react', 'react-dom'] },
+
+  // Headless UI
+  '@headlessui/react': { package: '@headlessui/react', version: '2.2.0', external: ['react', 'react-dom'] },
+
+  // SWR (Data fetching)
+  'swr': { package: 'swr', version: '2.2.5', external: ['react'] },
+
+  // React Spring (Animation)
+  '@react-spring/web': { package: '@react-spring/web', version: '9.7.5', external: ['react', 'react-dom'] },
+  'react-spring': { package: '@react-spring/web', version: '9.7.5', external: ['react', 'react-dom'] },
+
+  // React Use (Hooks collection)
+  'react-use': { package: 'react-use', version: '17.5.1', external: ['react', 'react-dom'] },
+
+  // UseHooks-TS
+  'usehooks-ts': { package: 'usehooks-ts', version: '3.1.0', external: ['react'] },
+
+  // Markdown/Code
+  'react-markdown': { package: 'react-markdown', version: '9.0.1', external: ['react'] },
+  'react-syntax-highlighter': { package: 'react-syntax-highlighter', version: '15.6.1', external: ['react'] },
+  'remark-gfm': { package: 'remark-gfm', version: '4.0.0' },
+
+  // Media
+  'react-player': { package: 'react-player', version: '2.16.0', external: ['react'] },
+  'react-dropzone': { package: 'react-dropzone', version: '14.3.5', external: ['react'] },
+
+  // Date Pickers
+  'react-day-picker': { package: 'react-day-picker', version: '9.4.3', external: ['react'] },
+  'react-datepicker': { package: 'react-datepicker', version: '7.5.0', external: ['react', 'react-dom'] },
+
+  // Select/Combobox
+  'react-select': { package: 'react-select', version: '5.8.3', external: ['react', 'react-dom'] },
+
+  // Modals/Drawers
+  'vaul': { package: 'vaul', version: '1.1.1', external: ['react', 'react-dom'] },
+
+  // Command Palette
+  'cmdk': { package: 'cmdk', version: '1.0.4', external: ['react', 'react-dom'] },
+
+  // Input Masking
+  'react-input-mask': { package: 'react-input-mask', version: '2.0.4', external: ['react', 'react-dom'] },
+  'react-number-format': { package: 'react-number-format', version: '5.4.2', external: ['react'] },
+
+  // Virtualization
+  '@tanstack/react-virtual': { package: '@tanstack/react-virtual', version: '3.10.9', external: ['react', 'react-dom'] },
+  'react-virtualized': { package: 'react-virtualized', version: '9.22.5', external: ['react', 'react-dom'] },
+  'react-window': { package: 'react-window', version: '1.8.10', external: ['react', 'react-dom'] },
+
+  // Copy to Clipboard
+  'react-copy-to-clipboard': { package: 'react-copy-to-clipboard', version: '5.1.0', external: ['react'] },
+
+  // QR Code
+  'qrcode.react': { package: 'qrcode.react', version: '4.2.0', external: ['react'] },
+  'react-qr-code': { package: 'react-qr-code', version: '2.0.15', external: ['react'] },
+
+  // Confetti
+  'react-confetti': { package: 'react-confetti', version: '6.1.0', external: ['react'] },
+  'canvas-confetti': { package: 'canvas-confetti', version: '1.9.3' },
+
+  // Error Boundary
+  'react-error-boundary': { package: 'react-error-boundary', version: '4.1.2', external: ['react'] },
+
+  // Helmet (SEO)
+  'react-helmet-async': { package: 'react-helmet-async', version: '2.0.5', external: ['react', 'react-dom'] },
+
+  // Intersection Observer
+  'react-intersection-observer': { package: 'react-intersection-observer', version: '9.13.1', external: ['react'] },
+
+  // Resizable
+  'react-resizable-panels': { package: 'react-resizable-panels', version: '2.1.7', external: ['react', 'react-dom'] },
+  're-resizable': { package: 're-resizable', version: '6.10.3', external: ['react', 'react-dom'] },
+
+  // Color Picker
+  'react-colorful': { package: 'react-colorful', version: '5.6.1', external: ['react', 'react-dom'] },
+
+  // JSON Viewer
+  'react-json-view': { package: 'react-json-view', version: '1.21.3', external: ['react', 'react-dom'] },
+  '@uiw/react-json-view': { package: '@uiw/react-json-view', version: '2.0.0-alpha.27', external: ['react', 'react-dom'] },
+
+  // PDF
+  '@react-pdf/renderer': { package: '@react-pdf/renderer', version: '4.1.5', external: ['react'] },
+
+  // Maps (Note: may need API keys)
+  '@react-google-maps/api': { package: '@react-google-maps/api', version: '2.20.3', external: ['react', 'react-dom'] },
+  'react-map-gl': { package: 'react-map-gl', version: '7.1.7', external: ['react', 'react-dom'] },
+
+  // Charts (Additional)
+  'victory': { package: 'victory', version: '37.3.2', external: ['react'] },
+  '@nivo/core': { package: '@nivo/core', version: '0.88.0', external: ['react', 'react-dom'] },
+  '@nivo/bar': { package: '@nivo/bar', version: '0.88.0', external: ['react', 'react-dom'] },
+  '@nivo/line': { package: '@nivo/line', version: '0.88.0', external: ['react', 'react-dom'] },
+  '@nivo/pie': { package: '@nivo/pie', version: '0.88.0', external: ['react', 'react-dom'] },
+
+  // Rich Text Editor
+  '@tiptap/react': { package: '@tiptap/react', version: '2.10.4', external: ['react', 'react-dom'] },
+  '@tiptap/starter-kit': { package: '@tiptap/starter-kit', version: '2.10.4' },
+
+  // Slider/Range
+  'rc-slider': { package: 'rc-slider', version: '11.1.7', external: ['react', 'react-dom'] },
+
+  // Tooltip alternatives
+  '@floating-ui/react': { package: '@floating-ui/react', version: '0.26.28', external: ['react', 'react-dom'] },
+  'react-tooltip': { package: 'react-tooltip', version: '5.28.0', external: ['react', 'react-dom'] },
+
+  // Icons (Additional sets)
+  'react-icons/fa': { package: 'react-icons', version: '5.4.0', subpath: '/fa', external: ['react'] },
+  'react-icons/fa6': { package: 'react-icons', version: '5.4.0', subpath: '/fa6', external: ['react'] },
+  'react-icons/md': { package: 'react-icons', version: '5.4.0', subpath: '/md', external: ['react'] },
+  'react-icons/io': { package: 'react-icons', version: '5.4.0', subpath: '/io', external: ['react'] },
+  'react-icons/io5': { package: 'react-icons', version: '5.4.0', subpath: '/io5', external: ['react'] },
+  'react-icons/hi': { package: 'react-icons', version: '5.4.0', subpath: '/hi', external: ['react'] },
+  'react-icons/hi2': { package: 'react-icons', version: '5.4.0', subpath: '/hi2', external: ['react'] },
+  'react-icons/bs': { package: 'react-icons', version: '5.4.0', subpath: '/bs', external: ['react'] },
+  'react-icons/ai': { package: 'react-icons', version: '5.4.0', subpath: '/ai', external: ['react'] },
+  'react-icons/bi': { package: 'react-icons', version: '5.4.0', subpath: '/bi', external: ['react'] },
+  'react-icons/ri': { package: 'react-icons', version: '5.4.0', subpath: '/ri', external: ['react'] },
+  'react-icons/fi': { package: 'react-icons', version: '5.4.0', subpath: '/fi', external: ['react'] },
+  'react-icons/gi': { package: 'react-icons', version: '5.4.0', subpath: '/gi', external: ['react'] },
+  'react-icons/si': { package: 'react-icons', version: '5.4.0', subpath: '/si', external: ['react'] },
+  'react-icons/tb': { package: 'react-icons', version: '5.4.0', subpath: '/tb', external: ['react'] },
+  'react-icons/lu': { package: 'react-icons', version: '5.4.0', subpath: '/lu', external: ['react'] },
+
+  // Internationalization
+  'react-i18next': { package: 'react-i18next', version: '15.1.3', external: ['react'] },
+  'i18next': { package: 'i18next', version: '24.0.5' },
+
+  // Validation
+  '@hookform/resolvers': { package: '@hookform/resolvers', version: '3.9.1', external: ['react'] },
+
+  // Data utilities
+  'match-sorter': { package: 'match-sorter', version: '6.3.4' },
+  'fuse.js': { package: 'fuse.js', version: '7.0.0' },
 };
 
 /**

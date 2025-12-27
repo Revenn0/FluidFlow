@@ -66,23 +66,23 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
     return (
       <div className={`flex items-center gap-3 px-3 py-2 rounded-lg ${className}`}>
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="w-20 h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div className="w-20 h-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
             <div
-              className="h-full bg-purple-500 rounded-full transition-all duration-300"
-              style={{ width: `${initialPercent}%` }}
+              className="h-full rounded-full transition-all duration-300"
+              style={{ width: `${initialPercent}%`, backgroundColor: 'var(--theme-ai-accent)' }}
             />
           </div>
-          <span className="text-xs font-mono text-slate-500 whitespace-nowrap">{Math.round(initialPercent)}%</span>
+          <span className="text-xs font-mono whitespace-nowrap" style={{ color: 'var(--theme-text-muted)' }}>{Math.round(initialPercent)}%</span>
         </div>
-        <div className="flex items-center gap-3 text-xs text-slate-500 font-mono whitespace-nowrap">
+        <div className="flex items-center gap-3 text-xs font-mono whitespace-nowrap" style={{ color: 'var(--theme-text-muted)' }}>
           <span className="flex items-center gap-1.5">
             <MessageSquare className="w-4 h-4" />
-            <span className="text-slate-400">Msg:</span>
+            <span style={{ color: 'var(--theme-text-secondary)' }}>Msg:</span>
             0
           </span>
           <span className="flex items-center gap-1.5">
             <Zap className="w-4 h-4" />
-            <span className="text-slate-400">Tok:</span>
+            <span style={{ color: 'var(--theme-text-secondary)' }}>Tok:</span>
             {aiContextTokens > 0 ? `${Math.round(aiContextTokens / 1000)}k` : '0k'}
           </span>
         </div>
@@ -106,16 +106,16 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
   const isWarning = remainingTokens < minRemainingTokens * 2;
   const isCritical = needsCompact;
 
-  const getColor = () => {
-    if (isCritical) return 'text-red-400';
-    if (isWarning) return 'text-amber-400';
-    return 'text-emerald-400';
+  const getColorStyle = () => {
+    if (isCritical) return { color: 'var(--color-error)' };
+    if (isWarning) return { color: 'var(--color-warning)' };
+    return { color: 'var(--color-success)' };
   };
 
-  const getBgColor = () => {
-    if (isCritical) return 'bg-red-500';
-    if (isWarning) return 'bg-amber-500';
-    return 'bg-emerald-500';
+  const getBgColorStyle = () => {
+    if (isCritical) return { backgroundColor: 'var(--color-error)' };
+    if (isWarning) return { backgroundColor: 'var(--color-warning)' };
+    return { backgroundColor: 'var(--color-success)' };
   };
 
   // Build tooltip with breakdown
@@ -130,7 +130,7 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
     <>
       {/* Compact Indicator */}
       <div
-        className={`flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors ${className}`}
+        className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${className}`}
         title={tooltipParts}
       >
         {/* Mini progress bar - segmented for AI Context + Chat */}
@@ -138,40 +138,40 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
           onClick={() => setShowModal(true)}
           className="flex items-center gap-2 flex-1 min-w-0"
         >
-          <div className="w-20 h-2 bg-slate-800 rounded-full overflow-hidden flex">
+          <div className="w-20 h-2 rounded-full overflow-hidden flex" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
             {/* AI Context segment (purple) */}
             {aiContextTokens > 0 && (
               <div
-                className="h-full bg-purple-500 transition-all duration-300"
-                style={{ width: `${(aiContextTokens / modelContextSize) * 100}%` }}
+                className="h-full transition-all duration-300"
+                style={{ width: `${(aiContextTokens / modelContextSize) * 100}%`, backgroundColor: 'var(--theme-ai-accent)' }}
               />
             )}
             {/* Chat segment (color based on status) */}
             <div
-              className={`h-full ${getBgColor()} transition-all duration-300`}
-              style={{ width: `${(stats.tokens / modelContextSize) * 100}%` }}
+              className="h-full transition-all duration-300"
+              style={{ width: `${(stats.tokens / modelContextSize) * 100}%`, ...getBgColorStyle() }}
             />
           </div>
 
-          <span className={`text-xs font-mono ${getColor()} whitespace-nowrap`}>
+          <span className="text-xs font-mono whitespace-nowrap" style={getColorStyle()}>
             {Math.round(usagePercent)}%
           </span>
 
           {isCritical && (
-            <AlertTriangle className="w-4 h-4 text-red-400 animate-pulse shrink-0" />
+            <AlertTriangle className="w-4 h-4 animate-pulse shrink-0" style={{ color: 'var(--color-error)' }} />
           )}
         </button>
 
         {/* Stats */}
-        <div className="flex items-center gap-3 text-xs text-slate-500 font-mono whitespace-nowrap">
+        <div className="flex items-center gap-3 text-xs font-mono whitespace-nowrap" style={{ color: 'var(--theme-text-muted)' }}>
           {/* Project Context Badge */}
           {projectContextInfo && (
             <span
-              className={`flex items-center gap-1 px-1.5 py-0.5 rounded ${
-                projectContextInfo.exists
-                  ? 'bg-purple-500/20 text-purple-400'
-                  : 'bg-slate-700/50 text-slate-500'
-              }`}
+              className="flex items-center gap-1 px-1.5 py-0.5 rounded"
+              style={{
+                backgroundColor: projectContextInfo.exists ? 'var(--theme-ai-accent-subtle)' : 'var(--theme-glass-100)',
+                color: projectContextInfo.exists ? 'var(--theme-ai-accent)' : 'var(--theme-text-muted)'
+              }}
               title={projectContextInfo.exists && projectContextInfo.generatedAt
                 ? `AI Context active: ~${projectContextInfo.tokens}tok (generated ${new Date(projectContextInfo.generatedAt).toLocaleDateString()})`
                 : 'No AI Context generated'
@@ -185,12 +185,12 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
           )}
           <span className="flex items-center gap-1.5">
             <MessageSquare className="w-4 h-4" />
-            <span className="text-slate-400">Msg:</span>
+            <span style={{ color: 'var(--theme-text-secondary)' }}>Msg:</span>
             {stats.messages}
           </span>
           <span className="flex items-center gap-1.5">
             <Zap className="w-4 h-4" />
-            <span className="text-slate-400">Tok:</span>
+            <span style={{ color: 'var(--theme-text-secondary)' }}>Tok:</span>
             {Math.round(totalTokens / 1000)}k
           </span>
         </div>
@@ -204,7 +204,8 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
                 e.stopPropagation();
                 onCompact();
               }}
-              className="p-1.5 hover:bg-blue-500/20 rounded text-blue-400 hover:text-blue-300 transition-colors"
+              className="p-1.5 rounded transition-colors"
+              style={{ color: 'var(--theme-accent)' }}
               title="Compact context"
             >
               <Zap className="w-4 h-4" />
@@ -217,7 +218,8 @@ export const ContextIndicator: React.FC<ContextIndicatorProps> = ({
               e.stopPropagation();
               contextManager.clearContext(contextId);
             }}
-            className="p-1.5 hover:bg-slate-700/50 rounded text-slate-500 hover:text-red-400 transition-colors"
+            className="p-1.5 rounded transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Clear messages"
           >
             <Trash2 className="w-4 h-4" />

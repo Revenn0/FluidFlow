@@ -94,13 +94,13 @@ Use proper markdown formatting with headers, code blocks, and lists.`,
   // No markdown files and no app code
   if (mdFiles.length === 0 && !appCode) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-4 p-8">
-        <div className="p-4 rounded-full bg-slate-500/10 border border-slate-500/20">
-          <FileText className="w-10 h-10 text-slate-500" />
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8" style={{ color: 'var(--theme-text-muted)' }}>
+        <div className="p-4 rounded-full" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+          <FileText className="w-10 h-10" style={{ color: 'var(--theme-text-dim)' }} />
         </div>
         <div className="text-center">
-          <h3 className="text-lg font-medium text-slate-300 mb-2">No Documentation</h3>
-          <p className="text-sm text-slate-500 max-w-md">
+          <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--theme-text-secondary)' }}>No Documentation</h3>
+          <p className="text-sm max-w-md" style={{ color: 'var(--theme-text-dim)' }}>
             Generate an app first to create documentation.
           </p>
         </div>
@@ -111,20 +111,21 @@ Use proper markdown formatting with headers, code blocks, and lists.`,
   // No README.md exists - show generate option
   if (!hasReadme && mdFiles.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-slate-400 gap-4 p-8">
-        <div className="p-4 rounded-full bg-orange-500/10 border border-orange-500/20">
-          <FileText className="w-10 h-10 text-orange-400" />
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 p-8" style={{ color: 'var(--theme-text-muted)' }}>
+        <div className="p-4 rounded-full" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning)' }}>
+          <FileText className="w-10 h-10" style={{ color: 'var(--color-warning)' }} />
         </div>
         <div className="text-center">
-          <h3 className="text-lg font-medium text-slate-300 mb-2">No README.md Found</h3>
-          <p className="text-sm text-slate-500 max-w-md mb-4">
+          <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--theme-text-secondary)' }}>No README.md Found</h3>
+          <p className="text-sm max-w-md mb-4" style={{ color: 'var(--theme-text-dim)' }}>
             Generate a professional README for your project with AI.
           </p>
         </div>
         <button
           onClick={generateReadme}
           disabled={isGenerating}
-          className="px-4 py-2 text-sm text-white bg-orange-600 hover:bg-orange-500 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 text-sm rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ backgroundColor: 'var(--color-warning)', color: 'var(--theme-text-on-accent)' }}
         >
           {isGenerating ? (
             <>
@@ -143,21 +144,22 @@ Use proper markdown formatting with headers, code blocks, and lists.`,
   }
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-[#0d1117]">
+    <div className="flex-1 min-h-0 flex flex-col" style={{ backgroundColor: 'var(--theme-background)' }}>
       {/* File Selector Header */}
-      <div className="flex-none flex items-center justify-between px-4 py-2 bg-[#0a0e16] border-b border-white/5">
+      <div className="flex-none flex items-center justify-between px-4 py-2" style={{ backgroundColor: 'var(--theme-surface)', borderBottom: '1px solid var(--theme-border)' }}>
         <div className="flex items-center gap-2">
           {/* File Dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowSelector(!showSelector)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg transition-colors text-sm"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors text-sm"
+              style={{ backgroundColor: 'var(--theme-glass-200)' }}
             >
-              <FileText className="w-4 h-4 text-orange-400" />
-              <span className="text-slate-300 font-medium">
+              <FileText className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
+              <span className="font-medium" style={{ color: 'var(--theme-text-secondary)' }}>
                 {activeFile || 'Select file'}
               </span>
-              <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${showSelector ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 transition-transform ${showSelector ? 'rotate-180' : ''}`} style={{ color: 'var(--theme-text-dim)' }} />
             </button>
 
             {showSelector && (
@@ -166,7 +168,7 @@ Use proper markdown formatting with headers, code blocks, and lists.`,
                   className="fixed inset-0 z-10"
                   onClick={() => setShowSelector(false)}
                 />
-                <div className="absolute top-full left-0 mt-1 w-64 max-h-60 overflow-y-auto bg-slate-900 border border-white/10 rounded-lg shadow-xl z-20">
+                <div className="absolute top-full left-0 mt-1 w-64 max-h-60 overflow-y-auto rounded-lg shadow-xl z-20" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
                   {mdFiles.map(file => (
                     <button
                       key={file}
@@ -174,16 +176,16 @@ Use proper markdown formatting with headers, code blocks, and lists.`,
                         setSelectedFile(file);
                         setShowSelector(false);
                       }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
-                        file === activeFile
-                          ? 'bg-orange-500/20 text-orange-300'
-                          : 'text-slate-300 hover:bg-white/5'
-                      }`}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors"
+                      style={{
+                        backgroundColor: file === activeFile ? 'var(--color-warning-subtle)' : 'transparent',
+                        color: file === activeFile ? 'var(--color-warning)' : 'var(--theme-text-secondary)'
+                      }}
                     >
-                      <FileText className="w-4 h-4 text-orange-400/60" />
+                      <FileText className="w-4 h-4" style={{ color: 'var(--color-warning)', opacity: 0.6 }} />
                       {file}
                       {file === 'README.md' && (
-                        <span className="ml-auto text-[10px] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded">
+                        <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
                           Main
                         </span>
                       )}
@@ -198,7 +200,8 @@ Use proper markdown formatting with headers, code blocks, and lists.`,
                         generateReadme();
                       }}
                       disabled={isGenerating}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm text-orange-400 hover:bg-orange-500/10 border-t border-white/5 transition-colors disabled:opacity-50"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors disabled:opacity-50"
+                      style={{ color: 'var(--color-warning)', borderTop: '1px solid var(--theme-border-light)' }}
                     >
                       <Plus className="w-4 h-4" />
                       Generate README.md
@@ -209,7 +212,7 @@ Use proper markdown formatting with headers, code blocks, and lists.`,
             )}
           </div>
 
-          <span className="text-[10px] px-1.5 py-0.5 bg-orange-500/20 text-orange-400 rounded">
+          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}>
             {mdFiles.length} file{mdFiles.length !== 1 ? 's' : ''}
           </span>
         </div>
@@ -219,7 +222,8 @@ Use proper markdown formatting with headers, code blocks, and lists.`,
           <button
             onClick={generateReadme}
             disabled={isGenerating}
-            className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg bg-orange-600 hover:bg-orange-500 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: 'var(--color-warning)', color: 'var(--theme-text-on-accent)' }}
           >
             {isGenerating ? (
               <>
@@ -247,7 +251,7 @@ Use proper markdown formatting with headers, code blocks, and lists.`,
           />
         </div>
       ) : (
-        <div className="flex-1 flex items-center justify-center text-slate-500">
+        <div className="flex-1 flex items-center justify-center" style={{ color: 'var(--theme-text-dim)' }}>
           <p className="text-sm">Select a markdown file to view</p>
         </div>
       )}

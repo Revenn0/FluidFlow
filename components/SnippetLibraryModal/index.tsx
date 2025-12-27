@@ -177,57 +177,59 @@ export const SnippetLibraryModal: React.FC<SnippetLibraryModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div className="w-full max-w-5xl bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 backdrop-blur-sm" style={{ backgroundColor: 'var(--theme-backdrop)' }}>
+      <div className="w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border-light)' }}>
         {/* Header */}
-        <div className="p-6 border-b border-white/5 bg-gradient-to-r from-blue-500/10 to-purple-500/10">
+        <div className="p-6" style={{ borderBottom: '1px solid var(--theme-border-subtle)', background: 'linear-gradient(to right, var(--color-info-subtle), var(--color-feature-subtle))' }}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/20 rounded-lg">
-                <Code2 className="w-5 h-5 text-blue-400" />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-info-subtle)' }}>
+                <Code2 className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">Snippet Library</h2>
-                <p className="text-xs text-slate-400">{stats.totalSnippets} snippets saved</p>
+                <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Snippet Library</h2>
+                <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>{stats.totalSnippets} snippets saved</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
-              <X className="w-5 h-5 text-slate-400" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mt-4">
             <div className="flex items-center gap-2 text-xs">
-              <Heart className="w-4 h-4 text-red-400" />
-              <span className="text-slate-400">{stats.favoriteCount} favorites</span>
+              <Heart className="w-4 h-4" style={{ color: 'var(--color-error)' }} />
+              <span style={{ color: 'var(--theme-text-muted)' }}>{stats.favoriteCount} favorites</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <Tag className="w-4 h-4 text-blue-400" />
-              <span className="text-slate-400">{stats.mostUsedTags.slice(0, 3).join(', ') || 'No tags'}</span>
+              <Tag className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
+              <span style={{ color: 'var(--theme-text-muted)' }}>{stats.mostUsedTags.slice(0, 3).join(', ') || 'No tags'}</span>
             </div>
             <div className="flex items-center gap-2 text-xs">
-              <FileJson className="w-4 h-4 text-emerald-400" />
-              <span className="text-slate-400">{Object.keys(stats.languageCount).length} languages</span>
+              <FileJson className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
+              <span style={{ color: 'var(--theme-text-muted)' }}>{Object.keys(stats.languageCount).length} languages</span>
             </div>
           </div>
         </div>
 
         {/* Search and Filters */}
-        <div className="p-4 border-b border-white/5">
+        <div className="p-4" style={{ borderBottom: '1px solid var(--theme-border-subtle)' }}>
           <div className="flex items-center gap-3">
             {/* Search */}
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
               <input
                 type="text"
                 placeholder="Search snippets..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-sm placeholder:text-slate-500 focus:outline-none focus:border-blue-500/50"
+                className="w-full pl-10 pr-4 py-2 rounded-lg text-sm focus:outline-none"
+                style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
               />
             </div>
 
@@ -235,21 +237,21 @@ export const SnippetLibraryModal: React.FC<SnippetLibraryModalProps> = ({
             <div className="flex gap-2">
               <button
                 onClick={() => setFilter('all')}
-                className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                  filter === 'all'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                }`}
+                className="px-3 py-2 text-sm rounded-lg transition-colors"
+                style={{
+                  backgroundColor: filter === 'all' ? 'var(--theme-accent)' : 'var(--theme-glass-200)',
+                  color: filter === 'all' ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)',
+                }}
               >
                 All
               </button>
               <button
                 onClick={() => setFilter('favorites')}
-                className={`px-3 py-2 text-sm rounded-lg transition-colors ${
-                  filter === 'favorites'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
-                }`}
+                className="px-3 py-2 text-sm rounded-lg transition-colors"
+                style={{
+                  backgroundColor: filter === 'favorites' ? 'var(--theme-accent)' : 'var(--theme-glass-200)',
+                  color: filter === 'favorites' ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)',
+                }}
               >
                 <Star className="w-4 h-4 inline mr-1" />
                 Favorites
@@ -260,7 +262,8 @@ export const SnippetLibraryModal: React.FC<SnippetLibraryModalProps> = ({
             <select
               value={languageFilter}
               onChange={(e) => setLanguageFilter(e.target.value)}
-              className="px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50"
+              className="px-3 py-2 rounded-lg text-sm focus:outline-none"
+              style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
             >
               <option value="">All Languages</option>
               {availableLanguages.map(lang => (
@@ -272,24 +275,27 @@ export const SnippetLibraryModal: React.FC<SnippetLibraryModalProps> = ({
             <div className="flex gap-2">
               <button
                 onClick={() => setShowNewForm(true)}
-                className="p-2 bg-blue-600 hover:bg-blue-500 rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
                 title="New snippet"
               >
-                <Plus className="w-4 h-4 text-white" />
+                <Plus className="w-4 h-4" />
               </button>
               <button
                 onClick={handleImport}
-                className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}
                 title="Import snippets"
               >
-                <Upload className="w-4 h-4 text-slate-400" />
+                <Upload className="w-4 h-4" />
               </button>
               <button
                 onClick={handleExport}
-                className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}
                 title="Export snippets"
               >
-                <Download className="w-4 h-4 text-slate-400" />
+                <Download className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -307,7 +313,7 @@ export const SnippetLibraryModal: React.FC<SnippetLibraryModalProps> = ({
               }}
             />
           ) : filteredSnippets.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+            <div className="flex flex-col items-center justify-center py-16" style={{ color: 'var(--theme-text-dim)' }}>
               <Code2 className="w-12 h-12 mb-4 opacity-50" />
               <p className="text-sm">
                 {searchQuery ? 'No snippets match your search' : 'No snippets yet'}
@@ -365,18 +371,17 @@ function SnippetCard({
   const [showCode, setShowCode] = useState(false);
 
   return (
-    <div className="bg-slate-800/50 border border-white/5 rounded-lg hover:border-white/10 transition-all group">
+    <div className="rounded-lg transition-all group" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-subtle)' }}>
       <div className="p-4">
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-white truncate">{snippet.name}</h3>
-            <p className="text-xs text-slate-400 line-clamp-2">{snippet.description}</p>
+            <h3 className="text-sm font-medium truncate" style={{ color: 'var(--theme-text-primary)' }}>{snippet.name}</h3>
+            <p className="text-xs line-clamp-2" style={{ color: 'var(--theme-text-muted)' }}>{snippet.description}</p>
           </div>
           <button
             onClick={onToggleFavorite}
-            className={`shrink-0 ${
-              snippet.favorite ? 'text-yellow-400' : 'text-slate-500 hover:text-yellow-400'
-            }`}
+            className="shrink-0"
+            style={{ color: snippet.favorite ? 'var(--color-warning)' : 'var(--theme-text-dim)' }}
           >
             <Star className={`w-4 h-4 ${snippet.favorite ? 'fill-current' : ''}`} />
           </button>
@@ -385,26 +390,27 @@ function SnippetCard({
         {/* Tags */}
         <div className="flex flex-wrap gap-1 mb-3">
           {snippet.tags.map((tag) => (
-            <span key={tag} className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-[10px]">
+            <span key={tag} className="px-2 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
               {tag}
             </span>
           ))}
-          <span className="px-2 py-0.5 bg-slate-700 text-slate-400 rounded text-[10px]">
+          <span className="px-2 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-muted)' }}>
             {snippet.language}
           </span>
         </div>
 
         {/* Code Preview */}
         <div className="relative mb-3">
-          <pre className={`text-xs bg-slate-900 rounded p-2 overflow-x-auto ${
+          <pre className={`text-xs rounded p-2 overflow-x-auto ${
             showCode ? 'max-h-32' : 'max-h-16'
-          }`}>
-            <code className="text-slate-300">{snippet.code.slice(0, 200)}{snippet.code.length > 200 && !showCode ? '...' : ''}</code>
+          }`} style={{ backgroundColor: 'var(--theme-surface-dark)' }}>
+            <code style={{ color: 'var(--theme-text-secondary)' }}>{snippet.code.slice(0, 200)}{snippet.code.length > 200 && !showCode ? '...' : ''}</code>
           </pre>
           {snippet.code.length > 200 && (
             <button
               onClick={() => setShowCode(!showCode)}
-              className="text-[10px] text-blue-400 hover:underline"
+              className="text-[10px] hover:underline"
+              style={{ color: 'var(--color-info)' }}
             >
               {showCode ? 'Show less' : 'Show more'}
             </button>
@@ -415,27 +421,31 @@ function SnippetCard({
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={onInsert}
-            className="flex-1 px-2 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs transition-colors"
+            className="flex-1 px-2 py-1.5 rounded text-xs transition-colors"
+            style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
           >
             Insert
           </button>
           <button
             onClick={onCopy}
-            className="p-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded transition-colors"
+            className="p-1.5 rounded transition-colors"
+            style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}
             title="Copy to clipboard"
           >
             <Copy className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={onEdit}
-            className="p-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded transition-colors"
+            className="p-1.5 rounded transition-colors"
+            style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}
             title="Edit"
           >
             <Edit2 className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={onDelete}
-            className="p-1.5 bg-slate-700 hover:bg-red-500/20 text-slate-300 hover:text-red-400 rounded transition-colors"
+            className="p-1.5 rounded transition-colors"
+            style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}
             title="Delete"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -479,52 +489,56 @@ function SnippetForm({ snippet, onSave, onCancel }: SnippetFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl mx-auto">
-      <h3 className="text-lg font-semibold text-white">
+      <h3 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>
         {snippet ? 'Edit Snippet' : 'New Snippet'}
       </h3>
 
       <div>
-        <label className="block text-sm text-slate-400 mb-1">Name *</label>
+        <label className="block text-sm mb-1" style={{ color: 'var(--theme-text-muted)' }}>Name *</label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50"
+          className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+          style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
           placeholder="My Awesome Snippet"
         />
       </div>
 
       <div>
-        <label className="block text-sm text-slate-400 mb-1">Description</label>
+        <label className="block text-sm mb-1" style={{ color: 'var(--theme-text-muted)' }}>Description</label>
         <input
           type="text"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50"
+          className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+          style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
           placeholder="Brief description of what this snippet does"
         />
       </div>
 
       <div>
-        <label className="block text-sm text-slate-400 mb-1">Code *</label>
+        <label className="block text-sm mb-1" style={{ color: 'var(--theme-text-muted)' }}>Code *</label>
         <textarea
           value={code}
           onChange={(e) => setCode(e.target.value)}
           required
           rows={10}
-          className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-sm font-mono focus:outline-none focus:border-blue-500/50"
+          className="w-full px-3 py-2 rounded-lg text-sm font-mono focus:outline-none"
+          style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
           placeholder="// Your code here"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm text-slate-400 mb-1">Language</label>
+          <label className="block text-sm mb-1" style={{ color: 'var(--theme-text-muted)' }}>Language</label>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50"
+            className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+            style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
           >
             <option value="typescript">TypeScript</option>
             <option value="javascript">JavaScript</option>
@@ -540,28 +554,31 @@ function SnippetForm({ snippet, onSave, onCancel }: SnippetFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm text-slate-400 mb-1">Tags (comma-separated)</label>
+          <label className="block text-sm mb-1" style={{ color: 'var(--theme-text-muted)' }}>Tags (comma-separated)</label>
           <input
             type="text"
             value={tags}
             onChange={(e) => setTags(e.target.value)}
-            className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500/50"
+            className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+            style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
             placeholder="react, hook, utility"
           />
         </div>
       </div>
 
-      <div className="flex justify-end gap-2 pt-4 border-t border-white/5">
+      <div className="flex justify-end gap-2 pt-4" style={{ borderTop: '1px solid var(--theme-border-subtle)' }}>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors"
+          className="px-4 py-2 rounded-lg transition-colors"
+          style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-secondary)' }}
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center gap-2"
+          className="px-4 py-2 rounded-lg transition-colors flex items-center gap-2"
+          style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
         >
           <Save className="w-4 h-4" />
           Save Snippet

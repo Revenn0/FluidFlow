@@ -227,27 +227,30 @@ export const MegaSettingsModal: React.FC<MegaSettingsModalProps> = ({
           }}
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-500/20 rounded-lg">
-              <Settings2 className="w-5 h-5 text-blue-400" />
+            <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-accent-subtle)' }}>
+              <Settings2 className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Settings</h2>
-              <p className="text-xs text-slate-400">Configure FluidFlow preferences</p>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Settings</h2>
+              <p className="text-xs" style={{ color: 'var(--theme-text-secondary)' }}>Configure FluidFlow preferences</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {importExportMessage && (
-              <span className={`text-xs px-3 py-1 rounded-lg ${
-                importExportMessage.type === 'success'
-                  ? 'bg-green-500/20 text-green-400'
-                  : 'bg-red-500/20 text-red-400'
-              }`}>
+              <span
+                className="text-xs px-3 py-1 rounded-lg"
+                style={{
+                  backgroundColor: importExportMessage.type === 'success' ? 'var(--color-success-subtle)' : 'var(--color-error-subtle)',
+                  color: importExportMessage.type === 'success' ? 'var(--color-success)' : 'var(--color-error)'
+                }}
+              >
                 {importExportMessage.message}
               </span>
             )}
             <button
               onClick={handleExportSettings}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-secondary)' }}
               title="Export Settings"
             >
               <Download className="w-3.5 h-3.5" />
@@ -255,7 +258,8 @@ export const MegaSettingsModal: React.FC<MegaSettingsModalProps> = ({
             </button>
             <button
               onClick={handleImportSettings}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-secondary)' }}
               title="Import Settings"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -263,9 +267,10 @@ export const MegaSettingsModal: React.FC<MegaSettingsModalProps> = ({
             </button>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-secondary)' }}
             >
-              <X className="w-5 h-5 text-slate-400" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -295,7 +300,8 @@ export const MegaSettingsModal: React.FC<MegaSettingsModalProps> = ({
               {canResetSection ? (
                 <button
                   onClick={handleResetSection}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+                  style={{ color: 'var(--theme-text-muted)' }}
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   Reset Section
@@ -303,8 +309,11 @@ export const MegaSettingsModal: React.FC<MegaSettingsModalProps> = ({
               ) : (
                 <div />
               )}
-              <div className="text-xs text-slate-600">
-                Press <kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-slate-400">Esc</kbd> to close
+              <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+                Press <kbd
+                  className="px-1.5 py-0.5 rounded"
+                  style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-secondary)' }}
+                >Esc</kbd> to close
               </div>
             </div>
           </div>

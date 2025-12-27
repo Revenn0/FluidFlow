@@ -75,18 +75,18 @@ netlify deploy --prod --dir=dist`;
       isOpen={isOpen}
       onClose={onClose}
       title="Deploy Your App"
-      icon={<Rocket className="w-5 h-5 text-purple-400" />}
-      iconBg="bg-purple-500/20"
+      icon={<Rocket className="w-5 h-5" style={{ color: 'var(--color-feature)' }} />}
+      iconBg="var(--color-feature-subtle)"
       size="md"
       zIndex="z-[150]"
       footer={
-        <p className="text-[10px] text-slate-600 text-center w-full">
+        <p className="text-[10px] text-center w-full" style={{ color: 'var(--theme-text-dim)' }}>
           First, export your project as ZIP or push to GitHub, then follow the deployment steps above.
         </p>
       }
     >
       {/* Tabs */}
-      <div className="flex border-b border-white/5">
+      <div className="flex" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
           {[
             { id: 'vercel', label: 'Vercel', icon: '▲' },
             { id: 'netlify', label: 'Netlify', icon: '◆' },
@@ -95,11 +95,12 @@ netlify deploy --prod --dir=dist`;
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
-                activeTab === tab.id
-                  ? 'text-white bg-white/5 border-b-2 border-blue-500'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors"
+              style={{
+                color: activeTab === tab.id ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)',
+                backgroundColor: activeTab === tab.id ? 'var(--theme-glass-100)' : 'transparent',
+                borderBottom: activeTab === tab.id ? '2px solid var(--color-info)' : '2px solid transparent'
+              }}
             >
               <span>{tab.icon}</span>
               {tab.label}
@@ -111,32 +112,33 @@ netlify deploy --prod --dir=dist`;
         <div className="p-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
           {activeTab === 'vercel' && (
             <div className="space-y-4">
-              <div className="bg-slate-800/50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-blue-400" />
+              <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+                  <Terminal className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
                   Deploy with Vercel CLI
                 </h3>
                 <div className="relative">
-                  <pre className="bg-slate-950 rounded p-3 text-xs text-slate-300 overflow-x-auto">
+                  <pre className="rounded p-3 text-xs overflow-x-auto" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-secondary)' }}>
                     {vercelCommands}
                   </pre>
                   <button
                     onClick={() => copyToClipboard(vercelCommands, 'vercel')}
-                    className="absolute top-2 right-2 p-1.5 bg-slate-800 rounded hover:bg-slate-700 transition-colors"
+                    className="absolute top-2 right-2 p-1.5 rounded transition-colors"
+                    style={{ backgroundColor: 'var(--theme-glass-300)' }}
                   >
-                    {copied === 'vercel' ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
+                    {copied === 'vercel' ? <Check className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} /> : <Copy className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} />}
                   </button>
                 </div>
               </div>
 
-              <div className="bg-slate-800/50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                  <Github className="w-4 h-4 text-purple-400" />
+              <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+                  <Github className="w-4 h-4" style={{ color: 'var(--color-feature)' }} />
                   Or Deploy via GitHub
                 </h3>
-                <ol className="text-sm text-slate-400 space-y-2 list-decimal list-inside">
+                <ol className="text-sm space-y-2 list-decimal list-inside" style={{ color: 'var(--theme-text-muted)' }}>
                   <li>Push your project to GitHub</li>
-                  <li>Go to <a href="https://vercel.com/new" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline inline-flex items-center gap-1">vercel.com/new <ExternalLink className="w-3 h-3" /></a></li>
+                  <li>Go to <a href="https://vercel.com/new" target="_blank" rel="noopener noreferrer" className="hover:underline inline-flex items-center gap-1" style={{ color: 'var(--color-info)' }}>vercel.com/new <ExternalLink className="w-3 h-3" /></a></li>
                   <li>Import your repository</li>
                   <li>Vercel will auto-detect Vite and deploy</li>
                 </ol>
@@ -146,34 +148,36 @@ netlify deploy --prod --dir=dist`;
 
           {activeTab === 'netlify' && (
             <div className="space-y-4">
-              <div className="bg-slate-800/50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
-                  <Terminal className="w-4 h-4 text-teal-400" />
+              <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                <h3 className="text-sm font-semibold mb-2 flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+                  <Terminal className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                   Deploy with Netlify CLI
                 </h3>
                 <div className="relative">
-                  <pre className="bg-slate-950 rounded p-3 text-xs text-slate-300 overflow-x-auto">
+                  <pre className="rounded p-3 text-xs overflow-x-auto" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-secondary)' }}>
                     {netlifyCommands}
                   </pre>
                   <button
                     onClick={() => copyToClipboard(netlifyCommands, 'netlify')}
-                    className="absolute top-2 right-2 p-1.5 bg-slate-800 rounded hover:bg-slate-700 transition-colors"
+                    className="absolute top-2 right-2 p-1.5 rounded transition-colors"
+                    style={{ backgroundColor: 'var(--theme-glass-300)' }}
                   >
-                    {copied === 'netlify' ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5 text-slate-400" />}
+                    {copied === 'netlify' ? <Check className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} /> : <Copy className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} />}
                   </button>
                 </div>
               </div>
 
-              <div className="bg-slate-800/50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-white mb-2">Drag & Drop Deploy</h3>
-                <p className="text-sm text-slate-400 mb-3">
-                  You can also drag and drop your <code className="bg-slate-700 px-1 rounded">dist</code> folder directly to Netlify.
+              <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--theme-text-primary)' }}>Drag & Drop Deploy</h3>
+                <p className="text-sm mb-3" style={{ color: 'var(--theme-text-muted)' }}>
+                  You can also drag and drop your <code className="px-1 rounded" style={{ backgroundColor: 'var(--theme-glass-300)' }}>dist</code> folder directly to Netlify.
                 </p>
                 <a
                   href="https://app.netlify.com/drop"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-sm font-medium rounded-lg transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors"
+                  style={{ backgroundColor: 'var(--color-success)', color: 'var(--theme-text-primary)' }}
                 >
                   Open Netlify Drop
                   <ExternalLink className="w-4 h-4" />
@@ -184,48 +188,49 @@ netlify deploy --prod --dir=dist`;
 
           {activeTab === 'manual' && (
             <div className="space-y-4">
-              <div className="bg-slate-800/50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-white mb-2">Required Files</h3>
-                <p className="text-sm text-slate-400 mb-3">
+              <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--theme-text-primary)' }}>Required Files</h3>
+                <p className="text-sm mb-3" style={{ color: 'var(--theme-text-muted)' }}>
                   Make sure your project includes these configuration files:
                 </p>
 
                 <div className="space-y-3">
                   <div>
-                    <p className="text-xs text-slate-500 mb-1 font-mono">package.json</p>
+                    <p className="text-xs mb-1 font-mono" style={{ color: 'var(--theme-text-dim)' }}>package.json</p>
                     <div className="relative">
-                      <pre className="bg-slate-950 rounded p-2 text-[10px] text-slate-300 overflow-x-auto max-h-32">
+                      <pre className="rounded p-2 text-[10px] overflow-x-auto max-h-32" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-secondary)' }}>
                         {packageJson}
                       </pre>
                       <button
                         onClick={() => copyToClipboard(packageJson, 'package')}
-                        className="absolute top-1 right-1 p-1 bg-slate-800 rounded hover:bg-slate-700 transition-colors"
+                        className="absolute top-1 right-1 p-1 rounded transition-colors"
+                        style={{ backgroundColor: 'var(--theme-glass-300)' }}
                       >
-                        {copied === 'package' ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3 text-slate-400" />}
+                        {copied === 'package' ? <Check className="w-3 h-3" style={{ color: 'var(--color-success)' }} /> : <Copy className="w-3 h-3" style={{ color: 'var(--theme-text-muted)' }} />}
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-slate-800/50 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-white mb-2">Build Commands</h3>
+              <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--theme-text-primary)' }}>Build Commands</h3>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Install</p>
-                    <code className="block bg-slate-950 rounded px-2 py-1 text-xs text-slate-300">npm install</code>
+                    <p className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>Install</p>
+                    <code className="block rounded px-2 py-1 text-xs" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-secondary)' }}>npm install</code>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Build</p>
-                    <code className="block bg-slate-950 rounded px-2 py-1 text-xs text-slate-300">npm run build</code>
+                    <p className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>Build</p>
+                    <code className="block rounded px-2 py-1 text-xs" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-secondary)' }}>npm run build</code>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Output Dir</p>
-                    <code className="block bg-slate-950 rounded px-2 py-1 text-xs text-slate-300">dist</code>
+                    <p className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>Output Dir</p>
+                    <code className="block rounded px-2 py-1 text-xs" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-secondary)' }}>dist</code>
                   </div>
                   <div>
-                    <p className="text-xs text-slate-500 mb-1">Framework</p>
-                    <code className="block bg-slate-950 rounded px-2 py-1 text-xs text-slate-300">Vite + React</code>
+                    <p className="text-xs mb-1" style={{ color: 'var(--theme-text-dim)' }}>Framework</p>
+                    <code className="block rounded px-2 py-1 text-xs" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-secondary)' }}>Vite + React</code>
                   </div>
                 </div>
               </div>

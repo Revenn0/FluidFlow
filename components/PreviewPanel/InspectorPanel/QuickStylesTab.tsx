@@ -25,22 +25,22 @@ import {
 import { STYLE_PRESETS, type QuickStylesTabProps, type EditScope } from './types';
 
 // Icon mapping for presets
-const PresetIcon: React.FC<{ icon: string; className?: string }> = ({ icon, className }) => {
+const PresetIcon: React.FC<{ icon: string; className?: string; style?: React.CSSProperties }> = ({ icon, className, style }) => {
   switch (icon) {
     case 'Sparkles':
-      return <Sparkles className={className} />;
+      return <Sparkles className={className} style={style} />;
     case 'Wand2':
-      return <Wand2 className={className} />;
+      return <Wand2 className={className} style={style} />;
     case 'Smartphone':
-      return <Smartphone className={className} />;
+      return <Smartphone className={className} style={style} />;
     case 'Moon':
-      return <Moon className={className} />;
+      return <Moon className={className} style={style} />;
     case 'Accessibility':
-      return <Accessibility className={className} />;
+      return <Accessibility className={className} style={style} />;
     case 'Layers':
-      return <Layers className={className} />;
+      return <Layers className={className} style={style} />;
     default:
-      return <Sparkles className={className} />;
+      return <Sparkles className={className} style={style} />;
   }
 };
 
@@ -104,7 +104,7 @@ export const QuickStylesTab: React.FC<QuickStylesTabProps> = ({
 
   if (!elementRef) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-slate-500 text-sm gap-2 p-4">
+      <div className="flex flex-col items-center justify-center h-full text-sm gap-2 p-4" style={{ color: 'var(--theme-text-dim)' }}>
         <Wand2 className="w-8 h-8 opacity-50" />
         <p className="text-center">Select an element to apply quick styles</p>
       </div>
@@ -114,44 +114,48 @@ export const QuickStylesTab: React.FC<QuickStylesTabProps> = ({
   return (
     <div className="h-full overflow-y-auto p-3 space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-2 pb-2 border-b border-white/10">
-        <Palette className="w-4 h-4 text-purple-400" />
-        <span className="text-sm font-medium text-slate-300">Quick Styles</span>
-        {isProcessing && <Loader2 className="w-3 h-3 animate-spin text-purple-400 ml-auto" />}
+      <div className="flex items-center gap-2 pb-2" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+        <Palette className="w-4 h-4" style={{ color: 'var(--color-feature)' }} />
+        <span className="text-sm font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Quick Styles</span>
+        {isProcessing && <Loader2 className="w-3 h-3 animate-spin ml-auto" style={{ color: 'var(--color-feature)' }} />}
       </div>
 
       {/* Scope Selector - Only show if element has a group */}
       {hasGroup && (
-        <div className="p-2 bg-slate-800/50 rounded-lg border border-white/5">
+        <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
           <div className="flex items-center gap-2 mb-2">
-            <Target className="w-3.5 h-3.5 text-purple-400" />
-            <span className="text-xs font-medium text-slate-400">Apply to:</span>
+            <Target className="w-3.5 h-3.5" style={{ color: 'var(--color-feature)' }} />
+            <span className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>Apply to:</span>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setScope('element')}
               disabled={isProcessing}
-              className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
-                scope === 'element'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-slate-700 text-slate-400 hover:text-slate-300 hover:bg-slate-600'
-              } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className="flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all"
+              style={{
+                backgroundColor: scope === 'element' ? 'var(--color-feature)' : 'var(--theme-glass-300)',
+                color: scope === 'element' ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)',
+                opacity: isProcessing ? 0.5 : 1,
+                cursor: isProcessing ? 'not-allowed' : 'pointer'
+              }}
             >
               This Element
             </button>
             <button
               onClick={() => setScope('group')}
               disabled={isProcessing}
-              className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
-                scope === 'group'
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-slate-700 text-slate-400 hover:text-slate-300 hover:bg-slate-600'
-              } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className="flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all"
+              style={{
+                backgroundColor: scope === 'group' ? 'var(--color-feature)' : 'var(--theme-glass-300)',
+                color: scope === 'group' ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)',
+                opacity: isProcessing ? 0.5 : 1,
+                cursor: isProcessing ? 'not-allowed' : 'pointer'
+              }}
             >
               All in Group
             </button>
           </div>
-          <p className="text-[10px] text-slate-500 mt-1.5">
+          <p className="text-[10px] mt-1.5" style={{ color: 'var(--theme-text-dim)' }}>
             {scope === 'element'
               ? 'Changes apply only to this element'
               : `Changes apply to all elements with group "${ffGroup}"`}
@@ -161,7 +165,7 @@ export const QuickStylesTab: React.FC<QuickStylesTabProps> = ({
 
       {/* Style Presets Grid */}
       <div>
-        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--theme-text-muted)' }}>
           Presets
         </h3>
         <div className="grid grid-cols-2 gap-2">
@@ -172,20 +176,21 @@ export const QuickStylesTab: React.FC<QuickStylesTabProps> = ({
               onMouseEnter={() => handlePreviewEnter(preset.id)}
               onMouseLeave={handlePreviewLeave}
               disabled={isProcessing}
-              className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border transition-all ${
-                activePreview === preset.id
-                  ? 'border-purple-500 bg-purple-500/20 shadow-lg shadow-purple-500/20'
-                  : 'border-white/10 bg-slate-800/50 hover:border-purple-500/50 hover:bg-slate-800'
-              } ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+              className="flex flex-col items-center gap-1.5 p-3 rounded-lg transition-all"
+              style={{
+                border: `1px solid ${activePreview === preset.id ? 'var(--color-feature)' : 'var(--theme-border-light)'}`,
+                backgroundColor: activePreview === preset.id ? 'var(--color-feature-subtle)' : 'var(--theme-glass-200)',
+                opacity: isProcessing ? 0.5 : 1,
+                cursor: isProcessing ? 'not-allowed' : 'pointer'
+              }}
             >
               <PresetIcon
                 icon={preset.icon}
-                className={`w-5 h-5 ${
-                  activePreview === preset.id ? 'text-purple-400' : 'text-slate-400'
-                }`}
+                className="w-5 h-5"
+                style={{ color: activePreview === preset.id ? 'var(--color-feature)' : 'var(--theme-text-muted)' }}
               />
-              <span className="text-xs font-medium text-slate-300">{preset.label}</span>
-              <span className="text-[10px] text-slate-500 text-center leading-tight">
+              <span className="text-xs font-medium" style={{ color: 'var(--theme-text-secondary)' }}>{preset.label}</span>
+              <span className="text-[10px] text-center leading-tight" style={{ color: 'var(--theme-text-dim)' }}>
                 {preset.description}
               </span>
             </button>
@@ -195,7 +200,7 @@ export const QuickStylesTab: React.FC<QuickStylesTabProps> = ({
 
       {/* Custom Prompt */}
       <div>
-        <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        <h3 className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'var(--theme-text-muted)' }}>
           Custom Style
         </h3>
         <form onSubmit={handleCustomSubmit} className="space-y-2">
@@ -204,12 +209,17 @@ export const QuickStylesTab: React.FC<QuickStylesTabProps> = ({
             onChange={(e) => setCustomPrompt(e.target.value)}
             placeholder="Describe the style changes you want...&#10;e.g., 'Add a gradient background and rounded corners'"
             disabled={isProcessing}
-            className="w-full h-20 px-3 py-2 text-xs bg-slate-800 border border-white/10 rounded-lg text-slate-300 placeholder-slate-500 resize-none focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 disabled:opacity-50"
+            className="w-full h-20 px-3 py-2 text-xs rounded-lg resize-none focus:outline-none disabled:opacity-50"
+            style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-secondary)' }}
           />
           <button
             type="submit"
             disabled={isProcessing || !customPrompt.trim()}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 disabled:text-slate-500 text-white text-xs font-medium rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors"
+            style={{
+              backgroundColor: isProcessing || !customPrompt.trim() ? 'var(--theme-glass-300)' : 'var(--color-feature)',
+              color: isProcessing || !customPrompt.trim() ? 'var(--theme-text-dim)' : 'var(--theme-text-on-accent)'
+            }}
           >
             {isProcessing ? (
               <>
@@ -230,7 +240,8 @@ export const QuickStylesTab: React.FC<QuickStylesTabProps> = ({
       {activePreview && (
         <button
           onClick={handlePreviewLeave}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium rounded-lg transition-colors"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium rounded-lg transition-colors"
+          style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}
         >
           <Undo2 className="w-3.5 h-3.5" />
           Clear Preview
@@ -238,7 +249,7 @@ export const QuickStylesTab: React.FC<QuickStylesTabProps> = ({
       )}
 
       {/* Help Text */}
-      <div className="text-[10px] text-slate-500 p-2 bg-slate-800/30 rounded-lg">
+      <div className="text-[10px] p-2 rounded-lg" style={{ color: 'var(--theme-text-dim)', backgroundColor: 'var(--theme-glass-200)' }}>
         <p className="mb-1">
           <strong>Hover</strong> over presets to preview styles
         </p>

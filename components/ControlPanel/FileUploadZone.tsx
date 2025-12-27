@@ -47,12 +47,12 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
     return (
       <div className="flex-none flex flex-col gap-3">
         <div className="flex justify-between items-center">
-          <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
-            <FileImage className="w-4 h-4 text-slate-500" />
+          <label className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--theme-text-secondary)' }}>
+            <FileImage className="w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
             Source Sketch
           </label>
           {file && (
-            <span className="text-[10px] text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/20 animate-in fade-in zoom-in duration-300">
+            <span className="text-[10px] px-2 py-0.5 rounded-full animate-in fade-in zoom-in duration-300" style={{ color: 'var(--color-success)', backgroundColor: 'var(--color-success-subtle)', border: '1px solid var(--color-success-border)' }}>
               Uploaded
             </span>
           )}
@@ -62,13 +62,12 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
           onClick={() => !file && inputRef.current?.click()}
           onDrop={handleDrop}
           onDragOver={handleDragOver}
-          className={`
-            group relative border-2 border-dashed rounded-xl h-32 flex flex-col items-center justify-center transition-all duration-300 overflow-hidden
-            ${file
-              ? 'border-blue-500/30 bg-blue-500/5'
-              : 'border-slate-700 hover:border-blue-500/50 hover:bg-slate-800/30 cursor-pointer hover:shadow-lg hover:shadow-blue-500/5'
-            }
-          `}
+          className="group relative border-2 border-dashed rounded-xl h-32 flex flex-col items-center justify-center transition-all duration-300 overflow-hidden"
+          style={{
+            borderColor: file ? 'var(--color-info-border)' : 'var(--theme-border)',
+            backgroundColor: file ? 'var(--color-info-subtle)' : 'transparent',
+            cursor: file ? 'default' : 'pointer'
+          }}
         >
           <input
             ref={inputRef}
@@ -81,16 +80,17 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
           {file ? (
             <div className="relative w-full h-full p-4 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-300">
               {preview && preview.trim() ? (
-                <div className="relative w-full h-full rounded-lg overflow-hidden border border-white/10 bg-black/20 shadow-inner group-hover:scale-[1.02] transition-transform duration-300">
+                <div className="relative w-full h-full rounded-lg overflow-hidden shadow-inner group-hover:scale-[1.02] transition-transform duration-300" style={{ border: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-glass-100)' }}>
                   <img src={preview} alt="Sketch preview" className="w-full h-full object-contain" />
                 </div>
               ) : (
-                <FileImage className="w-8 h-8 text-blue-400" />
+                <FileImage className="w-8 h-8" style={{ color: 'var(--color-info)' }} />
               )}
 
               <button
                 onClick={handleRemove}
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-900/80 border border-white/10 text-slate-400 hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-all z-20 shadow-lg"
+                className="absolute top-2 right-2 p-1.5 rounded-full transition-all z-20 shadow-lg"
+                style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-muted)' }}
                 title="Remove Image"
                 aria-label="Remove sketch image"
               >
@@ -99,10 +99,10 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
             </div>
           ) : (
             <>
-              <div className="p-2 rounded-full bg-slate-800/50 group-hover:scale-110 group-hover:bg-slate-700/50 transition-all mb-2 border border-white/5 shadow-xl">
-                <Upload className="w-4 h-4 text-slate-400 group-hover:text-blue-400" />
+              <div className="p-2 rounded-full group-hover:scale-110 transition-all mb-2 shadow-xl" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+                <Upload className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
               </div>
-              <p className="text-xs text-slate-400 font-medium group-hover:text-slate-200 transition-colors">
+              <p className="text-xs font-medium transition-colors" style={{ color: 'var(--theme-text-muted)' }}>
                 Drag sketch here
               </p>
             </>
@@ -116,15 +116,15 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
   return (
     <div className="flex-none flex flex-col gap-2">
       <div className="flex justify-between items-center">
-        <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
-          <Palette className="w-4 h-4 text-slate-500" />
+        <label className="text-sm font-semibold flex items-center gap-2" style={{ color: 'var(--theme-text-secondary)' }}>
+          <Palette className="w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
           Brand Identity{' '}
-          <span className="text-[10px] text-slate-600 font-normal uppercase ml-1 tracking-wider border border-white/5 px-1.5 rounded">
+          <span className="text-[10px] font-normal uppercase ml-1 tracking-wider px-1.5 rounded" style={{ color: 'var(--theme-text-dim)', border: '1px solid var(--theme-border-light)' }}>
             Optional
           </span>
         </label>
         {file && (
-          <span className="text-[10px] text-pink-400 bg-pink-500/10 px-2 py-0.5 rounded-full border border-pink-500/20 animate-in fade-in zoom-in">
+          <span className="text-[10px] px-2 py-0.5 rounded-full animate-in fade-in zoom-in" style={{ color: 'var(--color-feature)', backgroundColor: 'var(--color-feature-subtle)', border: '1px solid var(--color-feature-border)' }}>
             Active
           </span>
         )}
@@ -134,13 +134,11 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
         onClick={() => !file && inputRef.current?.click()}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        className={`
-          relative h-12 rounded-lg border border-dashed flex items-center transition-all cursor-pointer overflow-hidden
-          ${file
-            ? 'border-pink-500/30 bg-pink-500/5'
-            : 'border-slate-700 hover:border-pink-500/40 hover:bg-slate-800/30'
-          }
-        `}
+        className="relative h-12 rounded-lg border border-dashed flex items-center transition-all cursor-pointer overflow-hidden"
+        style={{
+          borderColor: file ? 'var(--color-feature-border)' : 'var(--theme-border)',
+          backgroundColor: file ? 'var(--color-feature-subtle)' : 'transparent'
+        }}
       >
         <input
           ref={inputRef}
@@ -154,28 +152,29 @@ export const FileUploadZone: React.FC<FileUploadZoneProps> = ({
           <div className="w-full h-full flex items-center justify-between px-3 animate-in fade-in slide-in-from-right-4">
             <div className="flex items-center gap-3 overflow-hidden">
               {preview && preview.trim() ? (
-                <div className="w-8 h-8 rounded bg-white/5 border border-white/10 flex-none overflow-hidden">
+                <div className="w-8 h-8 rounded flex-none overflow-hidden" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border)' }}>
                   <img src={preview} alt="Brand" className="w-full h-full object-cover" />
                 </div>
               ) : (
-                <div className="w-8 h-8 rounded bg-pink-500/20 flex items-center justify-center">
-                  <Palette className="w-4 h-4 text-pink-400" />
+                <div className="w-8 h-8 rounded flex items-center justify-center" style={{ backgroundColor: 'var(--color-feature-subtle)' }}>
+                  <Palette className="w-4 h-4" style={{ color: 'var(--color-feature)' }} />
                 </div>
               )}
               <div className="flex flex-col min-w-0">
-                <p className="text-xs font-medium text-slate-200 truncate">{file.name}</p>
+                <p className="text-xs font-medium truncate" style={{ color: 'var(--theme-text-secondary)' }}>{file.name}</p>
               </div>
             </div>
             <button
               onClick={handleRemove}
-              className="p-1.5 rounded-md hover:bg-red-500/10 hover:text-red-400 text-slate-500 transition-colors"
+              className="p-1.5 rounded-md transition-colors"
+              style={{ color: 'var(--theme-text-dim)' }}
               aria-label="Remove brand image"
             >
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
         ) : (
-          <div className="w-full flex items-center justify-center gap-2 text-slate-500 hover:text-pink-300 transition-colors">
+          <div className="w-full flex items-center justify-center gap-2 transition-colors" style={{ color: 'var(--theme-text-dim)' }}>
             <Upload className="w-3.5 h-3.5" />
             <span className="text-xs font-medium">Upload Logo / Style Guide</span>
           </div>

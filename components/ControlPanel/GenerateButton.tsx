@@ -28,15 +28,20 @@ export const GenerateButton: React.FC<GenerateButtonProps> = ({
         onClick={onClick}
         disabled={isGenerating || isDisabled}
         className={`
-          group relative w-full py-3 font-bold rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.3)] flex items-center justify-center gap-3 transition-all overflow-hidden
-          ${
-            isGenerating || isDisabled
-              ? 'bg-slate-800 text-slate-500 cursor-not-allowed shadow-none'
-              : isConsultantMode
-              ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-[length:200%_auto] animate-gradient text-white hover:shadow-[0_0_30px_rgba(99,102,241,0.5)] active:scale-[0.98]'
-              : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 bg-[length:200%_auto] animate-gradient text-white hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] active:scale-[0.98]'
-          }
+          group relative w-full py-3 font-bold rounded-xl flex items-center justify-center gap-3 transition-all overflow-hidden
+          ${isGenerating || isDisabled ? 'cursor-not-allowed' : 'active:scale-[0.98]'}
         `}
+        style={{
+          background: isGenerating || isDisabled
+            ? 'var(--theme-glass-200)'
+            : isConsultantMode
+            ? 'linear-gradient(to right, var(--color-feature), var(--theme-ai-accent), var(--color-feature))'
+            : 'linear-gradient(to right, var(--theme-accent), var(--color-info), var(--theme-accent))',
+          backgroundSize: isGenerating || isDisabled ? undefined : '200% auto',
+          color: isGenerating || isDisabled ? 'var(--theme-text-dim)' : 'var(--theme-text-on-accent)',
+          boxShadow: isGenerating || isDisabled ? 'none' : '0 0 20px var(--theme-accent-glow)',
+          animation: isGenerating || isDisabled ? undefined : 'gradient 3s ease infinite'
+        }}
         aria-busy={isGenerating}
       >
         {/* Shine Effect */}
@@ -48,7 +53,7 @@ export const GenerateButton: React.FC<GenerateButtonProps> = ({
 
         {isGenerating ? (
           <>
-            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--theme-glass-300)', borderTopColor: 'var(--theme-text-primary)' }} />
             <span className="text-sm tracking-wide">
               {isConsultantMode ? 'Analyzing...' : 'Building...'}
             </span>
@@ -56,11 +61,11 @@ export const GenerateButton: React.FC<GenerateButtonProps> = ({
         ) : (
           <>
             {isConsultantMode ? (
-              <Briefcase className="w-5 h-5 relative z-10 text-indigo-100" />
+              <Briefcase className="w-5 h-5 relative z-10" style={{ color: 'var(--theme-text-primary)', opacity: 0.9 }} />
             ) : hasExistingApp ? (
-              <RotateCw className="w-5 h-5 relative z-10 text-blue-100" />
+              <RotateCw className="w-5 h-5 relative z-10" style={{ color: 'var(--theme-text-primary)', opacity: 0.9 }} />
             ) : (
-              <Sparkles className="w-5 h-5 relative z-10 text-blue-100" />
+              <Sparkles className="w-5 h-5 relative z-10" style={{ color: 'var(--theme-text-primary)', opacity: 0.9 }} />
             )}
             <span className="relative z-10 text-sm tracking-wide uppercase">
               {isConsultantMode

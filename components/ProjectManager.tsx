@@ -139,23 +139,24 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
         onClose={onClose}
         title="Projects"
         subtitle={`${projects.length} project${projects.length !== 1 ? 's' : ''}`}
-        icon={<FolderOpen className="w-5 h-5 text-blue-400" />}
+        icon={<FolderOpen className="w-5 h-5" style={{ color: 'var(--color-info)' }} />}
         size="lg"
         maxHeight="max-h-[80vh]"
         zIndex="z-50"
       >
 
         {/* Search and Create */}
-        <div className="flex items-center gap-3 px-6 py-3 border-b border-white/5">
+        <div className="flex items-center gap-3 px-6 py-3" style={{ borderBottom: '1px solid var(--theme-border-subtle)' }}>
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search projects..."
-              className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 transition-colors"
+              className="w-full pl-10 pr-4 py-2 rounded-lg text-sm outline-none transition-colors"
+              style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-primary)' }}
             />
           </div>
 
@@ -163,7 +164,8 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
           <button
             onClick={onRefresh}
             disabled={isLoading}
-            className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors disabled:opacity-50"
+            className="p-2 rounded-lg transition-colors disabled:opacity-50"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Refresh projects"
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -173,7 +175,8 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
           <button
             onClick={() => setShowGitHubImport(true)}
             disabled={!isServerOnline}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg text-sm font-medium transition-colors border border-white/10"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            style={{ backgroundColor: 'var(--theme-glass-300)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-primary)' }}
             title="Import from GitHub"
           >
             <Github className="w-4 h-4" />
@@ -184,7 +187,8 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
           <button
             onClick={() => setIsCreating(true)}
             disabled={!isServerOnline}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+            style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
           >
             <Plus className="w-4 h-4" />
             New Project
@@ -193,10 +197,10 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
 
         {/* Create Project Form */}
         {isCreating && (
-          <div className="px-6 py-4 border-b border-white/10 bg-slate-800/30">
+          <div className="px-6 py-4" style={{ borderBottom: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-100)' }}>
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-emerald-500/20 rounded-lg mt-0.5">
-                <FolderPlus className="w-4 h-4 text-emerald-400" />
+              <div className="p-2 rounded-lg mt-0.5" style={{ backgroundColor: 'var(--color-success-subtle)' }}>
+                <FolderPlus className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
               </div>
               <div className="flex-1 space-y-3">
                 <input
@@ -204,7 +208,8 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
                   placeholder="Project name"
-                  className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                  style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
                   autoFocus
                   onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
                 />
@@ -213,13 +218,15 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                   value={newProjectDescription}
                   onChange={(e) => setNewProjectDescription(e.target.value)}
                   placeholder="Description (optional)"
-                  className="w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+                  className="w-full px-3 py-2 rounded-lg text-sm outline-none"
+                  style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
                 />
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleCreate}
                     disabled={!newProjectName.trim() || actionLoading === 'create'}
-                    className="flex items-center gap-2 px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg text-sm font-medium transition-colors"
+                    className="flex items-center gap-2 px-4 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--color-success)', color: 'var(--theme-text-on-accent)' }}
                   >
                     {actionLoading === 'create' ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -234,7 +241,8 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                       setNewProjectName('');
                       setNewProjectDescription('');
                     }}
-                    className="px-4 py-1.5 hover:bg-white/10 text-slate-400 rounded-lg text-sm transition-colors"
+                    className="px-4 py-1.5 rounded-lg text-sm transition-colors"
+                    style={{ color: 'var(--theme-text-muted)' }}
                   >
                     Cancel
                   </button>
@@ -247,22 +255,22 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
         {/* Projects List */}
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           {!isServerOnline ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+            <div className="flex flex-col items-center justify-center py-16" style={{ color: 'var(--theme-text-muted)' }}>
               <CloudOff className="w-12 h-12 mb-3 opacity-50" />
               <p className="text-sm">Server is offline</p>
-              <p className="text-xs text-slate-500 mt-1">Check if backend is running on port 3200</p>
+              <p className="text-xs mt-1" style={{ color: 'var(--theme-text-dim)' }}>Check if backend is running on port 3200</p>
             </div>
           ) : isLoading ? (
             <div className="flex items-center justify-center py-16">
-              <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+              <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--color-info)' }} />
             </div>
           ) : filteredProjects.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+            <div className="flex flex-col items-center justify-center py-16" style={{ color: 'var(--theme-text-muted)' }}>
               <FolderOpen className="w-12 h-12 mb-3 opacity-50" />
               <p className="text-sm">
                 {searchQuery ? 'No projects found' : 'No projects yet'}
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs mt-1" style={{ color: 'var(--theme-text-dim)' }}>
                 {searchQuery ? 'Try a different search' : 'Create your first project to get started'}
               </p>
             </div>
@@ -271,46 +279,48 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
               {filteredProjects.map((project) => (
                 <div
                   key={project.id}
-                  className={`group relative flex items-center gap-4 p-4 rounded-xl border transition-all cursor-pointer ${
-                    currentProjectId === project.id
-                      ? 'bg-blue-500/10 border-blue-500/30'
-                      : 'bg-slate-800/30 border-white/5 hover:bg-slate-800/60 hover:border-white/10'
-                  }`}
+                  className="group relative flex items-center gap-4 p-4 rounded-xl transition-all cursor-pointer"
+                  style={{
+                    backgroundColor: currentProjectId === project.id ? 'var(--color-info-subtle)' : 'var(--theme-glass-100)',
+                    border: currentProjectId === project.id ? '1px solid var(--color-info-border)' : '1px solid var(--theme-border-subtle)',
+                  }}
                   onClick={() => handleOpen(project.id)}
                 >
                   {/* Icon */}
-                  <div className={`p-2.5 rounded-xl ${
-                    currentProjectId === project.id
-                      ? 'bg-blue-500/20'
-                      : 'bg-slate-700/50 group-hover:bg-slate-700'
-                  }`}>
-                    <FolderOpen className={`w-5 h-5 ${
-                      currentProjectId === project.id ? 'text-blue-400' : 'text-slate-400'
-                    }`} />
+                  <div
+                    className="p-2.5 rounded-xl"
+                    style={{
+                      backgroundColor: currentProjectId === project.id ? 'var(--color-info-subtle)' : 'var(--theme-glass-200)',
+                    }}
+                  >
+                    <FolderOpen
+                      className="w-5 h-5"
+                      style={{ color: currentProjectId === project.id ? 'var(--color-info)' : 'var(--theme-text-muted)' }}
+                    />
                   </div>
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <h3 className="text-sm font-medium text-white truncate">
+                      <h3 className="text-sm font-medium truncate" style={{ color: 'var(--theme-text-primary)' }}>
                         {project.name}
                       </h3>
                       {currentProjectId === project.id && (
-                        <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 text-[10px] rounded">
+                        <span className="px-1.5 py-0.5 text-[10px] rounded" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>
                           Current
                         </span>
                       )}
                       {project.gitInitialized && (
-                        <GitBranch className="w-3.5 h-3.5 text-emerald-400" />
+                        <GitBranch className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} />
                       )}
                     </div>
                     {project.description && (
-                      <p className="text-xs text-slate-500 truncate mt-0.5">
+                      <p className="text-xs truncate mt-0.5" style={{ color: 'var(--theme-text-dim)' }}>
                         {project.description}
                       </p>
                     )}
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="flex items-center gap-1 text-[10px] text-slate-500">
+                      <span className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                         <Clock className="w-3 h-3" />
                         {formatDate(project.updatedAt)}
                       </span>
@@ -319,7 +329,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
 
                   {/* Loading */}
                   {actionLoading === project.id && (
-                    <Loader2 className="w-5 h-5 text-blue-400 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" style={{ color: 'var(--color-info)' }} />
                   )}
 
                   {/* Actions Menu */}
@@ -329,19 +339,22 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                         e.stopPropagation();
                         setMenuOpenId(menuOpenId === project.id ? null : project.id);
                       }}
-                      className="p-2 opacity-0 group-hover:opacity-100 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-all"
+                      className="p-2 opacity-0 group-hover:opacity-100 rounded-lg transition-all"
+                      style={{ color: 'var(--theme-text-muted)' }}
                     >
                       <MoreVertical className="w-4 h-4" />
                     </button>
 
                     {menuOpenId === project.id && (
                       <div
-                        className="absolute right-0 top-full mt-1 w-40 bg-slate-800 border border-white/10 rounded-lg shadow-xl overflow-hidden z-10"
+                        className="absolute right-0 top-full mt-1 w-40 rounded-lg shadow-xl overflow-hidden z-10"
+                        style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border-light)' }}
                         onClick={(e) => e.stopPropagation()}
                       >
                         <button
                           onClick={() => handleDuplicate(project.id)}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:bg-white/10 transition-colors"
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors"
+                          style={{ color: 'var(--theme-text-secondary)' }}
                         >
                           <Copy className="w-4 h-4" />
                           Duplicate
@@ -351,7 +364,8 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
                             setDeleteConfirmId(project.id);
                             setMenuOpenId(null);
                           }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors"
+                          style={{ color: 'var(--color-error)' }}
                         >
                           <Trash2 className="w-4 h-4" />
                           Delete
@@ -377,7 +391,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
         confirmText="Delete"
         cancelText="Cancel"
         variant="danger"
-        icon={<AlertCircle className="w-5 h-5 text-red-400" />}
+        icon={<AlertCircle className="w-5 h-5" style={{ color: 'var(--color-error)' }} />}
         isLoading={!!deleteConfirmId && actionLoading === deleteConfirmId}
       />
 

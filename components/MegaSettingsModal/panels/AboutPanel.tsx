@@ -95,32 +95,32 @@ export const AboutPanel: React.FC = () => {
     <div className="p-6 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg">
-          <Zap className="w-5 h-5 text-blue-400" />
+        <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-accent-subtle)' }}>
+          <Zap className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">About {APP_NAME}</h2>
-          <p className="text-xs text-slate-400">Version info, updates, and changelog</p>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>About {APP_NAME}</h2>
+          <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Version info, updates, and changelog</p>
         </div>
       </div>
 
       {/* App Info Card */}
-      <div className="relative overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
+      <div className="relative overflow-hidden rounded-xl" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)' }}>
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom right, var(--theme-accent-subtle), var(--theme-ai-accent-subtle))' }} />
         <div className="relative p-6">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <Zap className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(to bottom right, var(--theme-accent), var(--theme-ai-accent))' }}>
+                <Zap className="w-8 h-8" style={{ color: 'var(--theme-text-on-accent)' }} />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-white">{APP_NAME}</h3>
-                <p className="text-sm text-slate-400">Sketch-to-App Prototyping Tool</p>
+                <h3 className="text-xl font-bold" style={{ color: 'var(--theme-text-primary)' }}>{APP_NAME}</h3>
+                <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>Sketch-to-App Prototyping Tool</p>
                 <div className="flex items-center gap-3 mt-2">
-                  <span className="px-2 py-0.5 text-xs font-medium bg-blue-500/20 text-blue-400 rounded-full">
+                  <span className="px-2 py-0.5 text-xs font-medium rounded-full" style={{ backgroundColor: 'var(--theme-accent-subtle)', color: 'var(--theme-accent)' }}>
                     v{versionInfo.version}
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                     Build: {versionInfo.buildDate}
                   </span>
                 </div>
@@ -129,12 +129,13 @@ export const AboutPanel: React.FC = () => {
           </div>
 
           {/* Links */}
-          <div className="flex items-center gap-4 mt-6 pt-4 border-t border-white/5">
+          <div className="flex items-center gap-4 mt-6 pt-4" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
             <a
               href="https://github.com/ersinkoc/FluidFlow"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+              className="flex items-center gap-2 text-sm transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               <Github className="w-4 h-4" />
               GitHub
@@ -144,7 +145,8 @@ export const AboutPanel: React.FC = () => {
               href="https://github.com/ersinkoc/FluidFlow/issues"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors"
+              className="flex items-center gap-2 text-sm transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               <Bug className="w-4 h-4" />
               Report Issue
@@ -154,7 +156,8 @@ export const AboutPanel: React.FC = () => {
               href="https://github.com/sponsors/ersinkoc"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-slate-400 hover:text-pink-400 transition-colors"
+              className="flex items-center gap-2 text-sm transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               <Heart className="w-4 h-4" />
               Sponsor
@@ -166,38 +169,38 @@ export const AboutPanel: React.FC = () => {
 
       {/* Update Check */}
       <SettingsSection title="Updates" description="Check for new versions">
-        <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg">
+        <div className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
           <div className="flex items-center gap-3">
             {updateCheck?.hasUpdate ? (
-              <ArrowUpCircle className="w-5 h-5 text-emerald-400" />
+              <ArrowUpCircle className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
             ) : updateCheck?.error ? (
-              <AlertCircle className="w-5 h-5 text-amber-400" />
+              <AlertCircle className="w-5 h-5" style={{ color: 'var(--color-warning)' }} />
             ) : (
-              <CheckCircle2 className="w-5 h-5 text-slate-400" />
+              <CheckCircle2 className="w-5 h-5" style={{ color: 'var(--theme-text-muted)' }} />
             )}
             <div>
               {updateCheck?.hasUpdate ? (
                 <>
-                  <div className="text-sm text-emerald-400 font-medium">
+                  <div className="text-sm font-medium" style={{ color: 'var(--color-success)' }}>
                     Update available: v{updateCheck.latestVersion}
                   </div>
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                     Current: v{updateCheck.currentVersion}
                   </div>
                 </>
               ) : updateCheck?.error ? (
                 <>
-                  <div className="text-sm text-amber-400">Unable to check for updates</div>
-                  <div className="text-xs text-slate-500">{updateCheck.error}</div>
+                  <div className="text-sm" style={{ color: 'var(--color-warning)' }}>Unable to check for updates</div>
+                  <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>{updateCheck.error}</div>
                 </>
               ) : updateCheck ? (
                 <>
-                  <div className="text-sm text-white">You're up to date</div>
-                  <div className="text-xs text-slate-500">v{updateCheck.currentVersion}</div>
+                  <div className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>You're up to date</div>
+                  <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>v{updateCheck.currentVersion}</div>
                 </>
               ) : (
                 <>
-                  <div className="text-sm text-slate-400">Checking for updates...</div>
+                  <div className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>Checking for updates...</div>
                 </>
               )}
             </div>
@@ -209,7 +212,8 @@ export const AboutPanel: React.FC = () => {
                 href={updateCheck.latestRelease.htmlUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+                style={{ color: 'var(--color-success)' }}
               >
                 View Release
                 <ExternalLink className="w-3 h-3" />
@@ -218,7 +222,8 @@ export const AboutPanel: React.FC = () => {
             <button
               onClick={handleCheckUpdate}
               disabled={isCheckingUpdate}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors disabled:opacity-50"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isCheckingUpdate ? 'animate-spin' : ''}`} />
               {isCheckingUpdate ? 'Checking...' : 'Check Now'}
@@ -240,29 +245,29 @@ export const AboutPanel: React.FC = () => {
             return (
               <div
                 key={entry.version}
-                className={`border rounded-lg overflow-hidden transition-colors ${
-                  isCurrent
-                    ? 'border-blue-500/30 bg-blue-500/5'
-                    : 'border-white/5 bg-slate-800/30'
-                }`}
+                className="rounded-lg overflow-hidden transition-colors"
+                style={{
+                  border: isCurrent ? '1px solid var(--theme-accent-muted)' : '1px solid var(--theme-border-light)',
+                  backgroundColor: isCurrent ? 'var(--theme-accent-subtle)' : 'var(--theme-glass-100)'
+                }}
               >
                 <button
                   onClick={() => toggleVersion(entry.version)}
-                  className="w-full flex items-center gap-2 px-4 py-3 hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center gap-2 px-4 py-3 transition-colors"
                 >
                   {isExpanded ? (
-                    <ChevronDown className="w-4 h-4 text-slate-500" />
+                    <ChevronDown className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                   ) : (
-                    <ChevronRight className="w-4 h-4 text-slate-500" />
+                    <ChevronRight className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                   )}
-                  <span className="text-sm font-medium text-white">v{entry.version}</span>
+                  <span className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>v{entry.version}</span>
                   {isCurrent && (
-                    <span className="px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded">
+                    <span className="px-1.5 py-0.5 text-[10px] rounded" style={{ backgroundColor: 'var(--theme-accent-subtle)', color: 'var(--theme-accent)' }}>
                       Current
                     </span>
                   )}
                   {entry.date && (
-                    <span className="text-xs text-slate-500 ml-auto">{entry.date}</span>
+                    <span className="text-xs ml-auto" style={{ color: 'var(--theme-text-dim)' }}>{entry.date}</span>
                   )}
                 </button>
 
@@ -276,7 +281,8 @@ export const AboutPanel: React.FC = () => {
                         <div key={sIdx}>
                           <div className="flex items-center gap-2 mb-2">
                             <span
-                              className={`flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded ${style.bgColor} ${style.color}`}
+                              className="flex items-center gap-1.5 px-2 py-0.5 text-xs font-medium rounded"
+                              style={{ backgroundColor: style.bgColor, color: style.color }}
                             >
                               <Icon className="w-3 h-3" />
                               {style.label}
@@ -286,9 +292,10 @@ export const AboutPanel: React.FC = () => {
                             {section.items.map((item, iIdx) => (
                               <li
                                 key={iIdx}
-                                className="text-xs text-slate-400 flex items-start gap-2"
+                                className="text-xs flex items-start gap-2"
+                                style={{ color: 'var(--theme-text-muted)' }}
                               >
-                                <span className="text-slate-600 mt-1">•</span>
+                                <span className="mt-1" style={{ color: 'var(--theme-text-dim)' }}>•</span>
                                 <span>{item}</span>
                               </li>
                             ))}
@@ -305,16 +312,16 @@ export const AboutPanel: React.FC = () => {
       </SettingsSection>
 
       {/* Credits */}
-      <div className="p-4 bg-slate-800/30 rounded-lg border border-white/5">
+      <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
         <div className="flex items-center gap-3">
-          <Heart className="w-4 h-4 text-pink-400" />
-          <div className="text-xs text-slate-400">
-            Made with <span className="text-pink-400">love</span> by{' '}
+          <Heart className="w-4 h-4" style={{ color: 'var(--color-error)' }} />
+          <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+            Made with <span style={{ color: 'var(--color-error)' }}>love</span> by{' '}
             <a
               href="https://github.com/ersinkoc"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-400 hover:underline"
+              style={{ color: 'var(--theme-accent)' }}
             >
               Ersin Koc
             </a>

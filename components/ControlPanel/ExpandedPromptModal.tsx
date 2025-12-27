@@ -256,32 +256,35 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
+        className="fixed inset-0 z-[9999] backdrop-blur-sm animate-in fade-in duration-200"
+        style={{ backgroundColor: 'var(--theme-modal-overlay)' }}
         onClick={onClose}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
         <div
-          className="w-[90vw] max-w-7xl h-[85vh] bg-slate-900 border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto animate-in zoom-in-95 fade-in duration-200"
+          className="w-[90vw] max-w-7xl h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden pointer-events-auto animate-in zoom-in-95 fade-in duration-200"
+          style={{ backgroundColor: 'var(--theme-modal-bg)', border: '1px solid var(--theme-modal-border)' }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-white/10">
+          <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--theme-border)' }}>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl">
-                <Sparkles className="w-5 h-5 text-blue-400" />
+              <div className="p-2 rounded-xl" style={{ background: 'linear-gradient(135deg, var(--theme-accent-subtle), var(--theme-ai-accent-subtle))' }}>
+                <Sparkles className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
               </div>
               <div>
-                <h2 className="font-semibold text-white">
+                <h2 className="font-semibold" style={{ color: 'var(--theme-text-primary)' }}>
                   {hasExistingApp ? 'Describe Changes' : 'Describe Your App'}
                 </h2>
-                <p className="text-xs text-slate-500">Enter to send</p>
+                <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Enter to send</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               <Minimize2 className="w-5 h-5" />
             </button>
@@ -295,7 +298,7 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
               <div className="flex-1 overflow-auto p-4 space-y-4">
             {/* Error */}
             {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+              <div className="p-3 rounded-lg text-sm" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)', color: 'var(--color-error)' }}>
                 {error}
               </div>
             )}
@@ -303,7 +306,7 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
             {/* Quick Prompts */}
             {hasExistingApp && (
               <div>
-                <div className="text-xs text-slate-500 mb-2 flex items-center gap-2">
+                <div className="text-xs mb-2 flex items-center gap-2" style={{ color: 'var(--theme-text-muted)' }}>
                   <Zap className="w-3.5 h-3.5" />
                   Quick Actions
                 </div>
@@ -312,7 +315,8 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
                     <button
                       key={i}
                       onClick={() => setPrompt(prev => prev ? `${prev}\n${qp.prompt}` : qp.prompt)}
-                      className="px-3 py-1.5 text-xs bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 hover:text-white rounded-lg border border-white/5 transition-colors"
+                      className="px-3 py-1.5 text-xs rounded-lg transition-colors"
+                      style={{ backgroundColor: 'var(--theme-surface)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border-light)' }}
                     >
                       {qp.label}
                     </button>
@@ -333,11 +337,16 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
                   : "Describe your app in detail...\n\nInclude features, layout, color scheme, and any specific requirements."
                 }
                 disabled={isGenerating}
-                className="w-full min-h-[200px] bg-slate-800/50 border border-white/10 rounded-xl p-4 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50 resize-none disabled:opacity-50"
+                className="w-full min-h-[200px] rounded-xl p-4 text-sm focus:outline-none resize-none disabled:opacity-50"
+                style={{
+                  backgroundColor: 'var(--theme-input-bg)',
+                  border: '1px solid var(--theme-input-border)',
+                  color: 'var(--theme-text-primary)'
+                }}
               />
 
               {/* Character count */}
-              <div className="absolute bottom-3 right-3 text-xs text-slate-600">
+              <div className="absolute bottom-3 right-3 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                 {prompt.length} chars
               </div>
             </div>
@@ -348,10 +357,12 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
               <div
                 onClick={() => !sketchAttachment && openFileDialog('sketch')}
                 className={`relative flex-1 min-w-[150px] p-4 rounded-xl border-2 border-dashed transition-all ${
-                  sketchAttachment
-                    ? 'border-blue-500/50 bg-blue-500/10'
-                    : 'border-white/10 hover:border-white/30 cursor-pointer'
+                  !sketchAttachment ? 'cursor-pointer' : ''
                 }`}
+                style={{
+                  borderColor: sketchAttachment ? 'var(--theme-accent)' : 'var(--theme-border)',
+                  backgroundColor: sketchAttachment ? 'var(--theme-accent-subtle)' : undefined
+                }}
               >
                 {sketchAttachment ? (
                   <div className="flex items-center gap-3">
@@ -362,29 +373,30 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
                         className="w-16 h-16 object-cover rounded-lg"
                       />
                     ) : (
-                      <div className="w-16 h-16 bg-slate-800 rounded-lg flex items-center justify-center">
-                        <Image className="w-8 h-8 text-blue-400" />
+                      <div className="w-16 h-16 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--theme-surface)' }}>
+                        <Image className="w-8 h-8" style={{ color: 'var(--theme-accent)' }} />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--theme-text-primary)' }}>
                         {sketchAttachment.file.name}
                       </p>
-                      <p className="text-xs text-slate-500">Sketch / Wireframe</p>
+                      <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Sketch / Wireframe</p>
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleRemove('sketch'); }}
-                      className="p-1.5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                      className="p-1.5 rounded-lg transition-colors"
+                      style={{ color: 'var(--theme-text-muted)' }}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-center">
-                    <Image className="w-8 h-8 text-blue-400" />
+                    <Image className="w-8 h-8" style={{ color: 'var(--theme-accent)' }} />
                     <div>
-                      <p className="text-sm text-slate-300">Add Sketch</p>
-                      <p className="text-xs text-slate-500">Wireframe or mockup</p>
+                      <p className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>Add Sketch</p>
+                      <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Wireframe or mockup</p>
                     </div>
                   </div>
                 )}
@@ -394,10 +406,12 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
               <div
                 onClick={() => !brandAttachment && openFileDialog('brand')}
                 className={`relative flex-1 min-w-[150px] p-4 rounded-xl border-2 border-dashed transition-all ${
-                  brandAttachment
-                    ? 'border-purple-500/50 bg-purple-500/10'
-                    : 'border-white/10 hover:border-white/30 cursor-pointer'
+                  !brandAttachment ? 'cursor-pointer' : ''
                 }`}
+                style={{
+                  borderColor: brandAttachment ? 'var(--theme-ai-accent)' : 'var(--theme-border)',
+                  backgroundColor: brandAttachment ? 'var(--theme-ai-accent-subtle)' : undefined
+                }}
               >
                 {brandAttachment ? (
                   <div className="flex items-center gap-3">
@@ -408,29 +422,30 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
                         className="w-16 h-16 object-cover rounded-lg"
                       />
                     ) : (
-                      <div className="w-16 h-16 bg-slate-800 rounded-lg flex items-center justify-center">
-                        <Palette className="w-8 h-8 text-purple-400" />
+                      <div className="w-16 h-16 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--theme-surface)' }}>
+                        <Palette className="w-8 h-8" style={{ color: 'var(--theme-ai-accent)' }} />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">
+                      <p className="text-sm font-medium truncate" style={{ color: 'var(--theme-text-primary)' }}>
                         {brandAttachment.file.name}
                       </p>
-                      <p className="text-xs text-slate-500">Brand Logo</p>
+                      <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Brand Logo</p>
                     </div>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleRemove('brand'); }}
-                      className="p-1.5 hover:bg-red-500/20 text-slate-400 hover:text-red-400 rounded-lg transition-colors"
+                      className="p-1.5 rounded-lg transition-colors"
+                      style={{ color: 'var(--theme-text-muted)' }}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-center">
-                    <Palette className="w-8 h-8 text-purple-400" />
+                    <Palette className="w-8 h-8" style={{ color: 'var(--theme-ai-accent)' }} />
                     <div>
-                      <p className="text-sm text-slate-300">Add Brand</p>
-                      <p className="text-xs text-slate-500">Logo for colors</p>
+                      <p className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>Add Brand</p>
+                      <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Logo for colors</p>
                     </div>
                   </div>
                 )}
@@ -439,46 +454,49 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
 
             {/* File Context Selector - Only for existing app */}
             {hasExistingApp && sourceFiles.length > 0 && (
-              <div className="border border-white/10 rounded-xl overflow-hidden">
+              <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--theme-border)' }}>
                 <button
                   onClick={() => setShowFileSelector(!showFileSelector)}
-                  className="w-full flex items-center justify-between p-3 hover:bg-white/5 transition-colors"
+                  className="w-full flex items-center justify-between p-3 transition-colors"
+                  style={{ backgroundColor: 'transparent' }}
                 >
                   <div className="flex items-center gap-2">
-                    <FileCode className="w-4 h-4 text-emerald-400" />
-                    <span className="text-sm text-slate-300">Include File Context</span>
+                    <FileCode className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
+                    <span className="text-sm" style={{ color: 'var(--theme-text-secondary)' }}>Include File Context</span>
                     {selectedFiles.length > 0 && (
-                      <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded text-xs">
+                      <span className="px-2 py-0.5 rounded text-xs" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
                         {selectedFiles.length} selected
                       </span>
                     )}
                   </div>
                   {showFileSelector ? (
-                    <ChevronDown className="w-4 h-4 text-slate-500" />
+                    <ChevronDown className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                   ) : (
-                    <ChevronRight className="w-4 h-4 text-slate-500" />
+                    <ChevronRight className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                   )}
                 </button>
 
                 {showFileSelector && (
-                  <div className="border-t border-white/10 p-3 max-h-48 overflow-y-auto">
-                    <p className="text-xs text-slate-500 mb-2">
+                  <div className="p-3 max-h-48 overflow-y-auto" style={{ borderTop: '1px solid var(--theme-border)' }}>
+                    <p className="text-xs mb-2" style={{ color: 'var(--theme-text-muted)' }}>
                       Select files to include as reference context
                     </p>
                     <div className="space-y-1">
                       {sourceFiles.map(file => (
                         <label
                           key={file}
-                          className="flex items-center gap-2 p-2 hover:bg-white/5 rounded-lg cursor-pointer"
+                          className="flex items-center gap-2 p-2 rounded-lg cursor-pointer"
+                          style={{ backgroundColor: 'transparent' }}
                         >
                           <input
                             type="checkbox"
                             checked={selectedFiles.includes(file)}
                             onChange={() => toggleFileSelection(file)}
-                            className="rounded border-white/20 bg-slate-800 text-blue-500 focus:ring-blue-500/50"
+                            className="rounded"
+                            style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-surface)' }}
                           />
-                          <FileCode className="w-3.5 h-3.5 text-slate-500" />
-                          <span className="text-sm text-slate-300 truncate">{file}</span>
+                          <FileCode className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} />
+                          <span className="text-sm truncate" style={{ color: 'var(--theme-text-secondary)' }}>{file}</span>
                         </label>
                       ))}
                     </div>
@@ -489,16 +507,16 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
               </div>
 
               {/* Footer for left panel */}
-              <div className="flex items-center justify-between p-4 border-t border-white/10 bg-slate-900/50">
+              <div className="flex items-center justify-between p-4" style={{ borderTop: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-surface-elevated)' }}>
                 <div className="flex items-center gap-2">
                   {/* Prompt Library Toggle */}
                   <button
                     onClick={() => setShowPromptLibrary(!showPromptLibrary)}
-                    className={`p-2.5 rounded-lg transition-colors ${
-                      showPromptLibrary
-                        ? 'bg-purple-500/20 text-purple-400'
-                        : 'hover:bg-white/10 text-slate-400 hover:text-white'
-                    }`}
+                    className="p-2.5 rounded-lg transition-colors"
+                    style={{
+                      backgroundColor: showPromptLibrary ? 'var(--theme-ai-accent-subtle)' : undefined,
+                      color: showPromptLibrary ? 'var(--theme-ai-accent)' : 'var(--theme-text-muted)'
+                    }}
                     title={showPromptLibrary ? 'Hide Prompt Library' : 'Show Prompt Library'}
                   >
                     <BookOpen className="w-5 h-5" />
@@ -509,7 +527,8 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
                     <button
                       onClick={() => setShowImproverModal(true)}
                       disabled={isGenerating}
-                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-purple-600/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-400 text-sm transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm transition-colors disabled:opacity-50"
+                      style={{ backgroundColor: 'var(--theme-ai-accent-subtle)', color: 'var(--theme-ai-accent)', border: '1px solid var(--theme-ai-accent)' }}
                       title="Improve prompt with AI"
                     >
                       <Sparkles className="w-4 h-4" />
@@ -521,14 +540,16 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
                 <div className="flex items-center gap-3">
                   <button
                     onClick={onClose}
-                    className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
+                    className="px-4 py-2 text-sm transition-colors"
+                    style={{ color: 'var(--theme-text-muted)' }}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSend}
                     disabled={isGenerating || !canSend}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-xl font-medium transition-colors"
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium transition-colors disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
                   >
                     {isGenerating ? (
                       <>
@@ -548,18 +569,19 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
 
             {/* Right: Prompt Library Panel */}
             {showPromptLibrary && (
-              <div className="w-1/2 border-l border-white/10 flex flex-col bg-slate-950/50 animate-in slide-in-from-right-5 duration-200">
+              <div className="w-1/2 flex flex-col animate-in slide-in-from-right-5 duration-200" style={{ borderLeft: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-surface-elevated)' }}>
                 {/* Library Header */}
-                <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--theme-border)' }}>
                   <div className="flex items-center gap-2">
-                    <BookOpen className="w-4 h-4 text-purple-400" />
-                    <span className="font-medium text-sm">Prompt Library</span>
+                    <BookOpen className="w-4 h-4" style={{ color: 'var(--theme-ai-accent)' }} />
+                    <span className="font-medium text-sm" style={{ color: 'var(--theme-text-primary)' }}>Prompt Library</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <QuickLevelToggle value={defaultLevel} onChange={setDefaultLevel} size="sm" />
                     <button
                       onClick={() => setShowPromptLibrary(false)}
-                      className="p-1.5 hover:bg-white/10 rounded text-slate-400 hover:text-white transition-colors"
+                      className="p-1.5 rounded transition-colors"
+                      style={{ color: 'var(--theme-text-muted)' }}
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -567,15 +589,16 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
                 </div>
 
                 {/* Search */}
-                <div className="px-4 py-2 border-b border-white/10">
+                <div className="px-4 py-2" style={{ borderBottom: '1px solid var(--theme-border)' }}>
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
                     <input
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Search prompts..."
-                      className="w-full pl-9 pr-4 py-2 bg-slate-800/50 border border-white/5 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-purple-500/50"
+                      className="w-full pl-9 pr-4 py-2 rounded-lg text-sm outline-none"
+                      style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
                     />
                   </div>
                 </div>
@@ -583,20 +606,22 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
                 <div className="flex flex-1 min-h-0 overflow-hidden">
                   {/* Categories Sidebar */}
                   {!searchQuery && (
-                    <div className="w-40 border-r border-white/5 overflow-y-auto custom-scrollbar p-2 flex-shrink-0">
+                    <div className="w-40 overflow-y-auto custom-scrollbar p-2 shrink-0" style={{ borderRight: '1px solid var(--theme-border-light)' }}>
                       {promptLibrary.map(category => {
                         const Icon = iconMap[category.icon] || Sparkles;
+                        const isActive = activeCategory === category.id;
                         return (
                           <button
                             key={category.id}
                             onClick={() => setActiveCategory(category.id)}
-                            className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left transition-all text-xs ${
-                              activeCategory === category.id
-                                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                                : 'text-slate-400 hover:text-white hover:bg-white/5 border border-transparent'
-                            }`}
+                            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left transition-all text-xs border"
+                            style={{
+                              backgroundColor: isActive ? 'var(--theme-ai-accent-subtle)' : undefined,
+                              color: isActive ? 'var(--theme-ai-accent)' : 'var(--theme-text-muted)',
+                              borderColor: isActive ? 'var(--theme-ai-accent)' : 'transparent'
+                            }}
                           >
-                            <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                            <Icon className="w-3.5 h-3.5 shrink-0" />
                             <span className="truncate">{category.name}</span>
                           </button>
                         );
@@ -607,7 +632,7 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
                   {/* Prompts List */}
                   <div className="flex-1 overflow-y-auto custom-scrollbar p-3">
                     {searchQuery && (
-                      <p className="text-xs text-slate-500 mb-2">
+                      <p className="text-xs mb-2" style={{ color: 'var(--theme-text-muted)' }}>
                         Found {filteredPrompts.length} prompts
                       </p>
                     )}
@@ -617,22 +642,26 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
                         <button
                           key={promptItem.id}
                           onClick={() => handlePromptClick(promptItem)}
-                          className="w-full group flex items-start gap-2 p-2.5 rounded-lg bg-slate-800/30 hover:bg-slate-800/60 border border-white/5 hover:border-purple-500/30 transition-all text-left"
+                          className="w-full group flex items-start gap-2 p-2.5 rounded-lg transition-all text-left border"
+                          style={{
+                            backgroundColor: 'var(--theme-glass-100)',
+                            borderColor: 'var(--theme-border-light)'
+                          }}
                         >
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5">
-                              <span className="text-xs font-medium text-white group-hover:text-purple-300 transition-colors">
+                              <span className="text-xs font-medium transition-colors" style={{ color: 'var(--theme-text-primary)' }}>
                                 {promptItem.label}
                               </span>
                               {promptItem.category && (
-                                <span className="text-[9px] px-1 py-0.5 rounded bg-slate-700 text-slate-400">
+                                <span className="text-[9px] px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-surface)', color: 'var(--theme-text-muted)' }}>
                                   {promptItem.category}
                                 </span>
                               )}
                             </div>
-                            <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">{promptItem[defaultLevel]}</p>
+                            <p className="text-[11px] mt-0.5 line-clamp-2" style={{ color: 'var(--theme-text-muted)' }}>{promptItem[defaultLevel]}</p>
                           </div>
-                          <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-purple-400 transition-colors flex-shrink-0 mt-0.5" />
+                          <ChevronRight className="w-3.5 h-3.5 transition-colors shrink-0 mt-0.5" style={{ color: 'var(--theme-text-muted)' }} />
                         </button>
                       ))}
                     </div>
@@ -640,14 +669,19 @@ export const ExpandedPromptModal: React.FC<ExpandedPromptModalProps> = ({
                 </div>
 
                 {/* Quick Prompts Footer */}
-                <div className="px-3 py-2 border-t border-white/5 bg-slate-950/50">
-                  <p className="text-[10px] text-slate-600 mb-1.5">Quick Actions (uses default level)</p>
+                <div className="px-3 py-2" style={{ borderTop: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-surface)' }}>
+                  <p className="text-[10px] mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>Quick Actions (uses default level)</p>
                   <div className="flex flex-wrap gap-1.5">
                     {quickPrompts.slice(0, 4).map(qp => (
                       <button
                         key={qp.id}
                         onClick={() => handleQuickSelect(qp)}
-                        className="px-2 py-1 text-[10px] font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded border border-white/5 hover:border-purple-500/30 transition-all"
+                        className="px-2 py-1 text-[10px] font-medium rounded border transition-all"
+                        style={{
+                          backgroundColor: 'var(--theme-glass-100)',
+                          color: 'var(--theme-text-secondary)',
+                          borderColor: 'var(--theme-border-light)'
+                        }}
                       >
                         {qp.label}
                       </button>

@@ -26,30 +26,30 @@ interface TreeNode {
 
 const getFileIcon = (fileName: string) => {
   if (fileName.endsWith('.tsx') || fileName.endsWith('.jsx')) {
-    return <FileCode className="w-3.5 h-3.5 text-blue-400" />;
+    return <FileCode className="w-3.5 h-3.5" style={{ color: 'var(--color-info)' }} />;
   }
   if (fileName.endsWith('.ts') || fileName.endsWith('.js')) {
-    return <FileCode className="w-3.5 h-3.5 text-yellow-400" />;
+    return <FileCode className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)' }} />;
   }
   if (fileName.endsWith('.json')) {
-    return <FileJson className="w-3.5 h-3.5 text-amber-400" />;
+    return <FileJson className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)' }} />;
   }
   if (fileName.endsWith('.css') || fileName.endsWith('.scss')) {
-    return <FileIcon className="w-3.5 h-3.5 text-pink-400" />;
+    return <FileIcon className="w-3.5 h-3.5" style={{ color: 'var(--color-error)' }} />;
   }
   if (fileName.endsWith('.sql')) {
-    return <Database className="w-3.5 h-3.5 text-emerald-400" />;
+    return <Database className="w-3.5 h-3.5" style={{ color: 'var(--color-success)' }} />;
   }
   if (fileName.endsWith('.md')) {
-    return <FileText className="w-3.5 h-3.5 text-orange-400" />;
+    return <FileText className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)' }} />;
   }
   if (fileName.endsWith('.test.tsx') || fileName.endsWith('.test.ts') || fileName.endsWith('.spec.ts')) {
-    return <FlaskConical className="w-3.5 h-3.5 text-pink-400" />;
+    return <FlaskConical className="w-3.5 h-3.5" style={{ color: 'var(--color-error)' }} />;
   }
   if (fileName.endsWith('.html')) {
-    return <FileCode className="w-3.5 h-3.5 text-orange-500" />;
+    return <FileCode className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)' }} />;
   }
-  return <FileIcon className="w-3.5 h-3.5 text-slate-400" />;
+  return <FileIcon className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} />;
 };
 
 const getFolderIcon = (name: string, isOpen: boolean) => {
@@ -57,34 +57,34 @@ const getFolderIcon = (name: string, isOpen: boolean) => {
 
   if (name === 'src') {
     return isOpen
-      ? <FolderOpen className={`${iconClass} text-blue-400`} />
-      : <Folder className={`${iconClass} text-blue-400`} />;
+      ? <FolderOpen className={iconClass} style={{ color: 'var(--color-info)' }} />
+      : <Folder className={iconClass} style={{ color: 'var(--color-info)' }} />;
   }
   if (name === 'db' || name === 'database') {
-    return <Database className={`${iconClass} text-emerald-400`} />;
+    return <Database className={iconClass} style={{ color: 'var(--color-success)' }} />;
   }
   if (name === 'tests' || name === '__tests__') {
-    return <FlaskConical className={`${iconClass} text-pink-400`} />;
+    return <FlaskConical className={iconClass} style={{ color: 'var(--color-error)' }} />;
   }
   if (name === 'components') {
     return isOpen
-      ? <FolderOpen className={`${iconClass} text-purple-400`} />
-      : <Folder className={`${iconClass} text-purple-400`} />;
+      ? <FolderOpen className={iconClass} style={{ color: 'var(--color-feature)' }} />
+      : <Folder className={iconClass} style={{ color: 'var(--color-feature)' }} />;
   }
   if (name === 'hooks') {
     return isOpen
-      ? <FolderOpen className={`${iconClass} text-cyan-400`} />
-      : <Folder className={`${iconClass} text-cyan-400`} />;
+      ? <FolderOpen className={iconClass} style={{ color: 'var(--color-info)' }} />
+      : <Folder className={iconClass} style={{ color: 'var(--color-info)' }} />;
   }
   if (name === 'utils' || name === 'lib') {
     return isOpen
-      ? <FolderOpen className={`${iconClass} text-amber-400`} />
-      : <Folder className={`${iconClass} text-amber-400`} />;
+      ? <FolderOpen className={iconClass} style={{ color: 'var(--color-warning)' }} />
+      : <Folder className={iconClass} style={{ color: 'var(--color-warning)' }} />;
   }
 
   return isOpen
-    ? <FolderOpen className={`${iconClass} text-slate-400`} />
-    : <Folder className={`${iconClass} text-slate-400`} />;
+    ? <FolderOpen className={iconClass} style={{ color: 'var(--theme-text-muted)' }} />
+    : <Folder className={iconClass} style={{ color: 'var(--theme-text-muted)' }} />;
 };
 
 // Paths to ignore in file explorer
@@ -238,11 +238,11 @@ const TreeNodeComponent = memo(function TreeNodeComponent({
     return (
       <div>
         <div
-          className="w-full flex items-center gap-1.5 py-1 hover:bg-white/5 rounded text-left transition-colors group"
+          className="w-full flex items-center gap-1.5 py-1 rounded text-left transition-colors group"
           style={{ paddingLeft }}
         >
           <button onClick={() => toggleFolder(node.path)} className="flex items-center gap-1.5 flex-1 min-w-0">
-            <span className="text-slate-500">
+            <span style={{ color: 'var(--theme-text-muted)' }}>
               {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
             </span>
             {getFolderIcon(node.name, isExpanded)}
@@ -253,18 +253,20 @@ const TreeNodeComponent = memo(function TreeNodeComponent({
                 onChange={(e) => setNewName(e.target.value)}
                 onBlur={handleRename}
                 onKeyDown={handleKeyDown}
-                className="text-[11px] font-medium text-white bg-slate-800 border border-blue-500 rounded px-1 outline-none w-full min-w-[60px]"
+                className="text-[11px] font-medium rounded px-1 outline-none w-full min-w-[60px]"
+                style={{ color: 'var(--theme-text-primary)', backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-accent)' }}
                 onClick={(e) => e.stopPropagation()}
               />
             ) : (
-              <span className="text-[11px] font-medium text-slate-300 truncate">{node.name}</span>
+              <span className="text-[11px] font-medium truncate" style={{ color: 'var(--theme-text-secondary)' }}>{node.name}</span>
             )}
           </button>
           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity pr-1">
             {onCreateInFolder && (
               <button
                 onClick={(e) => { e.stopPropagation(); onCreateInFolder(node.path); }}
-                className="p-0.5 rounded hover:bg-emerald-500/20 text-slate-500 hover:text-emerald-400 transition-colors"
+                className="p-0.5 rounded transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
                 title="New file in folder"
               >
                 <FilePlus className="w-3 h-3" />
@@ -273,7 +275,8 @@ const TreeNodeComponent = memo(function TreeNodeComponent({
             {onRename && (
               <button
                 onClick={(e) => { e.stopPropagation(); setIsRenaming(true); }}
-                className="p-0.5 rounded hover:bg-blue-500/20 text-slate-500 hover:text-blue-400 transition-colors"
+                className="p-0.5 rounded transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
                 title="Rename folder"
               >
                 <Pencil className="w-3 h-3" />
@@ -282,7 +285,8 @@ const TreeNodeComponent = memo(function TreeNodeComponent({
             {onDelete && (
               <button
                 onClick={(e) => { e.stopPropagation(); onDelete(node.path); }}
-                className="p-0.5 rounded hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-colors"
+                className="p-0.5 rounded transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
                 title="Delete folder"
               >
                 <Trash2 className="w-3 h-3" />
@@ -293,8 +297,8 @@ const TreeNodeComponent = memo(function TreeNodeComponent({
         {isExpanded && node.children && (
           <div className="relative">
             <div
-              className="absolute top-0 bottom-0 border-l border-white/5"
-              style={{ left: paddingLeft + 6 }}
+              className="absolute top-0 bottom-0"
+              style={{ left: paddingLeft + 6, borderLeft: '1px solid var(--theme-border-light)' }}
             />
             {node.children.map(child => (
               <TreeNodeComponent
@@ -321,12 +325,12 @@ const TreeNodeComponent = memo(function TreeNodeComponent({
   // File node
   return (
     <div
-      className={`w-full flex items-center gap-2 py-1 rounded text-left transition-all group ${
-        isActive
-          ? 'bg-blue-600/20 text-blue-200'
-          : 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-      }`}
-      style={{ paddingLeft }}
+      className="w-full flex items-center gap-2 py-1 rounded text-left transition-all group"
+      style={{
+        paddingLeft,
+        backgroundColor: isActive ? 'var(--color-info-subtle)' : 'transparent',
+        color: isActive ? 'var(--color-info)' : 'var(--theme-text-muted)'
+      }}
       onContextMenu={handleContextMenu}
     >
       <button onClick={() => onFileSelect(node.path)} className="flex items-center gap-2 flex-1 min-w-0">
@@ -338,7 +342,8 @@ const TreeNodeComponent = memo(function TreeNodeComponent({
             onChange={(e) => setNewName(e.target.value)}
             onBlur={handleRename}
             onKeyDown={handleKeyDown}
-            className="text-[11px] text-white bg-slate-800 border border-blue-500 rounded px-1 outline-none flex-1 min-w-[60px]"
+            className="text-[11px] rounded px-1 outline-none flex-1 min-w-[60px]"
+            style={{ color: 'var(--theme-text-primary)', backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-accent)' }}
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
@@ -349,7 +354,8 @@ const TreeNodeComponent = memo(function TreeNodeComponent({
         {onRename && (
           <button
             onClick={(e) => { e.stopPropagation(); setIsRenaming(true); }}
-            className="p-0.5 rounded hover:bg-blue-500/20 text-slate-500 hover:text-blue-400 transition-colors"
+            className="p-0.5 rounded transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Rename file"
           >
             <Pencil className="w-3 h-3" />
@@ -358,7 +364,8 @@ const TreeNodeComponent = memo(function TreeNodeComponent({
         {onDelete && (
           <button
             onClick={(e) => { e.stopPropagation(); onDelete(node.path); }}
-            className="p-0.5 rounded hover:bg-red-500/20 text-slate-500 hover:text-red-400 transition-colors"
+            className="p-0.5 rounded transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Delete file"
           >
             <Trash2 className="w-3 h-3" />
@@ -538,17 +545,18 @@ export const FileExplorer = memo(function FileExplorer({
   ).size;
 
   return (
-    <div className="w-56 bg-[#0a0e16] border-r border-white/5 flex flex-col overflow-hidden">
+    <div className="w-56 flex flex-col overflow-hidden" style={{ backgroundColor: 'var(--theme-surface-dark)', borderRight: '1px solid var(--theme-border-light)' }}>
       {/* Header */}
-      <div className="p-3 border-b border-white/5 flex items-center justify-between">
-        <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+      <div className="p-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--theme-text-muted)' }}>
           Explorer
         </span>
         <div className="flex items-center gap-1">
           {onCreateFile && (
             <button
               onClick={() => { setCreateInFolder(null); setIsCreating(true); }}
-              className="p-1 rounded hover:bg-emerald-500/20 text-slate-500 hover:text-emerald-400 transition-colors"
+              className="p-1 rounded transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
               title="New file"
             >
               <FilePlus className="w-3 h-3" />
@@ -556,14 +564,16 @@ export const FileExplorer = memo(function FileExplorer({
           )}
           <button
             onClick={expandAll}
-            className="p-1 rounded hover:bg-white/5 text-slate-500 hover:text-slate-300 transition-colors"
+            className="p-1 rounded transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Expand all"
           >
             <ChevronDown className="w-3 h-3" />
           </button>
           <button
             onClick={collapseAll}
-            className="p-1 rounded hover:bg-white/5 text-slate-500 hover:text-slate-300 transition-colors"
+            className="p-1 rounded transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="Collapse all"
           >
             <ChevronRight className="w-3 h-3" />
@@ -573,10 +583,10 @@ export const FileExplorer = memo(function FileExplorer({
 
       {/* New File Input */}
       {isCreating && (
-        <div className="px-3 py-2 border-b border-white/5 bg-slate-800/50">
+        <div className="px-3 py-2" style={{ borderBottom: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-200)' }}>
           <div className="flex items-center gap-1 mb-1">
-            <FilePlus className="w-3 h-3 text-emerald-400" />
-            <span className="text-[10px] text-slate-400">
+            <FilePlus className="w-3 h-3" style={{ color: 'var(--color-success)' }} />
+            <span className="text-[10px]" style={{ color: 'var(--theme-text-muted)' }}>
               {createInFolder ? `in ${createInFolder}/` : 'in src/'}
             </span>
           </div>
@@ -591,18 +601,21 @@ export const FileExplorer = memo(function FileExplorer({
                 if (e.key === 'Escape') { setIsCreating(false); setNewFileName(''); setCreateInFolder(null); }
               }}
               placeholder="filename.tsx"
-              className="flex-1 px-2 py-1 bg-slate-900 border border-slate-700 rounded text-xs text-white placeholder-slate-500 outline-none focus:border-emerald-500"
+              className="flex-1 px-2 py-1 rounded text-xs outline-none"
+              style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
             />
             <button
               onClick={handleCreateFile}
               disabled={!newFileName.trim()}
-              className="p-1 rounded bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white transition-colors"
+              className="p-1 rounded transition-colors disabled:opacity-50"
+              style={{ backgroundColor: 'var(--color-success)', color: 'white' }}
             >
               <Check className="w-3 h-3" />
             </button>
             <button
               onClick={() => { setIsCreating(false); setNewFileName(''); setCreateInFolder(null); }}
-              className="p-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 transition-colors"
+              className="p-1 rounded transition-colors"
+              style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}
             >
               <X className="w-3 h-3" />
             </button>
@@ -632,18 +645,20 @@ export const FileExplorer = memo(function FileExplorer({
 
       {/* Delete Confirmation */}
       {showDeleteConfirm && (
-        <div className="px-3 py-2 border-t border-red-500/20 bg-red-500/10">
-          <p className="text-[10px] text-red-300 mb-1">Delete "{showDeleteConfirm.split('/').pop()}"?</p>
+        <div className="px-3 py-2" style={{ borderTop: '1px solid var(--color-error-border)', backgroundColor: 'var(--color-error-subtle)' }}>
+          <p className="text-[10px] mb-1" style={{ color: 'var(--color-error)' }}>Delete "{showDeleteConfirm.split('/').pop()}"?</p>
           <div className="flex items-center gap-1">
             <button
               onClick={() => handleDelete(showDeleteConfirm)}
-              className="flex-1 px-2 py-1 text-[10px] bg-red-600 hover:bg-red-500 text-white rounded transition-colors"
+              className="flex-1 px-2 py-1 text-[10px] rounded transition-colors"
+              style={{ backgroundColor: 'var(--color-error)', color: 'white' }}
             >
               Confirm Delete
             </button>
             <button
               onClick={() => setShowDeleteConfirm(null)}
-              className="px-2 py-1 text-[10px] bg-slate-700 hover:bg-slate-600 text-slate-300 rounded transition-colors"
+              className="px-2 py-1 text-[10px] rounded transition-colors"
+              style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-secondary)' }}
             >
               Cancel
             </button>
@@ -652,8 +667,8 @@ export const FileExplorer = memo(function FileExplorer({
       )}
 
       {/* Footer Stats */}
-      <div className="px-3 py-2 border-t border-white/5 bg-slate-950/50">
-        <div className="flex items-center justify-between text-[10px] text-slate-600">
+      <div className="px-3 py-2" style={{ borderTop: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-100)' }}>
+        <div className="flex items-center justify-between text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
           <span>{folderCount} folders</span>
           <span>{fileCount} files</span>
         </div>

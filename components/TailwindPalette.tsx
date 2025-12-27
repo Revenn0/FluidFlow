@@ -130,54 +130,59 @@ export const TailwindPalette: React.FC<TailwindPaletteProps> = ({ isOpen, onClos
       onClick={onClose}
     >
       <div
-        className="w-full max-w-4xl h-[80vh] bg-slate-900 border border-white/10 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-full max-w-4xl h-[80vh] rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
+        style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border-light)' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
+        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--theme-border-subtle)' }}>
           <div className="flex items-center gap-3">
-            <Palette className="w-5 h-5 text-cyan-400" />
-            <h2 className="text-lg font-semibold text-white">Tailwind Palette</h2>
+            <Palette className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Tailwind Palette</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Search & Tabs */}
-        <div className="px-4 py-3 border-b border-white/5 space-y-3">
+        <div className="px-4 py-3 space-y-3" style={{ borderBottom: '1px solid var(--theme-border-subtle)' }}>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search colors or utilities..."
-              className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50"
+              className="w-full pl-10 pr-4 py-2 rounded-lg text-sm outline-none"
+              style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-primary)' }}
             />
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab('colors')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'colors'
-                  ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: activeTab === 'colors' ? 'var(--color-info-subtle)' : 'transparent',
+                color: activeTab === 'colors' ? 'var(--color-info)' : 'var(--theme-text-muted)',
+                border: activeTab === 'colors' ? '1px solid var(--color-info-border)' : '1px solid transparent',
+              }}
             >
               <Palette className="w-4 h-4" />
               Colors
             </button>
             <button
               onClick={() => setActiveTab('utilities')}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                activeTab === 'utilities'
-                  ? 'bg-blue-600/20 text-blue-400 border border-blue-500/30'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: activeTab === 'utilities' ? 'var(--color-info-subtle)' : 'transparent',
+                color: activeTab === 'utilities' ? 'var(--color-info)' : 'var(--theme-text-muted)',
+                border: activeTab === 'utilities' ? '1px solid var(--color-info-border)' : '1px solid transparent',
+              }}
             >
               <Box className="w-4 h-4" />
               Utilities
@@ -195,11 +200,12 @@ export const TailwindPalette: React.FC<TailwindPaletteProps> = ({ isOpen, onClos
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors ${
-                      selectedColor === color
-                        ? 'bg-white/10 text-white ring-2 ring-blue-500'
-                        : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
-                    }`}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-colors"
+                    style={{
+                      backgroundColor: selectedColor === color ? 'var(--theme-glass-300)' : 'var(--theme-glass-200)',
+                      color: selectedColor === color ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)',
+                      boxShadow: selectedColor === color ? '0 0 0 2px var(--color-info)' : 'none',
+                    }}
                   >
                     {color}
                   </button>
@@ -210,7 +216,7 @@ export const TailwindPalette: React.FC<TailwindPaletteProps> = ({ isOpen, onClos
               <div className="space-y-3">
                 {/* Background colors */}
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">Background</h3>
+                  <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: 'var(--theme-text-dim)' }}>Background</h3>
                   <div className="grid grid-cols-11 gap-1">
                     {SHADES.map(shade => {
                       const className = `bg-${selectedColor}-${shade}`;
@@ -228,8 +234,8 @@ export const TailwindPalette: React.FC<TailwindPaletteProps> = ({ isOpen, onClos
                             {shade}
                           </span>
                           {copiedClass === className && (
-                            <span className="absolute inset-0 flex items-center justify-center bg-green-500 rounded-md">
-                              <Check className="w-3 h-3 text-white" />
+                            <span className="absolute inset-0 flex items-center justify-center rounded-md" style={{ backgroundColor: 'var(--color-success)' }}>
+                              <Check className="w-3 h-3" style={{ color: 'var(--theme-text-on-accent)' }} />
                             </span>
                           )}
                         </button>
@@ -240,7 +246,7 @@ export const TailwindPalette: React.FC<TailwindPaletteProps> = ({ isOpen, onClos
 
                 {/* Text colors */}
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">Text</h3>
+                  <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: 'var(--theme-text-dim)' }}>Text</h3>
                   <div className="flex flex-wrap gap-1">
                     {SHADES.map(shade => {
                       const className = `text-${selectedColor}-${shade}`;
@@ -250,8 +256,8 @@ export const TailwindPalette: React.FC<TailwindPaletteProps> = ({ isOpen, onClos
                           key={shade}
                           onClick={() => handleInsert(className)}
                           onDoubleClick={() => handleCopy(className)}
-                          className="px-2 py-1 rounded text-xs font-medium bg-slate-800 hover:bg-slate-700 transition-colors"
-                          style={{ color: colorValue }}
+                          className="px-2 py-1 rounded text-xs font-medium transition-colors"
+                          style={{ color: colorValue, backgroundColor: 'var(--theme-glass-200)' }}
                           title={className}
                         >
                           {shade}
@@ -263,7 +269,7 @@ export const TailwindPalette: React.FC<TailwindPaletteProps> = ({ isOpen, onClos
 
                 {/* Border colors */}
                 <div>
-                  <h3 className="text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wider">Border</h3>
+                  <h3 className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: 'var(--theme-text-dim)' }}>Border</h3>
                   <div className="flex flex-wrap gap-1">
                     {SHADES.map(shade => {
                       const className = `border-${selectedColor}-${shade}`;
@@ -273,8 +279,8 @@ export const TailwindPalette: React.FC<TailwindPaletteProps> = ({ isOpen, onClos
                           key={shade}
                           onClick={() => handleInsert(className)}
                           onDoubleClick={() => handleCopy(className)}
-                          className="w-8 h-8 rounded border-2 bg-slate-900 hover:scale-110 transition-transform"
-                          style={{ borderColor: colorValue }}
+                          className="w-8 h-8 rounded border-2 hover:scale-110 transition-transform"
+                          style={{ borderColor: colorValue, backgroundColor: 'var(--theme-surface-dark)' }}
                           title={className}
                         />
                       );
@@ -288,8 +294,8 @@ export const TailwindPalette: React.FC<TailwindPaletteProps> = ({ isOpen, onClos
               {Object.entries(UTILITY_CATEGORIES).map(([key, category]) => (
                 <div key={key}>
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-slate-400">{category.icon}</span>
-                    <h3 className="text-sm font-semibold text-white">{category.name}</h3>
+                    <span style={{ color: 'var(--theme-text-muted)' }}>{category.icon}</span>
+                    <h3 className="text-sm font-semibold" style={{ color: 'var(--theme-text-primary)' }}>{category.name}</h3>
                   </div>
                   <div className="space-y-3">
                     {category.items
@@ -300,18 +306,18 @@ export const TailwindPalette: React.FC<TailwindPaletteProps> = ({ isOpen, onClos
                       )
                       .map(item => (
                         <div key={item.label}>
-                          <p className="text-xs text-slate-500 mb-1.5">{item.label}</p>
+                          <p className="text-xs mb-1.5" style={{ color: 'var(--theme-text-dim)' }}>{item.label}</p>
                           <div className="flex flex-wrap gap-1">
                             {item.classes.map(cls => (
                               <button
                                 key={cls}
                                 onClick={() => handleInsert(cls)}
                                 onDoubleClick={() => handleCopy(cls)}
-                                className={`px-2 py-1 rounded text-xs font-mono transition-colors ${
-                                  copiedClass === cls
-                                    ? 'bg-green-500/20 text-green-400'
-                                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
-                                }`}
+                                className="px-2 py-1 rounded text-xs font-mono transition-colors"
+                                style={{
+                                  backgroundColor: copiedClass === cls ? 'var(--color-success-subtle)' : 'var(--theme-glass-200)',
+                                  color: copiedClass === cls ? 'var(--color-success)' : 'var(--theme-text-secondary)',
+                                }}
                               >
                                 {copiedClass === cls ? <Check className="w-3 h-3 inline mr-1" /> : null}
                                 {cls}
@@ -328,8 +334,8 @@ export const TailwindPalette: React.FC<TailwindPaletteProps> = ({ isOpen, onClos
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 border-t border-white/5 bg-slate-950/50">
-          <p className="text-[10px] text-slate-600 text-center">
+        <div className="px-4 py-2" style={{ borderTop: '1px solid var(--theme-border-subtle)', backgroundColor: 'var(--theme-surface-dark)' }}>
+          <p className="text-[10px] text-center" style={{ color: 'var(--theme-text-dim)' }}>
             Click to insert • Double-click to copy
           </p>
         </div>

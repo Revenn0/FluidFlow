@@ -72,24 +72,27 @@ export const ActivityBarTooltip: React.FC<ActivityBarTooltipProps> = ({
             transform: 'translateY(-50%)',
           }}
         >
-          {/* Arrow */}
+          {/* Arrow - using inline styles for theme colors */}
           <div
-            className={`absolute top-1/2 -translate-y-1/2 w-0 h-0 ${
-              side === 'right'
-                ? '-left-1.5 border-r-[6px] border-r-slate-800 border-y-[6px] border-y-transparent'
-                : '-right-1.5 border-l-[6px] border-l-slate-800 border-y-[6px] border-y-transparent'
-            }`}
+            className="absolute top-1/2 -translate-y-1/2 w-0 h-0"
+            style={{
+              [side === 'right' ? 'left' : 'right']: '-6px',
+              borderTop: '6px solid transparent',
+              borderBottom: '6px solid transparent',
+              [side === 'right' ? 'borderRight' : 'borderLeft']: '6px solid var(--theme-surface)',
+            }}
           />
 
           {/* Content */}
           <div
-            className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 shadow-xl animate-in fade-in slide-in-from-left-2 duration-150"
+            className="rounded-lg px-3 py-2 shadow-xl animate-in fade-in slide-in-from-left-2 duration-150"
+            style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}
           >
-            <span className="text-sm font-medium text-white whitespace-nowrap">
+            <span className="text-sm font-medium whitespace-nowrap" style={{ color: 'var(--theme-text-primary)' }}>
               {label}
             </span>
             {description && (
-              <p className="text-xs text-slate-400 mt-0.5 max-w-[200px]">
+              <p className="text-xs mt-0.5 max-w-[200px]" style={{ color: 'var(--theme-text-muted)' }}>
                 {description}
               </p>
             )}

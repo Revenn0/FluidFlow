@@ -218,19 +218,20 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
   return (
     <div className="space-y-4">
       {/* Active Provider Summary */}
-      <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg border border-white/5">
+      <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
         <div className="flex items-center gap-2">
           {activeConfig && <ProviderIcon type={activeConfig.type} />}
           <div>
-            <div className="text-sm font-medium text-white">{activeConfig?.name || 'No provider'}</div>
-            <div className="text-[10px] text-slate-500">{activeConfig?.defaultModel}</div>
+            <div className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>{activeConfig?.name || 'No provider'}</div>
+            <div className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>{activeConfig?.defaultModel}</div>
           </div>
         </div>
         <div className="flex items-center gap-2">
           <select
             value={activeProviderId}
             onChange={(e) => setActiveProvider(e.target.value)}
-            className="bg-slate-700 text-xs text-white rounded px-2 py-1 outline-none"
+            className="text-xs rounded px-2 py-1 outline-none"
+            style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-primary)' }}
           >
             {providers.map(p => (
               <option key={p.id} value={p.id}>{p.name}</option>
@@ -249,53 +250,56 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
           return (
             <div
               key={provider.id}
-              className={`border rounded-lg overflow-hidden transition-colors ${
-                isActive ? 'border-blue-500/50 bg-blue-500/5' : 'border-white/5 bg-slate-800/30'
-              }`}
+              className="rounded-lg overflow-hidden transition-colors"
+              style={{
+                border: isActive ? '1px solid var(--color-info-border)' : '1px solid var(--theme-border-light)',
+                backgroundColor: isActive ? 'var(--color-info-subtle)' : 'var(--theme-glass-100)'
+              }}
             >
               {/* Header */}
               <button
                 onClick={() => setExpandedProvider(isExpanded ? null : provider.id)}
-                className="w-full flex items-center justify-between p-3 hover:bg-white/5 transition-colors"
+                className="w-full flex items-center justify-between p-3 transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  {isExpanded ? <ChevronDown className="w-3 h-3 text-slate-400" /> : <ChevronRight className="w-3 h-3 text-slate-400" />}
+                  {isExpanded ? <ChevronDown className="w-3 h-3" style={{ color: 'var(--theme-text-muted)' }} /> : <ChevronRight className="w-3 h-3" style={{ color: 'var(--theme-text-muted)' }} />}
                   <ProviderIcon type={provider.type} />
-                  <span className="text-sm text-white">{provider.name}</span>
+                  <span className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>{provider.name}</span>
                   {provider.isLocal && (
-                    <span className="text-[9px] px-1.5 py-0.5 bg-purple-500/20 text-purple-400 rounded">LOCAL</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>LOCAL</span>
                   )}
                   {isActive && (
-                    <span className="text-[9px] px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded">ACTIVE</span>
+                    <span className="text-[9px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}>ACTIVE</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  {testResult?.status === 'testing' && <Loader2 className="w-3 h-3 text-blue-400 animate-spin" />}
-                  {testResult?.status === 'success' && <CheckCircle2 className="w-3 h-3 text-green-400" />}
-                  {testResult?.status === 'error' && <AlertCircle className="w-3 h-3 text-red-400" />}
+                  {testResult?.status === 'testing' && <Loader2 className="w-3 h-3 animate-spin" style={{ color: 'var(--color-info)' }} />}
+                  {testResult?.status === 'success' && <CheckCircle2 className="w-3 h-3" style={{ color: 'var(--color-success)' }} />}
+                  {testResult?.status === 'error' && <AlertCircle className="w-3 h-3" style={{ color: 'var(--color-error)' }} />}
                 </div>
               </button>
 
               {/* Expanded Content */}
               {isExpanded && (
-                <div className="px-3 pb-3 border-t border-white/5 space-y-3">
+                <div className="px-3 pb-3 space-y-3" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
                   {/* API Key */}
                   {!provider.isLocal && (
                     <div className="pt-3">
-                      <label className="text-[10px] text-slate-500 uppercase tracking-wide">API Key</label>
+                      <label className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--theme-text-dim)' }}>API Key</label>
                       <div className="flex items-center gap-2 mt-1">
                         <input
                           type={showApiKey[provider.id] ? 'text' : 'password'}
                           value={provider.apiKey || ''}
                           onChange={(e) => updateProvider(provider.id, { apiKey: e.target.value })}
                           placeholder={`Enter your ${provider.name} API key`}
-                          className="flex-1 px-2 py-1.5 bg-slate-900 border border-white/10 rounded text-xs text-white placeholder-slate-600 outline-none focus:border-blue-500/50"
+                          className="flex-1 px-2 py-1.5 rounded text-xs outline-none"
+                          style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                         />
                         <button
                           onClick={() => setShowApiKey(prev => ({ ...prev, [provider.id]: !prev[provider.id] }))}
-                          className="p-1.5 hover:bg-white/10 rounded transition-colors"
+                          className="p-1.5 rounded transition-colors"
                         >
-                          {showApiKey[provider.id] ? <EyeOff className="w-3.5 h-3.5 text-slate-400" /> : <Eye className="w-3.5 h-3.5 text-slate-400" />}
+                          {showApiKey[provider.id] ? <EyeOff className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} /> : <Eye className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} />}
                         </button>
                       </div>
                     </div>
@@ -303,26 +307,28 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
 
                   {/* Base URL */}
                   <div>
-                    <label className="text-[10px] text-slate-500 uppercase tracking-wide">Base URL</label>
+                    <label className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--theme-text-dim)' }}>Base URL</label>
                     <input
                       type="text"
                       value={provider.baseUrl || ''}
                       onChange={(e) => updateProvider(provider.id, { baseUrl: e.target.value })}
                       placeholder="https://api.example.com"
-                      className="w-full mt-1 px-2 py-1.5 bg-slate-900 border border-white/10 rounded text-xs text-white placeholder-slate-600 outline-none focus:border-blue-500/50 font-mono"
+                      className="w-full mt-1 px-2 py-1.5 rounded text-xs outline-none font-mono"
+                      style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                     />
                   </div>
 
                   {/* Default Model */}
                   <div>
                     <div className="flex items-center justify-between">
-                      <label className="text-[10px] text-slate-500 uppercase tracking-wide">Default Model</label>
+                      <label className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--theme-text-dim)' }}>Default Model</label>
                       {/* Fetch Models button for local providers and OpenRouter */}
                       {(provider.isLocal || provider.type === 'openrouter') && (
                         <button
                           onClick={() => fetchModels(provider.id)}
                           disabled={fetchingModels[provider.id]}
-                          className="flex items-center gap-1 px-1.5 py-0.5 text-[9px] text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded transition-colors disabled:opacity-50"
+                          className="flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded transition-colors disabled:opacity-50"
+                          style={{ color: 'var(--color-info)' }}
                           title="Fetch available models from server"
                         >
                           {fetchingModels[provider.id] ? (
@@ -337,7 +343,8 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                     <select
                       value={provider.defaultModel}
                       onChange={(e) => updateProvider(provider.id, { defaultModel: e.target.value })}
-                      className="w-full mt-1 px-2 py-1.5 bg-slate-900 border border-white/10 rounded text-xs text-white outline-none focus:border-blue-500/50"
+                      className="w-full mt-1 px-2 py-1.5 rounded text-xs outline-none"
+                      style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                     >
                       {provider.models.map(m => (
                         <option key={m.id} value={m.id}>{m.name} - {m.description}</option>
@@ -354,17 +361,19 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                             onChange={(e) => setCustomModelInput(prev => ({ ...prev, [provider.id]: e.target.value }))}
                             onKeyDown={(e) => e.key === 'Enter' && addCustomModel(provider.id)}
                             placeholder="Enter model name (e.g., llama3.2, mistral)"
-                            className="flex-1 px-2 py-1.5 bg-slate-900 border border-white/10 rounded text-xs text-white placeholder-slate-600 outline-none focus:border-blue-500/50 font-mono"
+                            className="flex-1 px-2 py-1.5 rounded text-xs outline-none font-mono"
+                            style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                           />
                           <button
                             onClick={() => addCustomModel(provider.id)}
                             disabled={!customModelInput[provider.id]?.trim()}
-                            className="px-2 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[10px] rounded transition-colors"
+                            className="px-2 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed text-[10px] rounded transition-colors"
+                            style={{ backgroundColor: 'var(--color-success)', color: 'var(--theme-text-primary)' }}
                           >
                             <Plus className="w-3 h-3" />
                           </button>
                         </div>
-                        <div className="text-[9px] text-slate-500 mt-1">
+                        <div className="text-[9px] mt-1" style={{ color: 'var(--theme-text-dim)' }}>
                           Type model name and press Enter or click + to add
                         </div>
                       </div>
@@ -372,16 +381,16 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                   </div>
 
                   {/* Models List */}
-                  <div className="pt-2 border-t border-white/5">
+                  <div className="pt-2" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
                     <div className="flex items-center justify-between mb-2">
-                      <label className="text-[10px] text-slate-500 uppercase tracking-wide">Models ({provider.models.length})</label>
+                      <label className="text-[10px] uppercase tracking-wide" style={{ color: 'var(--theme-text-dim)' }}>Models ({provider.models.length})</label>
                       <button
                         onClick={() => setEditingModels(editingModels === provider.id ? null : provider.id)}
-                        className={`flex items-center gap-1 px-2 py-0.5 text-[10px] rounded transition-colors ${
-                          editingModels === provider.id
-                            ? 'bg-blue-500/20 text-blue-400'
-                            : 'hover:bg-white/10 text-slate-400'
-                        }`}
+                        className="flex items-center gap-1 px-2 py-0.5 text-[10px] rounded transition-colors"
+                        style={{
+                          backgroundColor: editingModels === provider.id ? 'var(--color-info-subtle)' : 'transparent',
+                          color: editingModels === provider.id ? 'var(--color-info)' : 'var(--theme-text-muted)'
+                        }}
                       >
                         <Pencil className="w-2.5 h-2.5" />
                         {editingModels === provider.id ? 'Done' : 'Edit'}
@@ -392,49 +401,51 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                       {provider.models.map(model => (
                         <div
                           key={model.id}
-                          className={`flex items-center justify-between p-2 rounded-lg border transition-colors ${
-                            provider.defaultModel === model.id
-                              ? 'bg-blue-500/10 border-blue-500/30'
-                              : 'bg-slate-900/50 border-white/5'
-                          }`}
+                          className="flex items-center justify-between p-2 rounded-lg transition-colors"
+                          style={{
+                            backgroundColor: provider.defaultModel === model.id ? 'var(--color-info-subtle)' : 'var(--theme-surface-dark)',
+                            border: provider.defaultModel === model.id ? '1px solid var(--color-info-border)' : '1px solid var(--theme-border-light)'
+                          }}
                         >
                           {editingModels === provider.id ? (
                             <div className="flex-1 space-y-1.5">
-                              <div className="text-[9px] text-slate-500 font-mono px-1">{model.id}</div>
+                              <div className="text-[9px] font-mono px-1" style={{ color: 'var(--theme-text-dim)' }}>{model.id}</div>
                               <div className="flex gap-1.5">
                                 <input
                                   type="text"
                                   value={model.name}
                                   onChange={(e) => updateModelInProvider(provider.id, model.id, { name: e.target.value })}
                                   placeholder="Name"
-                                  className="flex-1 px-1.5 py-0.5 bg-slate-800 border border-white/10 rounded text-[10px] text-white outline-none"
+                                  className="flex-1 px-1.5 py-0.5 rounded text-[10px] outline-none"
+                                  style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                                 />
                                 <input
                                   type="text"
                                   value={model.description || ''}
                                   onChange={(e) => updateModelInProvider(provider.id, model.id, { description: e.target.value })}
                                   placeholder="Description"
-                                  className="flex-1 px-1.5 py-0.5 bg-slate-800 border border-white/10 rounded text-[10px] text-slate-400 outline-none"
+                                  className="flex-1 px-1.5 py-0.5 rounded text-[10px] outline-none"
+                                  style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-muted)' }}
                                 />
                               </div>
                             </div>
                           ) : (
                             <div className="flex-1 min-w-0">
-                              <div className="text-[11px] text-white truncate">{model.name}</div>
-                              <div className="text-[9px] text-slate-500 font-mono truncate">{model.id}</div>
+                              <div className="text-[11px] truncate" style={{ color: 'var(--theme-text-primary)' }}>{model.name}</div>
+                              <div className="text-[9px] font-mono truncate" style={{ color: 'var(--theme-text-dim)' }}>{model.id}</div>
                             </div>
                           )}
                           <div className="flex items-center gap-1 ml-2">
                             {model.supportsVision && (
-                              <span className="text-[8px] px-1 py-0.5 bg-purple-500/20 text-purple-400 rounded">👁</span>
+                              <span className="text-[8px] px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>👁</span>
                             )}
                             {editingModels === provider.id && provider.models.length > 1 && (
                               <button
                                 onClick={() => deleteModel(provider.id, model.id)}
-                                className="p-1 hover:bg-red-500/20 rounded transition-colors"
+                                className="p-1 rounded transition-colors"
                                 title="Delete model"
                               >
-                                <Trash2 className="w-3 h-3 text-red-400" />
+                                <Trash2 className="w-3 h-3" style={{ color: 'var(--color-error)' }} />
                               </button>
                             )}
                           </div>
@@ -445,13 +456,14 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                     {/* Add Model */}
                     {editingModels === provider.id && (
                       showAddModel === provider.id ? (
-                        <div className="mt-2 p-2 bg-slate-800/50 rounded-lg border border-white/10 space-y-2">
+                        <div className="mt-2 p-2 rounded-lg space-y-2" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)' }}>
                           <input
                             type="text"
                             value={newModel.id || ''}
                             onChange={(e) => setNewModel(prev => ({ ...prev, id: e.target.value }))}
                             placeholder="Model ID (e.g., gpt-4o)"
-                            className="w-full px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-white font-mono outline-none focus:border-blue-500/50"
+                            className="w-full px-2 py-1 rounded text-[10px] font-mono outline-none"
+                            style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                           />
                           <div className="flex gap-1.5">
                             <input
@@ -459,18 +471,20 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                               value={newModel.name || ''}
                               onChange={(e) => setNewModel(prev => ({ ...prev, name: e.target.value }))}
                               placeholder="Display Name"
-                              className="flex-1 px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-white outline-none focus:border-blue-500/50"
+                              className="flex-1 px-2 py-1 rounded text-[10px] outline-none"
+                              style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                             />
                             <input
                               type="text"
                               value={newModel.description || ''}
                               onChange={(e) => setNewModel(prev => ({ ...prev, description: e.target.value }))}
                               placeholder="Description"
-                              className="flex-1 px-2 py-1 bg-slate-900 border border-white/10 rounded text-[10px] text-slate-400 outline-none focus:border-blue-500/50"
+                              className="flex-1 px-2 py-1 rounded text-[10px] outline-none"
+                              style={{ backgroundColor: 'var(--theme-surface-dark)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-muted)' }}
                             />
                           </div>
                           <div className="flex items-center gap-3 text-[10px]">
-                            <label className="flex items-center gap-1 text-slate-400">
+                            <label className="flex items-center gap-1" style={{ color: 'var(--theme-text-muted)' }}>
                               <input
                                 type="checkbox"
                                 checked={newModel.supportsVision || false}
@@ -479,7 +493,7 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                               />
                               Vision
                             </label>
-                            <label className="flex items-center gap-1 text-slate-400">
+                            <label className="flex items-center gap-1" style={{ color: 'var(--theme-text-muted)' }}>
                               <input
                                 type="checkbox"
                                 checked={newModel.supportsStreaming !== false}
@@ -493,7 +507,8 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                             <button
                               onClick={() => addModel(provider.id)}
                               disabled={!newModel.id || !newModel.name}
-                              className="flex-1 flex items-center justify-center gap-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-[10px] rounded transition-colors"
+                              className="flex-1 flex items-center justify-center gap-1 px-2 py-1 disabled:opacity-50 disabled:cursor-not-allowed text-[10px] rounded transition-colors"
+                              style={{ backgroundColor: 'var(--color-success)', color: 'var(--theme-text-primary)' }}
                             >
                               <Plus className="w-3 h-3" />
                               Add
@@ -503,7 +518,8 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                                 setShowAddModel(null);
                                 setNewModel({ id: '', name: '', description: '' });
                               }}
-                              className="px-2 py-1 hover:bg-white/10 text-slate-400 text-[10px] rounded transition-colors"
+                              className="px-2 py-1 text-[10px] rounded transition-colors"
+                              style={{ color: 'var(--theme-text-muted)' }}
                             >
                               Cancel
                             </button>
@@ -512,7 +528,8 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                       ) : (
                         <button
                           onClick={() => setShowAddModel(provider.id)}
-                          className="w-full mt-2 flex items-center justify-center gap-1 px-2 py-1.5 bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white text-[10px] rounded-lg border border-dashed border-white/10 hover:border-white/20 transition-colors"
+                          className="w-full mt-2 flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] rounded-lg border border-dashed transition-colors"
+                          style={{ backgroundColor: 'var(--theme-glass-100)', color: 'var(--theme-text-muted)', borderColor: 'var(--theme-border)' }}
                         >
                           <Plus className="w-3 h-3" />
                           Add Model
@@ -527,7 +544,8 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                       <button
                         onClick={() => testConnection(provider.id)}
                         disabled={testResult?.status === 'testing'}
-                        className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white rounded transition-colors"
+                        className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] disabled:opacity-50 rounded transition-colors"
+                        style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-primary)' }}
                       >
                         {testResult?.status === 'testing' ? (
                           <Loader2 className="w-3 h-3 animate-spin" />
@@ -539,7 +557,8 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                       {!isActive && (
                         <button
                           onClick={() => setActiveProvider(provider.id)}
-                          className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] bg-blue-600 hover:bg-blue-500 text-white rounded transition-colors"
+                          className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] rounded transition-colors"
+                          style={{ backgroundColor: 'var(--color-info)', color: 'var(--theme-text-primary)' }}
                         >
                           <Check className="w-3 h-3" />
                           Set Active
@@ -549,19 +568,20 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
                     {providers.length > 1 && (
                       <button
                         onClick={() => deleteProvider(provider.id)}
-                        className="p-1.5 hover:bg-red-500/20 rounded transition-colors"
+                        className="p-1.5 rounded transition-colors"
                         title="Delete provider"
                       >
-                        <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        <Trash2 className="w-3.5 h-3.5" style={{ color: 'var(--color-error)' }} />
                       </button>
                     )}
                   </div>
 
                   {/* Test Result Message */}
                   {testResult?.message && (
-                    <div className={`text-[10px] px-2 py-1 rounded ${
-                      testResult.status === 'error' ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'
-                    }`}>
+                    <div className="text-[10px] px-2 py-1 rounded" style={{
+                      backgroundColor: testResult.status === 'error' ? 'var(--color-error-subtle)' : 'var(--color-success-subtle)',
+                      color: testResult.status === 'error' ? 'var(--color-error)' : 'var(--color-success)'
+                    }}>
                       {testResult.status === 'error' ? testResult.message : 'Connection successful!'}
                     </div>
                   )}
@@ -574,11 +594,11 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
 
       {/* Add Provider */}
       {showAddProvider ? (
-        <div className="p-3 bg-slate-800/50 rounded-lg border border-white/10 space-y-3">
+        <div className="p-3 rounded-lg space-y-3" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)' }}>
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-white">Add Provider</span>
-            <button onClick={() => setShowAddProvider(false)} className="p-1 hover:bg-white/10 rounded">
-              <X className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-xs font-medium" style={{ color: 'var(--theme-text-primary)' }}>Add Provider</span>
+            <button onClick={() => setShowAddProvider(false)} className="p-1 rounded">
+              <X className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-muted)' }} />
             </button>
           </div>
           <div className="grid grid-cols-3 gap-2">
@@ -586,20 +606,21 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
               <button
                 key={type}
                 onClick={() => setNewProviderType(type)}
-                className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-colors ${
-                  newProviderType === type
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-white/5 hover:border-white/20 bg-slate-900/50'
-                }`}
+                className="flex flex-col items-center gap-1 p-2 rounded-lg transition-colors"
+                style={{
+                  border: newProviderType === type ? '1px solid var(--color-info)' : '1px solid var(--theme-border-light)',
+                  backgroundColor: newProviderType === type ? 'var(--color-info-subtle)' : 'var(--theme-surface-dark)'
+                }}
               >
                 <ProviderIcon type={type} className="w-5 h-5" />
-                <span className="text-[10px] text-slate-300">{config.name}</span>
+                <span className="text-[10px]" style={{ color: 'var(--theme-text-secondary)' }}>{config.name}</span>
               </button>
             ))}
           </div>
           <button
             onClick={addProvider}
-            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-medium rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg transition-colors"
+            style={{ backgroundColor: 'var(--color-success)', color: 'var(--theme-text-primary)' }}
           >
             <Plus className="w-3.5 h-3.5" />
             Add {DEFAULT_PROVIDERS[newProviderType].name}
@@ -608,7 +629,8 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
       ) : (
         <button
           onClick={() => setShowAddProvider(true)}
-          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-800/50 hover:bg-slate-800 text-slate-400 hover:text-white text-xs rounded-lg border border-dashed border-white/10 hover:border-white/20 transition-colors"
+          className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-xs rounded-lg border border-dashed transition-colors"
+          style={{ backgroundColor: 'var(--theme-glass-100)', color: 'var(--theme-text-muted)', borderColor: 'var(--theme-border)' }}
         >
           <Plus className="w-3.5 h-3.5" />
           Add Provider
@@ -616,8 +638,8 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
       )}
 
       {/* Help Links */}
-      <div className="pt-2 border-t border-white/5">
-        <div className="text-[10px] text-slate-500 mb-2">Get API Keys:</div>
+      <div className="pt-2" style={{ borderTop: '1px solid var(--theme-border-light)' }}>
+        <div className="text-[10px] mb-2" style={{ color: 'var(--theme-text-dim)' }}>Get API Keys:</div>
         <div className="flex flex-wrap gap-2">
           {[
             { name: 'Google AI', url: 'https://aistudio.google.com/apikey' },
@@ -630,7 +652,8 @@ export const AIProviderSettings: React.FC<AIProviderSettingsProps> = ({ onProvid
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-[10px] text-blue-400 hover:text-blue-300 transition-colors"
+              className="flex items-center gap-1 text-[10px] transition-colors"
+              style={{ color: 'var(--color-info)' }}
             >
               {link.name}
               <ExternalLink className="w-2.5 h-2.5" />

@@ -65,7 +65,7 @@ export function BaseModal({
   children,
   footer,
   icon,
-  iconBg = 'bg-blue-500/20',
+  iconBg,
   showCloseButton = true,
   closeOnOverlayClick = true,
   className = '',
@@ -76,32 +76,38 @@ export function BaseModal({
 
   return (
     <div
-      className={`fixed inset-0 ${zIndex} flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150`}
+      className={`fixed inset-0 ${zIndex} flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-150`}
+      style={{ backgroundColor: 'var(--theme-modal-overlay)' }}
       onClick={closeOnOverlayClick ? onClose : undefined}
     >
       <div
-        className={`w-full ${SIZE_CLASSES[size]} ${maxHeight} bg-slate-900 border border-white/10 rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${className}`}
+        className={`w-full ${SIZE_CLASSES[size]} ${maxHeight} rounded-xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200 ${className}`}
+        style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-slate-950/50 flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-background)' }}>
           <div className="flex items-center gap-3">
             {icon && (
-              <div className={`p-2 rounded-lg ${iconBg}`}>
+              <div
+                className="p-2 rounded-lg"
+                style={{ backgroundColor: iconBg || 'var(--theme-accent-subtle)' }}
+              >
                 {icon}
               </div>
             )}
             <div>
-              <h2 className="text-lg font-semibold text-white">{title}</h2>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>{title}</h2>
               {subtitle && (
-                <p className="text-xs text-slate-400 mt-0.5">{subtitle}</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{subtitle}</p>
               )}
             </div>
           </div>
           {showCloseButton && (
             <button
               onClick={onClose}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
               aria-label="Close modal"
             >
               <X className="w-5 h-5" />
@@ -116,7 +122,7 @@ export function BaseModal({
 
         {/* Footer */}
         {footer && (
-          <div className="px-5 py-4 border-t border-white/5 bg-slate-950/30 flex-shrink-0">
+          <div className="px-5 py-4 flex-shrink-0" style={{ borderTop: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-glass-100)' }}>
             {footer}
           </div>
         )}
@@ -166,12 +172,31 @@ export function ModalFooter({
  */
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'ghost';
 
+// Button variants are now defined with CSS variables in getButtonStyles
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20',
-  secondary: 'bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10',
-  danger: 'bg-red-600 hover:bg-red-500 text-white',
-  success: 'bg-green-600 hover:bg-green-500 text-white',
-  ghost: 'text-slate-400 hover:text-white hover:bg-white/5',
+  primary: 'modal-btn-primary',
+  secondary: 'modal-btn-secondary',
+  danger: 'modal-btn-danger',
+  success: 'modal-btn-success',
+  ghost: 'modal-btn-ghost',
+};
+
+// Get inline styles for button variants
+const getButtonStyles = (variant: ButtonVariant): React.CSSProperties => {
+  switch (variant) {
+    case 'primary':
+      return { backgroundColor: 'var(--theme-accent)', color: 'white' };
+    case 'secondary':
+      return { backgroundColor: 'var(--theme-glass-100)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' };
+    case 'danger':
+      return { backgroundColor: 'var(--color-error)', color: 'white' };
+    case 'success':
+      return { backgroundColor: 'var(--color-success)', color: 'white' };
+    case 'ghost':
+      return { color: 'var(--theme-text-muted)' };
+    default:
+      return {};
+  }
 };
 
 /**
@@ -189,6 +214,7 @@ export function ModalButton({
   return (
     <button
       className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${BUTTON_VARIANTS[variant]} ${className}`}
+      style={getButtonStyles(variant)}
       disabled={disabled}
       {...props}
     >
@@ -231,7 +257,7 @@ export function ConfirmModal({
       onClose={onClose}
       title={title}
       icon={icon}
-      iconBg={variant === 'danger' ? 'bg-red-500/20' : 'bg-blue-500/20'}
+      iconBg={variant === 'danger' ? 'var(--color-error-subtle)' : 'var(--theme-accent-subtle)'}
       size="sm"
       footer={
         <ModalFooter>
@@ -250,7 +276,7 @@ export function ConfirmModal({
     >
       <ModalContent>
         {typeof message === 'string' ? (
-          <p className="text-slate-300">{message}</p>
+          <p style={{ color: 'var(--theme-text-secondary)' }}>{message}</p>
         ) : (
           message
         )}

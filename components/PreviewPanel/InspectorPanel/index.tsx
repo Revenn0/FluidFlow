@@ -70,20 +70,21 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   const hasSelection = !!selectedElementRef;
 
   return (
-    <div className="w-80 h-full bg-slate-900 border-l border-white/10 flex flex-col shadow-2xl">
+    <div className="w-80 h-full flex flex-col shadow-2xl" style={{ backgroundColor: 'var(--theme-surface)', borderLeft: '1px solid var(--theme-border)' }}>
       {/* Header with selection info */}
-      <div className="flex-none border-b border-white/10 bg-slate-950">
+      <div className="flex-none" style={{ borderBottom: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-surface-dark)' }}>
         {/* Title bar */}
         <div className="flex items-center justify-between px-3 py-2">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-purple-500/20 flex items-center justify-center">
-              <MousePointer2 className="w-3.5 h-3.5 text-purple-400" />
+            <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--color-feature-subtle)' }}>
+              <MousePointer2 className="w-3.5 h-3.5" style={{ color: 'var(--color-feature)' }} />
             </div>
-            <span className="text-sm font-semibold text-white">Inspector</span>
+            <span className="text-sm font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Inspector</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
           >
             <X className="w-4 h-4" />
           </button>
@@ -92,49 +93,54 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         {/* Selected element banner */}
         <div className="px-3 pb-2">
           {hasSelection ? (
-            <div className="flex items-center gap-2 px-2.5 py-2 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
+            <div className="flex items-center gap-2 px-2.5 py-2 rounded-lg" style={{ backgroundColor: 'var(--color-feature-subtle)', border: '1px solid var(--color-feature)' }}>
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--color-feature)' }} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   {componentName && (
-                    <span className="text-xs font-semibold text-purple-300">{componentName}</span>
+                    <span className="text-xs font-semibold" style={{ color: 'var(--color-feature)' }}>{componentName}</span>
                   )}
                   {!componentName && selectedElementRef && (
-                    <span className="text-xs font-mono text-purple-300">Element</span>
+                    <span className="text-xs font-mono" style={{ color: 'var(--color-feature)' }}>Element</span>
                   )}
                 </div>
                 {selectedElementRef && (
-                  <p className="text-[10px] text-slate-500 font-mono truncate">
+                  <p className="text-[10px] font-mono truncate" style={{ color: 'var(--theme-text-dim)' }}>
                     #{selectedElementRef.slice(0, 12)}...
                   </p>
                 )}
               </div>
-              <Sparkles className="w-3.5 h-3.5 text-purple-400/50" />
+              <Sparkles className="w-3.5 h-3.5" style={{ color: 'var(--color-feature)', opacity: 0.5 }} />
             </div>
           ) : (
-            <div className="flex items-center gap-2 px-2.5 py-2 bg-slate-800/50 border border-white/5 rounded-lg">
-              <MousePointer2 className="w-4 h-4 text-slate-500" />
-              <span className="text-xs text-slate-500">No element selected</span>
+            <div className="flex items-center gap-2 px-2.5 py-2 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+              <MousePointer2 className="w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
+              <span className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>No element selected</span>
             </div>
           )}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex-none flex border-b border-white/5 bg-slate-900/50 px-1 py-1 gap-0.5">
+      <div className="flex-none flex px-1 py-1 gap-0.5" style={{ borderBottom: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-surface)' }}>
         {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
             disabled={!hasSelection}
             title={tab.description}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-md text-[10px] font-medium transition-all ${
-              activeTab === tab.id && hasSelection
-                ? 'text-purple-300 bg-purple-500/15 ring-1 ring-purple-500/30'
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-md text-[10px] font-medium transition-all"
+            style={{
+              color: activeTab === tab.id && hasSelection
+                ? 'var(--color-feature)'
                 : hasSelection
-                  ? 'text-slate-400 hover:text-slate-200 hover:bg-white/5'
-                  : 'text-slate-600 cursor-not-allowed'
-            }`}
+                  ? 'var(--theme-text-muted)'
+                  : 'var(--theme-text-dim)',
+              backgroundColor: activeTab === tab.id && hasSelection
+                ? 'var(--color-feature-subtle)'
+                : 'transparent',
+              cursor: hasSelection ? 'pointer' : 'not-allowed'
+            }}
           >
             <TabIcon icon={tab.icon} className="w-4 h-4" />
             <span>{tab.label}</span>
@@ -145,10 +151,10 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
       {/* Tab Content */}
       <div className="flex-1 min-h-0 overflow-hidden">
         {!hasSelection ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-600 px-6 text-center">
+          <div className="h-full flex flex-col items-center justify-center px-6 text-center" style={{ color: 'var(--theme-text-dim)' }}>
             <MousePointer2 className="w-10 h-10 mb-3 opacity-30" />
-            <p className="text-sm font-medium mb-1">Select an Element</p>
-            <p className="text-xs text-slate-500">
+            <p className="text-sm font-medium mb-1" style={{ color: 'var(--theme-text-muted)' }}>Select an Element</p>
+            <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
               Click on any element in the preview to inspect its styles, props, and apply AI-powered changes.
             </p>
           </div>
@@ -190,8 +196,8 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
 
       {/* Footer hint */}
       {hasSelection && (
-        <div className="flex-none px-3 py-2 border-t border-white/5 bg-slate-950/50">
-          <p className="text-[10px] text-slate-600 text-center">
+        <div className="flex-none px-3 py-2" style={{ borderTop: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-surface-dark)' }}>
+          <p className="text-[10px] text-center" style={{ color: 'var(--theme-text-dim)' }}>
             {activeTab === 'quickstyles'
               ? 'AI will modify your code based on the selected preset'
               : activeTab === 'styles'

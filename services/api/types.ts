@@ -8,6 +8,23 @@
 // Project Types
 // ============================================================================
 
+export interface ScreenshotMeta {
+  id: string;
+  filename: string;
+  width: number;
+  height: number;
+  format: 'png' | 'jpeg' | 'webp';
+  size: number;
+  capturedAt: number;
+  thumbnail?: string;
+}
+
+export interface ProjectScreenshots {
+  latest?: ScreenshotMeta;
+  history: ScreenshotMeta[];
+  maxHistory: number;
+}
+
 export interface ProjectMeta {
   id: string;
   name: string;
@@ -24,6 +41,10 @@ export interface ProjectMeta {
   hasNodeModules?: boolean;
   /** Size of node_modules in bytes */
   nodeModulesSize?: number;
+  /** Project screenshots */
+  screenshots?: ProjectScreenshots;
+  /** Last screenshot timestamp */
+  lastScreenshotAt?: number;
 }
 
 export interface Project extends ProjectMeta {

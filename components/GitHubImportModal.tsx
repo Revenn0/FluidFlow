@@ -201,17 +201,17 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[85vh] flex flex-col">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-200" style={{ backgroundColor: 'var(--theme-modal-overlay)' }}>
+      <div className="w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[85vh] flex flex-col" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
         {/* Header */}
-        <div className="p-5 border-b border-white/5 bg-slate-950 flex items-center justify-between flex-shrink-0">
+        <div className="p-5 flex items-center justify-between flex-shrink-0" style={{ borderBottom: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-background)' }}>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-slate-800 rounded-lg">
-              <Github className="w-5 h-5 text-white" />
+            <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-300)' }}>
+              <Github className="w-5 h-5" style={{ color: 'var(--theme-text-primary)' }} />
             </div>
             <div>
-              <h3 className="font-bold text-white">Import from GitHub</h3>
-              <p className="text-xs text-slate-400">
+              <h3 className="font-bold" style={{ color: 'var(--theme-text-primary)' }}>Import from GitHub</h3>
+              <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                 {step === 'token' && 'Enter your GitHub token to access repositories'}
                 {step === 'repos' && 'Select a repository to import'}
                 {step === 'importing' && 'Importing project...'}
@@ -221,7 +221,8 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
           </div>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -235,12 +236,12 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
             <div className="p-6 space-y-4">
               {tokenLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+                  <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--color-info)' }} />
                 </div>
               ) : (
                 <>
                   <div>
-                    <label className="text-xs font-semibold text-slate-400 uppercase block mb-1.5">
+                    <label className="text-xs font-semibold uppercase block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>
                       GitHub Personal Access Token
                     </label>
                     <input
@@ -248,17 +249,19 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
                       value={token}
                       onChange={(e) => setToken(e.target.value)}
                       placeholder="ghp_xxxxxxxxxxxx"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-slate-600"
+                      className="w-full rounded-lg px-4 py-3 text-sm outline-none"
+                      style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                       onKeyDown={(e) => e.key === 'Enter' && handleTokenSubmit()}
                       autoFocus
                     />
-                    <p className="text-xs text-slate-500 mt-2">
+                    <p className="text-xs mt-2" style={{ color: 'var(--theme-text-dim)' }}>
                       Requires 'repo' scope for private repositories.{' '}
                       <a
                         href="https://github.com/settings/tokens/new?scopes=repo&description=FluidFlow"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-400 hover:underline"
+                        className="hover:underline"
+                        style={{ color: 'var(--color-info)' }}
                       >
                         Create token <ExternalLink className="w-3 h-3 inline" />
                       </a>
@@ -266,19 +269,19 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
                   </div>
 
                   {error && (
-                    <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-                      <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                    <div className="flex items-center gap-2 p-3 rounded-lg text-sm" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)', color: 'var(--color-error)' }}>
+                      <AlertTriangle className="w-4 h-4 shrink-0" />
                       {error}
                     </div>
                   )}
 
-                  <div className="bg-slate-800/50 rounded-lg p-4 border border-white/5">
-                    <h4 className="text-sm font-medium text-white mb-2 flex items-center gap-2">
-                      <FolderGit className="w-4 h-4 text-emerald-400" />
+                  <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+                    <h4 className="text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+                      <FolderGit className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                       FluidFlow Backup Detection
                     </h4>
-                    <p className="text-xs text-slate-400">
-                      Repositories with a <code className="px-1 py-0.5 bg-slate-700 rounded">backup/auto</code> branch
+                    <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+                      Repositories with a <code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-glass-300)' }}>backup/auto</code> branch
                       will be highlighted. These contain FluidFlow metadata that will be automatically restored,
                       including your project settings and conversation context.
                     </p>
@@ -292,26 +295,28 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
           {step === 'repos' && (
             <>
               {/* Search and Filter Bar */}
-              <div className="px-6 py-3 border-b border-white/5 flex items-center gap-3 flex-shrink-0">
+              <div className="px-6 py-3 flex items-center gap-3 shrink-0" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search repositories..."
-                    className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 transition-colors"
+                    className="w-full pl-10 pr-4 py-2 rounded-lg text-sm outline-none transition-colors"
+                    style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                     autoFocus
                   />
                 </div>
 
                 <button
                   onClick={() => setShowBackupOnly(!showBackupOnly)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    showBackupOnly
-                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                      : 'bg-slate-800/50 text-slate-400 border border-white/10 hover:bg-slate-800'
-                  }`}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors"
+                  style={{
+                    backgroundColor: showBackupOnly ? 'var(--color-success-subtle)' : 'var(--theme-glass-200)',
+                    color: showBackupOnly ? 'var(--color-success)' : 'var(--theme-text-muted)',
+                    border: showBackupOnly ? '1px solid var(--color-success-border)' : '1px solid var(--theme-border)'
+                  }}
                 >
                   <FolderGit className="w-4 h-4" />
                   FluidFlow Only
@@ -320,7 +325,8 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
                 <button
                   onClick={() => loadRepos(token)}
                   disabled={reposLoading}
-                  className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors disabled:opacity-50"
+                  className="p-2 rounded-lg transition-colors disabled:opacity-50"
+                  style={{ color: 'var(--theme-text-muted)' }}
                   title="Refresh"
                 >
                   <RefreshCw className={`w-4 h-4 ${reposLoading ? 'animate-spin' : ''}`} />
@@ -331,27 +337,28 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
               <div className="flex-1 overflow-y-auto custom-scrollbar">
                 {reposLoading ? (
                   <div className="flex items-center justify-center py-16">
-                    <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+                    <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--color-info)' }} />
                   </div>
                 ) : error ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-                    <AlertTriangle className="w-12 h-12 mb-3 text-red-400 opacity-50" />
-                    <p className="text-sm text-red-400">{error}</p>
+                  <div className="flex flex-col items-center justify-center py-16" style={{ color: 'var(--theme-text-muted)' }}>
+                    <AlertTriangle className="w-12 h-12 mb-3 opacity-50" style={{ color: 'var(--color-error)' }} />
+                    <p className="text-sm" style={{ color: 'var(--color-error)' }}>{error}</p>
                     <button
                       onClick={() => loadRepos(token)}
-                      className="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition-colors"
+                      className="mt-4 px-4 py-2 rounded-lg text-sm transition-colors"
+                      style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-primary)' }}
                     >
                       Try Again
                     </button>
                   </div>
                 ) : sortedRepos.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+                  <div className="flex flex-col items-center justify-center py-16" style={{ color: 'var(--theme-text-muted)' }}>
                     <Github className="w-12 h-12 mb-3 opacity-50" />
                     <p className="text-sm">
                       {searchQuery ? 'No repositories found' : 'No repositories available'}
                     </p>
                     {showBackupOnly && (
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="text-xs mt-1" style={{ color: 'var(--theme-text-dim)' }}>
                         Try disabling "FluidFlow Only" filter
                       </p>
                     )}
@@ -362,60 +369,61 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
                       <button
                         key={repo.id}
                         onClick={() => handleImport(repo)}
-                        className={`w-full group flex items-center gap-4 p-4 rounded-xl border transition-all text-left ${
-                          repo.hasFluidFlowBackup
-                            ? 'bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/30'
-                            : 'bg-slate-800/30 border-white/5 hover:bg-slate-800/60 hover:border-white/10'
-                        }`}
+                        className="w-full group flex items-center gap-4 p-4 rounded-xl border transition-all text-left"
+                        style={{
+                          backgroundColor: repo.hasFluidFlowBackup ? 'var(--color-success-subtle)' : 'var(--theme-glass-100)',
+                          borderColor: repo.hasFluidFlowBackup ? 'var(--color-success-border)' : 'var(--theme-border-light)'
+                        }}
                       >
                         {/* Icon */}
-                        <div className={`p-2.5 rounded-xl ${
-                          repo.hasFluidFlowBackup
-                            ? 'bg-emerald-500/20'
-                            : 'bg-slate-700/50 group-hover:bg-slate-700'
-                        }`}>
+                        <div
+                          className="p-2.5 rounded-xl"
+                          style={{
+                            backgroundColor: repo.hasFluidFlowBackup ? 'var(--color-success-subtle)' : 'var(--theme-glass-200)'
+                          }}
+                        >
                           {repo.hasFluidFlowBackup ? (
-                            <FolderGit className="w-5 h-5 text-emerald-400" />
+                            <FolderGit className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
                           ) : (
-                            <Github className="w-5 h-5 text-slate-400" />
+                            <Github className="w-5 h-5" style={{ color: 'var(--theme-text-muted)' }} />
                           )}
                         </div>
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-white truncate">
+                            <h3 className="text-sm font-medium truncate" style={{ color: 'var(--theme-text-primary)' }}>
                               {repo.name}
                             </h3>
                             {repo.private ? (
-                              <span title="Private"><Lock className="w-3.5 h-3.5 text-amber-400" /></span>
+                              <span title="Private"><Lock className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)' }} /></span>
                             ) : (
-                              <span title="Public"><Globe className="w-3.5 h-3.5 text-slate-500" /></span>
+                              <span title="Public"><Globe className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-dim)' }} /></span>
                             )}
                             {repo.hasFluidFlowBackup && (
-                              <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] rounded font-medium">
+                              <span className="px-1.5 py-0.5 text-[10px] rounded font-medium" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
                                 FluidFlow
                               </span>
                             )}
                           </div>
                           {repo.description && (
-                            <p className="text-xs text-slate-500 truncate mt-0.5">
+                            <p className="text-xs truncate mt-0.5" style={{ color: 'var(--theme-text-dim)' }}>
                               {repo.description}
                             </p>
                           )}
                           <div className="flex items-center gap-3 mt-1">
-                            <span className="flex items-center gap-1 text-[10px] text-slate-500">
+                            <span className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                               <Clock className="w-3 h-3" />
                               {formatDate(repo.updatedAt)}
                             </span>
-                            <span className="text-[10px] text-slate-600">
+                            <span className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                               {repo.fullName}
                             </span>
                           </div>
                         </div>
 
                         {/* Arrow */}
-                        <ChevronRight className="w-5 h-5 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--theme-text-muted)' }} />
                       </button>
                     ))}
                   </div>
@@ -428,15 +436,15 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
           {step === 'importing' && selectedRepo && (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="relative">
-                <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center">
-                  <Download className="w-8 h-8 text-blue-400" />
+                <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-info-subtle)' }}>
+                  <Download className="w-8 h-8" style={{ color: 'var(--color-info)' }} />
                 </div>
                 <div className="absolute -bottom-1 -right-1">
-                  <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
+                  <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--color-info)' }} />
                 </div>
               </div>
-              <h4 className="mt-6 text-lg font-medium text-white">Importing {selectedRepo.name}</h4>
-              <p className="mt-2 text-sm text-slate-400">
+              <h4 className="mt-6 text-lg font-medium" style={{ color: 'var(--theme-text-primary)' }}>Importing {selectedRepo.name}</h4>
+              <p className="mt-2 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                 {selectedRepo.hasFluidFlowBackup
                   ? 'Cloning repository and restoring FluidFlow metadata...'
                   : 'Cloning repository...'}
@@ -449,56 +457,62 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
             <div className="flex flex-col items-center justify-center py-12 px-6">
               {importResult.success ? (
                 <>
-                  <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                    <Check className="w-8 h-8 text-emerald-400" />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-success-subtle)' }}>
+                    <Check className="w-8 h-8" style={{ color: 'var(--color-success)' }} />
                   </div>
-                  <h4 className="mt-6 text-lg font-medium text-white">Import Successful!</h4>
-                  <p className="mt-2 text-sm text-slate-400">
+                  <h4 className="mt-6 text-lg font-medium" style={{ color: 'var(--theme-text-primary)' }}>Import Successful!</h4>
+                  <p className="mt-2 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                     Project "{importResult.project?.name}" has been imported.
                   </p>
 
                   {/* Restoration Status */}
                   {importResult.restored && (
                     <div className="mt-6 w-full max-w-sm space-y-2">
-                      <div className={`flex items-center gap-3 p-3 rounded-lg ${
-                        importResult.restored.metadata
-                          ? 'bg-emerald-500/10 border border-emerald-500/20'
-                          : 'bg-slate-800/50 border border-white/5'
-                      }`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          importResult.restored.metadata ? 'bg-emerald-500/20' : 'bg-slate-700'
-                        }`}>
+                      <div
+                        className="flex items-center gap-3 p-3 rounded-lg"
+                        style={{
+                          backgroundColor: importResult.restored.metadata ? 'var(--color-success-subtle)' : 'var(--theme-glass-200)',
+                          border: importResult.restored.metadata ? '1px solid var(--color-success-border)' : '1px solid var(--theme-border-light)'
+                        }}
+                      >
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: importResult.restored.metadata ? 'var(--color-success-subtle)' : 'var(--theme-glass-300)' }}
+                        >
                           {importResult.restored.metadata ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
+                            <Check className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                           ) : (
-                            <X className="w-4 h-4 text-slate-500" />
+                            <X className="w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
                           )}
                         </div>
                         <div>
-                          <p className="text-sm text-white">Project Metadata</p>
-                          <p className="text-[10px] text-slate-500">
+                          <p className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>Project Metadata</p>
+                          <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                             {importResult.restored.metadata ? 'Restored from backup' : 'Not found'}
                           </p>
                         </div>
                       </div>
 
-                      <div className={`flex items-center gap-3 p-3 rounded-lg ${
-                        importResult.restored.context
-                          ? 'bg-emerald-500/10 border border-emerald-500/20'
-                          : 'bg-slate-800/50 border border-white/5'
-                      }`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          importResult.restored.context ? 'bg-emerald-500/20' : 'bg-slate-700'
-                        }`}>
+                      <div
+                        className="flex items-center gap-3 p-3 rounded-lg"
+                        style={{
+                          backgroundColor: importResult.restored.context ? 'var(--color-success-subtle)' : 'var(--theme-glass-200)',
+                          border: importResult.restored.context ? '1px solid var(--color-success-border)' : '1px solid var(--theme-border-light)'
+                        }}
+                      >
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: importResult.restored.context ? 'var(--color-success-subtle)' : 'var(--theme-glass-300)' }}
+                        >
                           {importResult.restored.context ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
+                            <Check className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                           ) : (
-                            <X className="w-4 h-4 text-slate-500" />
+                            <X className="w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
                           )}
                         </div>
                         <div>
-                          <p className="text-sm text-white">Conversation Context</p>
-                          <p className="text-[10px] text-slate-500">
+                          <p className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>Conversation Context</p>
+                          <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                             {importResult.restored.context ? 'Restored from backup' : 'Not found'}
                           </p>
                         </div>
@@ -508,11 +522,11 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
                 </>
               ) : (
                 <>
-                  <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
-                    <AlertTriangle className="w-8 h-8 text-red-400" />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-error-subtle)' }}>
+                    <AlertTriangle className="w-8 h-8" style={{ color: 'var(--color-error)' }} />
                   </div>
-                  <h4 className="mt-6 text-lg font-medium text-white">Import Failed</h4>
-                  <p className="mt-2 text-sm text-red-400 bg-red-950/50 p-3 rounded-lg border border-red-500/20 max-w-md text-center">
+                  <h4 className="mt-6 text-lg font-medium" style={{ color: 'var(--theme-text-primary)' }}>Import Failed</h4>
+                  <p className="mt-2 text-sm p-3 rounded-lg max-w-md text-center" style={{ color: 'var(--color-error)', backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)' }}>
                     {importResult.error}
                   </p>
                 </>
@@ -522,14 +536,15 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-950/50 border-t border-white/5 flex justify-between items-center flex-shrink-0">
+        <div className="p-4 flex justify-between items-center shrink-0" style={{ backgroundColor: 'var(--theme-glass-100)', borderTop: '1px solid var(--theme-border-light)' }}>
           {step === 'repos' && (
             <button
               onClick={() => {
                 setStep('token');
                 setToken('');
               }}
-              className="px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg text-sm transition-colors"
+              className="px-4 py-2 rounded-lg text-sm transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               Change Token
             </button>
@@ -541,14 +556,16 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
               <>
                 <button
                   onClick={handleClose}
-                  className="px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg text-sm transition-colors"
+                  className="px-4 py-2 rounded-lg text-sm transition-colors"
+                  style={{ color: 'var(--theme-text-muted)' }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleTokenSubmit}
                   disabled={!token.trim() || tokenVerifying}
-                  className="px-4 py-2 bg-white text-slate-900 hover:bg-slate-100 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                  className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                  style={{ backgroundColor: 'var(--theme-accent)', color: 'white' }}
                 >
                   {tokenVerifying && <Loader2 className="w-4 h-4 animate-spin" />}
                   Continue
@@ -559,7 +576,8 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
             {step === 'repos' && (
               <button
                 onClick={handleClose}
-                className="px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg text-sm transition-colors"
+                className="px-4 py-2 rounded-lg text-sm transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
               >
                 Cancel
               </button>
@@ -568,11 +586,11 @@ export const GitHubImportModal: React.FC<GitHubImportModalProps> = ({
             {step === 'result' && (
               <button
                 onClick={importResult?.success ? handleComplete : handleClose}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  importResult?.success
-                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                    : 'bg-slate-800 hover:bg-slate-700 text-white'
-                }`}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: importResult?.success ? 'var(--color-success)' : 'var(--theme-glass-300)',
+                  color: importResult?.success ? 'white' : 'var(--theme-text-primary)'
+                }}
               >
                 {importResult?.success ? 'Open Project' : 'Close'}
               </button>

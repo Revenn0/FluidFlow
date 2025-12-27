@@ -35,57 +35,57 @@ interface WebContainerPanelProps {
 
 const STATUS_CONFIG: Record<
   WebContainerStatus,
-  { label: string; color: string; icon: React.ReactNode }
+  { label: string; colorVar: string; icon: React.ReactNode }
 > = {
   idle: {
     label: 'Idle',
-    color: 'text-zinc-400',
-    icon: <div className="w-2 h-2 rounded-full bg-zinc-400" />,
+    colorVar: 'var(--theme-text-muted)',
+    icon: <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--theme-text-muted)' }} />,
   },
   initializing: {
     label: 'Initializing...',
-    color: 'text-blue-400',
-    icon: <Loader2 className="w-4 h-4 animate-spin text-blue-400" />,
+    colorVar: 'var(--color-info)',
+    icon: <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--color-info)' }} />,
   },
   booting: {
     label: 'Booting...',
-    color: 'text-blue-400',
-    icon: <Loader2 className="w-4 h-4 animate-spin text-blue-400" />,
+    colorVar: 'var(--color-info)',
+    icon: <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--color-info)' }} />,
   },
   ready: {
     label: 'Ready',
-    color: 'text-green-400',
-    icon: <CheckCircle className="w-4 h-4 text-green-400" />,
+    colorVar: 'var(--color-success)',
+    icon: <CheckCircle className="w-4 h-4" style={{ color: 'var(--color-success)' }} />,
   },
   installing: {
     label: 'Installing dependencies...',
-    color: 'text-amber-400',
-    icon: <Loader2 className="w-4 h-4 animate-spin text-amber-400" />,
+    colorVar: 'var(--color-warning)',
+    icon: <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--color-warning)' }} />,
   },
   starting: {
     label: 'Starting server...',
-    color: 'text-amber-400',
-    icon: <Loader2 className="w-4 h-4 animate-spin text-amber-400" />,
+    colorVar: 'var(--color-warning)',
+    icon: <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--color-warning)' }} />,
   },
   running: {
     label: 'Running',
-    color: 'text-green-400',
-    icon: <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />,
+    colorVar: 'var(--color-success)',
+    icon: <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: 'var(--color-success)' }} />,
   },
   error: {
     label: 'Error',
-    color: 'text-red-400',
-    icon: <AlertCircle className="w-4 h-4 text-red-400" />,
+    colorVar: 'var(--color-error)',
+    icon: <AlertCircle className="w-4 h-4" style={{ color: 'var(--color-error)' }} />,
   },
   stopped: {
     label: 'Stopped',
-    color: 'text-zinc-400',
-    icon: <div className="w-2 h-2 rounded-full bg-zinc-400" />,
+    colorVar: 'var(--theme-text-muted)',
+    icon: <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--theme-text-muted)' }} />,
   },
   syncing: {
     label: 'Syncing files...',
-    color: 'text-purple-400',
-    icon: <Loader2 className="w-4 h-4 animate-spin text-purple-400" />,
+    colorVar: 'var(--color-feature)',
+    icon: <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--color-feature)' }} />,
   },
 };
 
@@ -157,18 +157,19 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
   if (!projectId) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-4">
-          <FolderOpen className="w-8 h-8 text-amber-500" />
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: 'var(--color-warning-subtle)' }}>
+          <FolderOpen className="w-8 h-8" style={{ color: 'var(--color-warning)' }} />
         </div>
-        <h3 className="text-lg font-medium text-white mb-2">No Project Selected</h3>
-        <p className="text-zinc-400 text-sm mb-6 max-w-md">
+        <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--theme-text-primary)' }}>No Project Selected</h3>
+        <p className="text-sm mb-6 max-w-md" style={{ color: 'var(--theme-text-muted)' }}>
           Select or create a project first to use WebContainer preview.
           WebContainer runs your project with a real Node.js runtime in the browser.
         </p>
         {onOpenProjectManager && (
           <button
             onClick={onOpenProjectManager}
-            className="flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+            style={{ backgroundColor: 'var(--color-warning)', color: 'var(--theme-text-on-accent)' }}
           >
             <FolderOpen className="w-4 h-4" />
             Open Project Manager
@@ -182,17 +183,18 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
   if (!isConfigured) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-zinc-800/50 flex items-center justify-center mb-4">
-          <Terminal className="w-8 h-8 text-zinc-500" />
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+          <Terminal className="w-8 h-8" style={{ color: 'var(--theme-text-dim)' }} />
         </div>
-        <h3 className="text-lg font-medium text-white mb-2">WebContainer Not Configured</h3>
-        <p className="text-zinc-400 text-sm mb-6 max-w-md">
+        <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--theme-text-primary)' }}>WebContainer Not Configured</h3>
+        <p className="text-sm mb-6 max-w-md" style={{ color: 'var(--theme-text-muted)' }}>
           WebContainer allows you to run your project in a browser-based Node.js runtime. Configure
           your StackBlitz Client ID to get started.
         </p>
         <button
           onClick={onOpenSettings}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+          style={{ backgroundColor: 'var(--color-info)', color: 'var(--theme-text-on-accent)' }}
         >
           <Settings className="w-4 h-4" />
           Configure WebContainer
@@ -204,11 +206,11 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-900/50">
+      <div className="flex items-center justify-between px-4 py-2" style={{ borderBottom: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-glass-100)' }}>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             {statusConfig.icon}
-            <span className={`text-sm font-medium ${statusConfig.color}`}>
+            <span className="text-sm font-medium" style={{ color: statusConfig.colorVar }}>
               {statusConfig.label}
             </span>
           </div>
@@ -217,7 +219,8 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
               href={state.serverUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="flex items-center gap-1 text-xs transition-colors"
+              style={{ color: 'var(--theme-text-dim)' }}
             >
               {state.serverUrl}
               <ExternalLink className="w-3 h-3" />
@@ -229,11 +232,11 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
           {/* Logs toggle */}
           <button
             onClick={() => setShowLogs(!showLogs)}
-            className={`p-1.5 rounded-md transition-colors ${
-              showLogs
-                ? 'bg-zinc-700 text-white'
-                : 'text-zinc-400 hover:text-white hover:bg-zinc-800'
-            }`}
+            className="p-1.5 rounded-md transition-colors"
+            style={{
+              backgroundColor: showLogs ? 'var(--theme-glass-300)' : 'transparent',
+              color: showLogs ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)',
+            }}
             title="Toggle logs"
           >
             <Terminal className="w-4 h-4" />
@@ -243,7 +246,8 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
           {canSync && (
             <button
               onClick={handleSync}
-              className="p-1.5 text-zinc-400 hover:text-purple-400 hover:bg-zinc-800 rounded-md transition-colors"
+              className="p-1.5 rounded-md transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
               title="Sync files to WebContainer"
             >
               <Upload className="w-4 h-4" />
@@ -254,7 +258,8 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
           {isRunning && (
             <button
               onClick={handleRefreshPreview}
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
+              className="p-1.5 rounded-md transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
               title="Refresh preview"
             >
               <RefreshCw className="w-4 h-4" />
@@ -266,7 +271,8 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
             <button
               onClick={handleStart}
               disabled={isBusy}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-md transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: 'var(--color-success)', color: 'var(--theme-text-on-accent)' }}
             >
               <Play className="w-4 h-4" />
               Start
@@ -275,14 +281,16 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
             <>
               <button
                 onClick={handleRestart}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white text-sm rounded-md transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors"
+                style={{ backgroundColor: 'var(--color-warning)', color: 'var(--theme-text-on-accent)' }}
               >
                 <RefreshCw className="w-4 h-4" />
                 Restart
               </button>
               <button
                 onClick={handleStop}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-sm rounded-md transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md transition-colors"
+                style={{ backgroundColor: 'var(--color-error)', color: 'var(--theme-text-on-accent)' }}
               >
                 <Square className="w-4 h-4" />
                 Stop
@@ -291,7 +299,8 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
           ) : isBusy ? (
             <button
               disabled
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-700 text-zinc-400 text-sm rounded-md cursor-not-allowed"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md cursor-not-allowed"
+              style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-muted)' }}
             >
               <Loader2 className="w-4 h-4 animate-spin" />
               {statusConfig.label}
@@ -302,7 +311,8 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
           {state.status !== 'idle' && (
             <button
               onClick={handleDestroy}
-              className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-zinc-800 rounded-md transition-colors"
+              className="p-1.5 rounded-md transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
               title="Destroy WebContainer"
             >
               <Trash2 className="w-4 h-4" />
@@ -312,7 +322,8 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
           {/* Settings */}
           <button
             onClick={onOpenSettings}
-            className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-md transition-colors"
+            className="p-1.5 rounded-md transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             title="WebContainer settings"
           >
             <Settings className="w-4 h-4" />
@@ -322,9 +333,9 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
 
       {/* Error display */}
       {state.error && (
-        <div className="px-4 py-2 bg-red-900/20 border-b border-red-800/50 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-          <span className="text-sm text-red-300">{state.error}</span>
+        <div className="px-4 py-2 flex items-center gap-2" style={{ backgroundColor: 'var(--color-error-subtle)', borderBottom: '1px solid var(--color-error-border)' }}>
+          <AlertCircle className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-error)' }} />
+          <span className="text-sm" style={{ color: 'var(--color-error)' }}>{state.error}</span>
         </div>
       )}
 
@@ -341,16 +352,16 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
               sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
             />
           ) : (
-            <div className="flex-1 flex items-center justify-center h-full bg-zinc-950">
+            <div className="flex-1 flex items-center justify-center h-full" style={{ backgroundColor: 'var(--theme-surface-dark)' }}>
               {isBusy ? (
                 <div className="text-center">
-                  <Loader2 className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-3" />
-                  <p className="text-zinc-400 text-sm">{statusConfig.label}</p>
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3" style={{ color: 'var(--color-info)' }} />
+                  <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>{statusConfig.label}</p>
                 </div>
               ) : (
                 <div className="text-center">
-                  <Terminal className="w-12 h-12 text-zinc-600 mx-auto mb-3" />
-                  <p className="text-zinc-500 text-sm">
+                  <Terminal className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--theme-text-dim)' }} />
+                  <p className="text-sm" style={{ color: 'var(--theme-text-dim)' }}>
                     Click &quot;Start&quot; to boot WebContainer
                   </p>
                 </div>
@@ -361,20 +372,22 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
 
         {/* Logs panel */}
         {showLogs && (
-          <div className="w-1/2 border-l border-zinc-800 flex flex-col bg-zinc-950">
-            <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-800">
-              <span className="text-xs font-medium text-zinc-400">Logs</span>
+          <div className="w-1/2 flex flex-col" style={{ borderLeft: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-surface-dark)' }}>
+            <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+              <span className="text-xs font-medium" style={{ color: 'var(--theme-text-muted)' }}>Logs</span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => webContainerService.clearLogs()}
-                  className="p-1 text-zinc-500 hover:text-zinc-300 rounded"
+                  className="p-1 rounded"
+                  style={{ color: 'var(--theme-text-dim)' }}
                   title="Clear logs"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => setShowLogs(false)}
-                  className="p-1 text-zinc-500 hover:text-zinc-300 rounded"
+                  className="p-1 rounded"
+                  style={{ color: 'var(--theme-text-dim)' }}
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -382,20 +395,21 @@ export const WebContainerPanel: React.FC<WebContainerPanelProps> = ({
             </div>
             <div ref={logsContainerRef} className="flex-1 overflow-auto p-3 font-mono text-xs">
               {state.logs.length === 0 ? (
-                <p className="text-zinc-600">No logs yet...</p>
+                <p style={{ color: 'var(--theme-text-dim)' }}>No logs yet...</p>
               ) : (
                 state.logs.map((log, index) => (
                   <div
                     key={index}
-                    className={`whitespace-pre-wrap break-all mb-1 ${
-                      log.includes('error') || log.includes('Error')
-                        ? 'text-red-400'
+                    className="whitespace-pre-wrap break-all mb-1"
+                    style={{
+                      color: log.includes('error') || log.includes('Error')
+                        ? 'var(--color-error)'
                         : log.includes('warning') || log.includes('Warning')
-                          ? 'text-amber-400'
+                          ? 'var(--color-warning)'
                           : log.includes('success') || log.includes('ready')
-                            ? 'text-green-400'
-                            : 'text-zinc-400'
-                    }`}
+                            ? 'var(--color-success)'
+                            : 'var(--theme-text-muted)'
+                    }}
                   >
                     {log}
                   </div>

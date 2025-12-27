@@ -39,12 +39,12 @@ export const AdvancedPanel: React.FC = () => {
     <div className="p-6 space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <div className="p-2 bg-blue-500/20 rounded-lg">
-          <Settings2 className="w-5 h-5 text-blue-400" />
+        <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-info-subtle)' }}>
+          <Settings2 className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
         </div>
         <div>
-          <h2 className="text-lg font-semibold text-white">Advanced Settings</h2>
-          <p className="text-xs text-slate-400">Configure project rules for AI code generation</p>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Advanced Settings</h2>
+          <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Configure project rules for AI code generation</p>
         </div>
       </div>
 
@@ -54,9 +54,9 @@ export const AdvancedPanel: React.FC = () => {
         description="Custom instructions added to every AI generation request"
       >
         {/* Info Box */}
-        <div className="flex items-start gap-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg mb-4">
-          <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-          <div className="text-xs text-slate-400">
+        <div className="flex items-start gap-3 p-3 rounded-lg mb-4" style={{ backgroundColor: 'var(--color-info-subtle)', border: '1px solid var(--color-info-border)' }}>
+          <Info className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--color-info)' }} />
+          <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
             These rules are included in every AI generation request. Use them to define
             coding standards, naming conventions, preferred patterns, or any other
             guidelines you want the AI to follow.
@@ -69,7 +69,8 @@ export const AdvancedPanel: React.FC = () => {
               <textarea
                 value={rulesInput}
                 onChange={(e) => setRulesInput(e.target.value)}
-                className="w-full h-80 px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white font-mono outline-none focus:border-blue-500/50 resize-none"
+                className="w-full h-80 px-3 py-2 rounded-lg text-sm font-mono outline-none resize-none"
+                style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
                 placeholder={`# Project Rules\n\n## Code Style\n- Use TypeScript strict mode\n- Prefer const over let\n- Use descriptive variable names\n\n## Component Guidelines\n- Use functional components\n- Keep components small and focused\n- Extract reusable logic into custom hooks\n\n## Styling\n- Use Tailwind utility classes\n- Follow mobile-first approach\n- Maintain consistent spacing`}
               />
               <div className="flex justify-end gap-2">
@@ -78,13 +79,15 @@ export const AdvancedPanel: React.FC = () => {
                     setRulesInput(savedRules);
                     setEditingRules(false);
                   }}
-                  className="px-3 py-1.5 text-sm text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                  className="px-3 py-1.5 text-sm rounded-lg transition-colors"
+                  style={{ color: 'var(--theme-text-muted)' }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={saveRules}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors"
+                  style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
                 >
                   <Check className="w-4 h-4" />
                   Save Rules
@@ -94,18 +97,19 @@ export const AdvancedPanel: React.FC = () => {
           ) : (
             <div
               onClick={() => setEditingRules(true)}
-              className="p-4 bg-slate-800/50 border border-white/5 rounded-lg cursor-pointer hover:border-white/20 transition-colors group"
+              className="p-4 rounded-lg cursor-pointer transition-colors group"
+              style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}
             >
               {savedRules ? (
-                <pre className="text-xs text-slate-400 whitespace-pre-wrap max-h-48 overflow-hidden">
+                <pre className="text-xs whitespace-pre-wrap max-h-48 overflow-hidden" style={{ color: 'var(--theme-text-muted)' }}>
                   {savedRules}
                 </pre>
               ) : (
-                <div className="text-sm text-slate-500 italic">
+                <div className="text-sm italic" style={{ color: 'var(--theme-text-dim)' }}>
                   No rules defined. Click to add custom AI generation rules.
                 </div>
               )}
-              <div className="mt-3 text-xs text-blue-400 group-hover:text-blue-300">
+              <div className="mt-3 text-xs" style={{ color: 'var(--theme-accent)' }}>
                 Click to edit rules
               </div>
             </div>
@@ -134,10 +138,11 @@ export const AdvancedPanel: React.FC = () => {
                 setRulesInput(newRules);
                 setEditingRules(true);
               }}
-              className="p-3 bg-slate-800/30 border border-white/5 rounded-lg text-left hover:border-white/20 transition-colors"
+              className="p-3 rounded-lg text-left transition-colors"
+              style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}
             >
-              <div className="text-sm text-white">{example.title}</div>
-              <div className="text-xs text-slate-500 mt-0.5 line-clamp-1">{example.rule.split('\n')[0]}</div>
+              <div className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>{example.title}</div>
+              <div className="text-xs mt-0.5 line-clamp-1" style={{ color: 'var(--theme-text-dim)' }}>{example.rule.split('\n')[0]}</div>
             </button>
           ))}
         </div>
@@ -149,10 +154,10 @@ export const AdvancedPanel: React.FC = () => {
         description="Experimental: Choose how AI returns generated code"
       >
         {/* Experimental Badge */}
-        <div className="flex items-start gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg mb-4">
-          <FlaskConical className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-          <div className="text-xs text-slate-400">
-            <span className="text-amber-400 font-medium">Experimental Feature:</span> The marker format
+        <div className="flex items-start gap-3 p-3 rounded-lg mb-4" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)' }}>
+          <FlaskConical className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'var(--color-warning)' }} />
+          <div className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+            <span className="font-medium" style={{ color: 'var(--color-warning)' }}>Experimental Feature:</span> The marker format
             is an alternative to JSON that may improve streaming reliability. Both formats are
             automatically detected and parsed. Use this to A/B test which works better for your use case.
           </div>
@@ -180,10 +185,10 @@ export const AdvancedPanel: React.FC = () => {
 
           {/* Marker format note */}
           {responseFormat === 'marker' && (
-            <div className="flex items-start gap-2 p-2 bg-blue-500/10 border border-blue-500/20 rounded text-xs text-slate-400">
-              <Info className="w-3 h-3 text-blue-400 shrink-0 mt-0.5" />
+            <div className="flex items-start gap-2 p-2 rounded text-xs" style={{ backgroundColor: 'var(--color-info-subtle)', border: '1px solid var(--color-info-border)', color: 'var(--theme-text-muted)' }}>
+              <Info className="w-3 h-3 shrink-0 mt-0.5" style={{ color: 'var(--color-info)' }} />
               <span>
-                <span className="text-blue-400">Note:</span> Diff mode (search/replace) is JSON-only.
+                <span style={{ color: 'var(--color-info)' }}>Note:</span> Diff mode (search/replace) is JSON-only.
                 With marker format, updates use full file content.
               </span>
             </div>
@@ -191,16 +196,28 @@ export const AdvancedPanel: React.FC = () => {
 
           {/* Format Details */}
           <div className="grid grid-cols-2 gap-3">
-            <div className={`p-3 rounded-lg border ${responseFormat === 'json' ? 'bg-blue-500/10 border-blue-500/30' : 'bg-slate-800/30 border-white/5'}`}>
-              <div className="text-xs font-medium text-white mb-1">JSON Format</div>
-              <pre className="text-[10px] text-slate-500 font-mono overflow-hidden">
+            <div
+              className="p-3 rounded-lg"
+              style={{
+                backgroundColor: responseFormat === 'json' ? 'var(--color-info-subtle)' : 'var(--theme-glass-100)',
+                border: responseFormat === 'json' ? '1px solid var(--color-info-border)' : '1px solid var(--theme-border-light)'
+              }}
+            >
+              <div className="text-xs font-medium mb-1" style={{ color: 'var(--theme-text-primary)' }}>JSON Format</div>
+              <pre className="text-[10px] font-mono overflow-hidden" style={{ color: 'var(--theme-text-dim)' }}>
 {`// PLAN: {"create":[...]}
 {"files":{"src/App.tsx":"..."}}`}
               </pre>
             </div>
-            <div className={`p-3 rounded-lg border ${responseFormat === 'marker' ? 'bg-blue-500/10 border-blue-500/30' : 'bg-slate-800/30 border-white/5'}`}>
-              <div className="text-xs font-medium text-white mb-1">Marker Format</div>
-              <pre className="text-[10px] text-slate-500 font-mono overflow-hidden">
+            <div
+              className="p-3 rounded-lg"
+              style={{
+                backgroundColor: responseFormat === 'marker' ? 'var(--color-info-subtle)' : 'var(--theme-glass-100)',
+                border: responseFormat === 'marker' ? '1px solid var(--color-info-border)' : '1px solid var(--theme-border-light)'
+              }}
+            >
+              <div className="text-xs font-medium mb-1" style={{ color: 'var(--theme-text-primary)' }}>Marker Format</div>
+              <pre className="text-[10px] font-mono overflow-hidden" style={{ color: 'var(--theme-text-dim)' }}>
 {`<!-- PLAN -->
 create: src/App.tsx
 <!-- FILE:src/App.tsx -->

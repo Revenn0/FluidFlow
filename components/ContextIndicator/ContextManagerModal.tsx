@@ -138,34 +138,37 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+      className="fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur-sm"
+      style={{ backgroundColor: 'var(--theme-modal-overlay)' }}
       onClick={onClose}
     >
       <div
-        className="w-[90vw] max-w-2xl max-h-[85vh] bg-slate-900 border border-white/10 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        className="w-[90vw] max-w-2xl max-h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/10">
+        <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--theme-border)' }}>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-xl">
-              <Database className="w-5 h-5 text-blue-400" />
+            <div className="p-2 rounded-xl" style={{ background: 'linear-gradient(to bottom right, var(--theme-accent-subtle), var(--theme-ai-subtle))' }}>
+              <Database className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
             </div>
             <div>
-              <h2 className="font-medium text-lg">Context Manager</h2>
-              <p className="text-xs text-slate-500">Manage conversation context and memory</p>
+              <h2 className="font-medium text-lg" style={{ color: 'var(--theme-text-primary)' }}>Context Manager</h2>
+              <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Manage conversation context and memory</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-white/10">
+        <div className="flex" style={{ borderBottom: '1px solid var(--theme-border)' }}>
           {[
             { id: 'current', label: 'Conversation', icon: Layers },
             { id: 'project', label: 'AI Context', icon: Sparkles, highlight: !!projectContext },
@@ -175,11 +178,18 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as 'current' | 'project' | 'all' | 'logs')}
-              className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors ${
-                activeTab === tab.id
-                  ? tab.id === 'project' ? 'text-purple-400 border-b-2 border-purple-400 bg-purple-500/5' : 'text-blue-400 border-b-2 border-blue-400 bg-blue-500/5'
-                  : 'highlight' in tab && tab.highlight ? 'text-purple-400 hover:text-purple-300 hover:bg-purple-500/5' : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition-colors"
+              style={{
+                color: activeTab === tab.id
+                  ? (tab.id === 'project' ? 'var(--theme-ai-accent)' : 'var(--theme-accent)')
+                  : ('highlight' in tab && tab.highlight ? 'var(--theme-ai-accent)' : 'var(--theme-text-muted)'),
+                borderBottom: activeTab === tab.id
+                  ? (tab.id === 'project' ? '2px solid var(--theme-ai-accent)' : '2px solid var(--theme-accent)')
+                  : '2px solid transparent',
+                backgroundColor: activeTab === tab.id
+                  ? (tab.id === 'project' ? 'var(--theme-ai-subtle)' : 'var(--theme-accent-subtle)')
+                  : 'transparent'
+              }}
             >
               <tab.icon className="w-4 h-4" />
               <span className="hidden sm:inline">{tab.label}</span>
@@ -193,69 +203,75 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
           {activeTab === 'current' && stats && (
             <div className="space-y-4">
               {/* Usage Gauge */}
-              <div className="bg-slate-800/50 rounded-xl p-4">
+              <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium">Context Usage</span>
-                  <span className={`text-sm font-mono ${
-                    isCritical ? 'text-red-400' : isWarning ? 'text-amber-400' : 'text-emerald-400'
-                  }`}>
+                  <span className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>Context Usage</span>
+                  <span
+                    className="text-sm font-mono"
+                    style={{
+                      color: isCritical ? 'var(--color-error)' : isWarning ? 'var(--color-warning)' : 'var(--color-success)'
+                    }}
+                  >
                     {stats.tokens.toLocaleString()} / {maxTokens.toLocaleString()} tokens
                   </span>
                 </div>
 
                 {/* Progress bar */}
-                <div className="h-4 bg-slate-900 rounded-full overflow-hidden mb-2">
+                <div className="h-4 rounded-full overflow-hidden mb-2" style={{ backgroundColor: 'var(--theme-background)' }}>
                   <div
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      isCritical ? 'bg-gradient-to-r from-red-600 to-red-400' :
-                      isWarning ? 'bg-gradient-to-r from-amber-600 to-amber-400' :
-                      'bg-gradient-to-r from-emerald-600 to-emerald-400'
-                    }`}
-                    style={{ width: `${usagePercent}%` }}
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${usagePercent}%`,
+                      background: isCritical
+                        ? 'linear-gradient(to right, var(--color-error), var(--color-error))'
+                        : isWarning
+                        ? 'linear-gradient(to right, var(--color-warning), var(--color-warning))'
+                        : 'linear-gradient(to right, var(--color-success), var(--color-success))'
+                    }}
                   />
                 </div>
 
                 {/* Markers */}
-                <div className="flex justify-between text-[10px] text-slate-600">
+                <div className="flex justify-between text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                   <span>0%</span>
-                  <span className="text-amber-500">60%</span>
-                  <span className="text-red-500">80%</span>
+                  <span style={{ color: 'var(--color-warning)' }}>60%</span>
+                  <span style={{ color: 'var(--color-error)' }}>80%</span>
                   <span>100%</span>
                 </div>
               </div>
 
               {/* Stats Grid */}
               <div className="grid grid-cols-3 gap-3">
-                <div className="bg-slate-800/50 rounded-lg p-3 text-center">
-                  <MessageSquare className="w-5 h-5 text-blue-400 mx-auto mb-1" />
-                  <div className="text-xl font-bold">{stats.messages}</div>
-                  <div className="text-xs text-slate-500">Messages</div>
+                <div className="rounded-lg p-3 text-center" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+                  <MessageSquare className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--theme-accent)' }} />
+                  <div className="text-xl font-bold" style={{ color: 'var(--theme-text-primary)' }}>{stats.messages}</div>
+                  <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Messages</div>
                 </div>
-                <div className="bg-slate-800/50 rounded-lg p-3 text-center">
-                  <Zap className="w-5 h-5 text-amber-400 mx-auto mb-1" />
-                  <div className="text-xl font-bold">~{Math.round(stats.tokens / 1000)}k</div>
-                  <div className="text-xs text-slate-500">Tokens</div>
+                <div className="rounded-lg p-3 text-center" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+                  <Zap className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--color-warning)' }} />
+                  <div className="text-xl font-bold" style={{ color: 'var(--theme-text-primary)' }}>~{Math.round(stats.tokens / 1000)}k</div>
+                  <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Tokens</div>
                 </div>
-                <div className="bg-slate-800/50 rounded-lg p-3 text-center">
-                  <BarChart3 className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
-                  <div className="text-xl font-bold">{Math.round(usagePercent)}%</div>
-                  <div className="text-xs text-slate-500">Usage</div>
+                <div className="rounded-lg p-3 text-center" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+                  <BarChart3 className="w-5 h-5 mx-auto mb-1" style={{ color: 'var(--color-success)' }} />
+                  <div className="text-xl font-bold" style={{ color: 'var(--theme-text-primary)' }}>{Math.round(usagePercent)}%</div>
+                  <div className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Usage</div>
                 </div>
               </div>
 
               {/* Context Info */}
-              <div className="bg-slate-800/50 rounded-lg p-3">
-                <div className="text-xs text-slate-500 mb-2">Context ID</div>
-                <code className="text-xs text-slate-300 font-mono break-all">{contextId}</code>
+              <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+                <div className="text-xs mb-2" style={{ color: 'var(--theme-text-dim)' }}>Context ID</div>
+                <code className="text-xs font-mono break-all" style={{ color: 'var(--theme-text-secondary)' }}>{contextId}</code>
               </div>
 
               {/* Warning/Status */}
               {isCritical && (
-                <div className="flex items-start gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
+                <div className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)' }}>
+                  <AlertTriangle className="w-5 h-5 shrink-0" style={{ color: 'var(--color-error)' }} />
                   <div>
-                    <p className="text-sm text-red-200 font-medium">Critical: Context nearly full</p>
-                    <p className="text-xs text-red-200/70 mt-1">
+                    <p className="text-sm font-medium" style={{ color: 'var(--color-error)' }}>Critical: Context nearly full</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--color-error)', opacity: 0.7 }}>
                       Compact now to avoid losing context or degraded performance.
                     </p>
                   </div>
@@ -263,11 +279,11 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
               )}
 
               {isWarning && !isCritical && (
-                <div className="flex items-start gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0" />
+                <div className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)' }}>
+                  <AlertTriangle className="w-5 h-5 shrink-0" style={{ color: 'var(--color-warning)' }} />
                   <div>
-                    <p className="text-sm text-amber-200 font-medium">Warning: Context filling up</p>
-                    <p className="text-xs text-amber-200/70 mt-1">
+                    <p className="text-sm font-medium" style={{ color: 'var(--color-warning)' }}>Warning: Context filling up</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--color-warning)', opacity: 0.7 }}>
                       Consider compacting to summarize old messages.
                     </p>
                   </div>
@@ -275,11 +291,11 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
               )}
 
               {!isWarning && (
-                <div className="flex items-start gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                <div className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-success-subtle)', border: '1px solid var(--color-success-border)' }}>
+                  <CheckCircle className="w-5 h-5 shrink-0" style={{ color: 'var(--color-success)' }} />
                   <div>
-                    <p className="text-sm text-emerald-200 font-medium">Healthy context usage</p>
-                    <p className="text-xs text-emerald-200/70 mt-1">
+                    <p className="text-sm font-medium" style={{ color: 'var(--color-success)' }}>Healthy context usage</p>
+                    <p className="text-xs mt-1" style={{ color: 'var(--color-success)', opacity: 0.7 }}>
                       Plenty of room for more conversation.
                     </p>
                   </div>
@@ -292,7 +308,8 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
                   <button
                     onClick={handleCompact}
                     disabled={isCompacting || stats.messages < 4}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-400 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)', color: 'var(--color-warning)' }}
                   >
                     {isCompacting ? (
                       <>
@@ -310,7 +327,8 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
 
                 <button
                   onClick={handleClearContext}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-slate-700/50 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                  style={{ backgroundColor: 'var(--theme-button-secondary)', color: 'var(--theme-text-secondary)' }}
                 >
                   <Trash2 className="w-4 h-4" />
                   Clear Messages
@@ -321,7 +339,8 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
                     contextManager.clearContext(contextId);
                     onClose();
                   }}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 rounded-lg text-sm font-medium transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+                  style={{ backgroundColor: 'var(--theme-accent-subtle)', border: '1px solid var(--theme-accent-muted)', color: 'var(--theme-accent)' }}
                 >
                   <RefreshCw className="w-4 h-4" />
                   New Context
@@ -336,41 +355,41 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
               {projectContext ? (
                 <>
                   {/* Status */}
-                  <div className="flex items-start gap-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-purple-400 shrink-0" />
+                  <div className="flex items-start gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-ai-subtle)', border: '1px solid var(--theme-ai-muted)' }}>
+                    <CheckCircle className="w-5 h-5 shrink-0" style={{ color: 'var(--theme-ai-accent)' }} />
                     <div>
-                      <p className="text-sm text-purple-200 font-medium">AI Context Active</p>
-                      <p className="text-xs text-purple-200/70 mt-1">
+                      <p className="text-sm font-medium" style={{ color: 'var(--theme-ai-accent)' }}>AI Context Active</p>
+                      <p className="text-xs mt-1" style={{ color: 'var(--theme-ai-accent)', opacity: 0.7 }}>
                         Generated on {new Date(projectContext.generatedAt).toLocaleDateString()} at {new Date(projectContext.generatedAt).toLocaleTimeString()}
                       </p>
                     </div>
                   </div>
 
                   {/* Token Info */}
-                  <div className="bg-slate-800/50 rounded-lg p-3">
+                  <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-slate-400">Context Size</span>
-                      <span className="text-sm font-mono text-purple-400">
+                      <span className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>Context Size</span>
+                      <span className="text-sm font-mono" style={{ color: 'var(--theme-ai-accent)' }}>
                         ~{Math.ceil(projectContext.combinedPrompt.length / 4)} tokens
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                       This context is added to every AI prompt for consistent style and understanding.
                     </p>
                   </div>
 
                   {/* Style Guide Preview */}
-                  <div className="bg-slate-800/50 rounded-lg p-3 space-y-3">
-                    <div className="flex items-center gap-2 text-purple-400">
+                  <div className="rounded-lg p-3 space-y-3" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+                    <div className="flex items-center gap-2" style={{ color: 'var(--theme-ai-accent)' }}>
                       <Palette className="w-4 h-4" />
                       <span className="text-sm font-medium">Style Guide</span>
                     </div>
-                    <p className="text-xs text-slate-300">{projectContext.styleGuide.summary}</p>
+                    <p className="text-xs" style={{ color: 'var(--theme-text-secondary)' }}>{projectContext.styleGuide.summary}</p>
 
                     {/* Colors */}
                     {projectContext.styleGuide.colors && Object.values(projectContext.styleGuide.colors).some(v => v) && (
                       <div>
-                        <div className="text-[10px] text-slate-500 mb-1">Colors</div>
+                        <div className="text-[10px] mb-1" style={{ color: 'var(--theme-text-dim)' }}>Colors</div>
                         <div className="flex flex-wrap gap-1.5">
                           {Object.entries(projectContext.styleGuide.colors)
                             .filter(([_, v]) => v)
@@ -378,13 +397,14 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
                             .map(([name, value]) => (
                               <span
                                 key={name}
-                                className="flex items-center gap-1 px-1.5 py-0.5 bg-black/30 rounded text-[10px]"
+                                className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px]"
+                                style={{ backgroundColor: 'var(--theme-glass-200)' }}
                               >
                                 <span
-                                  className="w-2.5 h-2.5 rounded-full border border-white/20"
-                                  style={{ backgroundColor: value?.startsWith('#') ? value : undefined }}
+                                  className="w-2.5 h-2.5 rounded-full"
+                                  style={{ backgroundColor: value?.startsWith('#') ? value : undefined, border: '1px solid var(--theme-border)' }}
                                 />
-                                <span className="text-slate-400">{name}</span>
+                                <span style={{ color: 'var(--theme-text-muted)' }}>{name}</span>
                               </span>
                             ))}
                         </div>
@@ -395,26 +415,26 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
                     <div className="grid grid-cols-2 gap-2 text-[10px]">
                       {projectContext.styleGuide.typography?.fontFamily && (
                         <div>
-                          <span className="text-slate-500">Font:</span>
-                          <span className="text-slate-300 ml-1">{projectContext.styleGuide.typography.fontFamily}</span>
+                          <span style={{ color: 'var(--theme-text-dim)' }}>Font:</span>
+                          <span className="ml-1" style={{ color: 'var(--theme-text-secondary)' }}>{projectContext.styleGuide.typography.fontFamily}</span>
                         </div>
                       )}
                       {projectContext.styleGuide.borders?.radius && (
                         <div>
-                          <span className="text-slate-500">Radius:</span>
-                          <span className="text-slate-300 ml-1">{projectContext.styleGuide.borders.radius}</span>
+                          <span style={{ color: 'var(--theme-text-dim)' }}>Radius:</span>
+                          <span className="ml-1" style={{ color: 'var(--theme-text-secondary)' }}>{projectContext.styleGuide.borders.radius}</span>
                         </div>
                       )}
                       {projectContext.styleGuide.effects?.shadow && (
                         <div>
-                          <span className="text-slate-500">Shadow:</span>
-                          <span className="text-slate-300 ml-1">{projectContext.styleGuide.effects.shadow}</span>
+                          <span style={{ color: 'var(--theme-text-dim)' }}>Shadow:</span>
+                          <span className="ml-1" style={{ color: 'var(--theme-text-secondary)' }}>{projectContext.styleGuide.effects.shadow}</span>
                         </div>
                       )}
                       {projectContext.styleGuide.spacing?.elementGap && (
                         <div>
-                          <span className="text-slate-500">Gap:</span>
-                          <span className="text-slate-300 ml-1">{projectContext.styleGuide.spacing.elementGap}</span>
+                          <span style={{ color: 'var(--theme-text-dim)' }}>Gap:</span>
+                          <span className="ml-1" style={{ color: 'var(--theme-text-secondary)' }}>{projectContext.styleGuide.spacing.elementGap}</span>
                         </div>
                       )}
                     </div>
@@ -423,7 +443,7 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
                     {projectContext.styleGuide.patterns?.length > 0 && (
                       <div className="flex flex-wrap gap-1">
                         {projectContext.styleGuide.patterns.slice(0, 3).map((pattern, i) => (
-                          <span key={i} className="px-1.5 py-0.5 bg-purple-500/20 text-purple-300 rounded text-[10px]">
+                          <span key={i} className="px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--theme-ai-subtle)', color: 'var(--theme-ai-accent)' }}>
                             {pattern}
                           </span>
                         ))}
@@ -432,26 +452,26 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
                   </div>
 
                   {/* Project Summary Preview */}
-                  <div className="bg-slate-800/50 rounded-lg p-3">
-                    <div className="flex items-center gap-2 text-blue-400 mb-2">
+                  <div className="rounded-lg p-3" style={{ backgroundColor: 'var(--theme-glass-100)' }}>
+                    <div className="flex items-center gap-2 mb-2" style={{ color: 'var(--theme-accent)' }}>
                       <FolderTree className="w-4 h-4" />
                       <span className="text-sm font-medium">Project Summary</span>
                     </div>
-                    <p className="text-xs text-slate-300 mb-2">{projectContext.projectSummary.summary}</p>
+                    <p className="text-xs mb-2" style={{ color: 'var(--theme-text-secondary)' }}>{projectContext.projectSummary.summary}</p>
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="text-slate-500">Purpose:</span>
-                        <p className="text-slate-400 truncate">{projectContext.projectSummary.purpose}</p>
+                        <span style={{ color: 'var(--theme-text-dim)' }}>Purpose:</span>
+                        <p className="truncate" style={{ color: 'var(--theme-text-muted)' }}>{projectContext.projectSummary.purpose}</p>
                       </div>
                       <div>
-                        <span className="text-slate-500">Architecture:</span>
-                        <p className="text-slate-400 truncate">{projectContext.projectSummary.architecture}</p>
+                        <span style={{ color: 'var(--theme-text-dim)' }}>Architecture:</span>
+                        <p className="truncate" style={{ color: 'var(--theme-text-muted)' }}>{projectContext.projectSummary.architecture}</p>
                       </div>
                     </div>
                     {projectContext.projectSummary.techStack.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {projectContext.projectSummary.techStack.slice(0, 5).map((tech, i) => (
-                          <span key={i} className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded text-[10px]">
+                          <span key={i} className="px-1.5 py-0.5 rounded text-[10px]" style={{ backgroundColor: 'var(--theme-accent-subtle)', color: 'var(--theme-accent)' }}>
                             {tech}
                           </span>
                         ))}
@@ -463,7 +483,8 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
                   <div className="flex gap-2">
                     <button
                       onClick={handleDeleteProjectContext}
-                      className="flex items-center gap-2 px-4 py-2 bg-slate-700/50 hover:bg-red-500/20 text-slate-300 hover:text-red-400 rounded-lg text-sm transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors"
+                      style={{ backgroundColor: 'var(--theme-button-secondary)', color: 'var(--theme-text-secondary)' }}
                     >
                       <Trash2 className="w-4 h-4" />
                       Delete Context
@@ -472,9 +493,9 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
                 </>
               ) : (
                 <div className="text-center py-8">
-                  <Sparkles className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                  <p className="text-slate-400 mb-2">No AI Context Generated</p>
-                  <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                  <Sparkles className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--theme-text-dim)' }} />
+                  <p className="mb-2" style={{ color: 'var(--theme-text-muted)' }}>No AI Context Generated</p>
+                  <p className="text-xs max-w-xs mx-auto" style={{ color: 'var(--theme-text-dim)' }}>
                     Use the "AI Context" button in the control panel to generate a style guide and project summary for consistent AI responses.
                   </p>
                 </div>
@@ -486,7 +507,7 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
           {activeTab === 'all' && (
             <div className="space-y-2">
               {allContexts.length === 0 ? (
-                <p className="text-center text-slate-500 py-8">No contexts found</p>
+                <p className="text-center py-8" style={{ color: 'var(--theme-text-dim)' }}>No contexts found</p>
               ) : (
                 allContexts.map(ctx => {
                   const ctxUsage = (ctx.estimatedTokens / maxTokens) * 100;
@@ -495,23 +516,23 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
                   return (
                     <div
                       key={ctx.id}
-                      className={`p-3 rounded-lg border transition-colors ${
-                        isActive
-                          ? 'bg-blue-500/10 border-blue-500/30'
-                          : 'bg-slate-800/50 border-white/5 hover:border-white/10'
-                      }`}
+                      className="p-3 rounded-lg transition-colors"
+                      style={{
+                        backgroundColor: isActive ? 'var(--theme-accent-subtle)' : 'var(--theme-glass-100)',
+                        border: isActive ? '1px solid var(--theme-accent-muted)' : '1px solid var(--theme-border-light)'
+                      }}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium truncate">{ctx.name}</span>
+                            <span className="text-sm font-medium truncate" style={{ color: 'var(--theme-text-primary)' }}>{ctx.name}</span>
                             {isActive && (
-                              <span className="text-[10px] px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-accent-subtle)', color: 'var(--theme-accent)' }}>
                                 Active
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                          <div className="flex items-center gap-3 text-xs mt-1" style={{ color: 'var(--theme-text-dim)' }}>
                             <span>{ctx.messages.length} messages</span>
                             <span>~{Math.round(ctx.estimatedTokens / 1000)}k tokens</span>
                             <span>{new Date(ctx.lastUpdatedAt).toLocaleDateString()}</span>
@@ -520,21 +541,23 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
 
                         <div className="flex items-center gap-2">
                           {/* Mini usage bar */}
-                          <div className="w-12 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                          <div className="w-12 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                             <div
-                              className={`h-full rounded-full ${
-                                ctxUsage > 80 ? 'bg-red-500' :
-                                ctxUsage > 60 ? 'bg-amber-500' : 'bg-emerald-500'
-                              }`}
-                              style={{ width: `${Math.min(100, ctxUsage)}%` }}
+                              className="h-full rounded-full"
+                              style={{
+                                width: `${Math.min(100, ctxUsage)}%`,
+                                backgroundColor: ctxUsage > 80 ? 'var(--color-error)' :
+                                  ctxUsage > 60 ? 'var(--color-warning)' : 'var(--color-success)'
+                              }}
                             />
                           </div>
 
                           {!isActive && (
                             <button
                               onClick={() => handleDeleteContext(ctx.id)}
-                              className="p-1.5 hover:bg-red-500/20 text-slate-500 hover:text-red-400 rounded transition-colors"
+                              className="p-1.5 rounded transition-colors"
                               title="Delete context"
+                              style={{ color: 'var(--theme-text-dim)' }}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -552,41 +575,42 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
           {activeTab === 'logs' && (
             <div className="space-y-2">
               {compactionLogs.length === 0 ? (
-                <p className="text-center text-slate-500 py-8">No compaction logs yet</p>
+                <p className="text-center py-8" style={{ color: 'var(--theme-text-dim)' }}>No compaction logs yet</p>
               ) : (
                 compactionLogs.slice().reverse().map(log => (
                   <div
                     key={log.id}
-                    className="p-3 bg-slate-800/50 rounded-lg border border-white/5"
+                    className="p-3 rounded-lg"
+                    style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <Scissors className="w-4 h-4 text-amber-400" />
-                        <span className="text-sm font-medium">Compaction</span>
+                        <Scissors className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
+                        <span className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>Compaction</span>
                       </div>
-                      <span className="text-xs text-slate-500">
+                      <span className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                         {new Date(log.timestamp).toLocaleString()}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="bg-slate-900/50 rounded p-2">
-                        <span className="text-slate-500">Before:</span>
-                        <span className="text-red-400 ml-1">~{Math.round(log.beforeTokens / 1000)}k</span>
+                      <div className="rounded p-2" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                        <span style={{ color: 'var(--theme-text-dim)' }}>Before:</span>
+                        <span className="ml-1" style={{ color: 'var(--color-error)' }}>~{Math.round(log.beforeTokens / 1000)}k</span>
                       </div>
-                      <div className="bg-slate-900/50 rounded p-2">
-                        <span className="text-slate-500">After:</span>
-                        <span className="text-green-400 ml-1">~{Math.round(log.afterTokens / 1000)}k</span>
+                      <div className="rounded p-2" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                        <span style={{ color: 'var(--theme-text-dim)' }}>After:</span>
+                        <span className="ml-1" style={{ color: 'var(--color-success)' }}>~{Math.round(log.afterTokens / 1000)}k</span>
                       </div>
-                      <div className="bg-slate-900/50 rounded p-2">
-                        <span className="text-slate-500">Saved:</span>
-                        <span className="text-blue-400 ml-1">
+                      <div className="rounded p-2" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                        <span style={{ color: 'var(--theme-text-dim)' }}>Saved:</span>
+                        <span className="ml-1" style={{ color: 'var(--theme-accent)' }}>
                           {Math.round((1 - log.afterTokens / log.beforeTokens) * 100)}%
                         </span>
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-500 mt-2">{log.summary}</p>
+                    <p className="text-xs mt-2" style={{ color: 'var(--theme-text-dim)' }}>{log.summary}</p>
                   </div>
                 ))
               )}
@@ -594,7 +618,8 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
               {compactionLogs.length > 0 && (
                 <button
                   onClick={handleClearLogs}
-                  className="w-full mt-2 px-4 py-2 text-sm text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                  className="w-full mt-2 px-4 py-2 text-sm rounded-lg transition-colors"
+                  style={{ color: 'var(--theme-text-muted)' }}
                 >
                   Clear All Logs
                 </button>
@@ -604,8 +629,8 @@ export const ContextManagerModal: React.FC<ContextManagerModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-white/10 bg-slate-900/50">
-          <div className="flex items-center justify-between text-xs text-slate-600">
+        <div className="p-3" style={{ borderTop: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-glass-100)' }}>
+          <div className="flex items-center justify-between text-xs" style={{ color: 'var(--theme-text-dim)' }}>
             <span>Model: {getProviderManager().getActiveConfig()?.defaultModel || 'Unknown'}</span>
             <span>Max Context: {maxTokens.toLocaleString()} tokens</span>
           </div>

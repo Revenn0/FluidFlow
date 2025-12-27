@@ -419,23 +419,23 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
   const isPush = mode === 'push';
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[85vh] flex flex-col">
+    <div className="fixed inset-0 z-60 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in duration-200" style={{ backgroundColor: 'var(--theme-modal-overlay)' }}>
+      <div className="w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 max-h-[85vh] flex flex-col" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
         {/* Header */}
-        <div className="p-5 border-b border-white/5 bg-slate-950 flex items-center justify-between flex-shrink-0">
+        <div className="p-5 flex items-center justify-between shrink-0" style={{ borderBottom: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-background)' }}>
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${isImport ? 'bg-slate-800' : 'bg-blue-500/20'}`}>
+            <div className="p-2 rounded-lg" style={{ backgroundColor: isImport ? 'var(--theme-glass-200)' : 'var(--theme-accent-subtle)' }}>
               {isImport ? (
-                <Download className="w-5 h-5 text-white" />
+                <Download className="w-5 h-5" style={{ color: 'var(--theme-text-primary)' }} />
               ) : (
-                <Upload className="w-5 h-5 text-blue-400" />
+                <Upload className="w-5 h-5" style={{ color: 'var(--theme-accent)' }} />
               )}
             </div>
             <div>
-              <h3 className="font-bold text-white">
+              <h3 className="font-bold" style={{ color: 'var(--theme-text-primary)' }}>
                 {isImport ? 'Import from GitHub' : 'Push to GitHub'}
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
                 {step === 'token' && 'Enter your GitHub token to access repositories'}
                 {step === 'repos' && (isImport ? 'Select a repository to import' : 'Select destination repository')}
                 {step === 'newRepo' && 'Configure new repository'}
@@ -446,7 +446,8 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
           </div>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -460,12 +461,12 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
             <div className="p-6 space-y-4">
               {tokenLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+                  <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--theme-accent)' }} />
                 </div>
               ) : (
                 <>
                   <div>
-                    <label className="text-xs font-semibold text-slate-400 uppercase block mb-1.5">
+                    <label className="text-xs font-semibold uppercase block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>
                       GitHub Personal Access Token
                     </label>
                     <input
@@ -473,17 +474,19 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                       value={token}
                       onChange={(e) => setToken(e.target.value)}
                       placeholder="ghp_xxxxxxxxxxxx"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-3 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-slate-600"
+                      className="w-full rounded-lg px-4 py-3 text-sm outline-none"
+                      style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
                       onKeyDown={(e) => e.key === 'Enter' && handleTokenSubmit()}
                       autoFocus
                     />
-                    <p className="text-xs text-slate-500 mt-2">
+                    <p className="text-xs mt-2" style={{ color: 'var(--theme-text-dim)' }}>
                       Requires 'repo' scope for private repositories.{' '}
                       <a
                         href="https://github.com/settings/tokens/new?scopes=repo&description=FluidFlow"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-400 hover:underline"
+                        className="hover:underline"
+                        style={{ color: 'var(--theme-accent)' }}
                       >
                         Create token <ExternalLink className="w-3 h-3 inline" />
                       </a>
@@ -491,20 +494,20 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                   </div>
 
                   {error && (
-                    <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-                      <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                    <div className="flex items-center gap-2 p-3 rounded-lg text-sm" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)', color: 'var(--color-error)' }}>
+                      <AlertTriangle className="w-4 h-4 shrink-0" />
                       {error}
                     </div>
                   )}
 
                   {isImport && (
-                    <div className="bg-slate-800/50 rounded-lg p-4 border border-white/5">
-                      <h4 className="text-sm font-medium text-white mb-2 flex items-center gap-2">
-                        <FolderGit className="w-4 h-4 text-emerald-400" />
+                    <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
+                      <h4 className="text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--theme-text-primary)' }}>
+                        <FolderGit className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                         FluidFlow Backup Detection
                       </h4>
-                      <p className="text-xs text-slate-400">
-                        Repositories with a <code className="px-1 py-0.5 bg-slate-700 rounded">backup/auto</code> branch
+                      <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+                        Repositories with a <code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-glass-300)' }}>backup/auto</code> branch
                         will be highlighted. These contain FluidFlow metadata that will be automatically restored.
                       </p>
                     </div>
@@ -516,29 +519,29 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
 
           {/* Repository List Step */}
           {step === 'repos' && (
-            <>
+            <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col min-h-0">
               {/* Push Mode Selector */}
               {isPush && (
-                <div className="px-6 pt-4 pb-2 border-b border-white/5 flex-shrink-0">
-                  <div className="flex p-1 bg-slate-950/50 rounded-lg border border-white/5">
+                <div className="px-6 pt-4 pb-2" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+                  <div className="flex p-1 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
                     <button
                       onClick={() => setPushMode('new')}
-                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
-                        pushMode === 'new'
-                          ? 'bg-slate-800 text-white shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200'
-                      }`}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all"
+                      style={{
+                        backgroundColor: pushMode === 'new' ? 'var(--theme-surface)' : 'transparent',
+                        color: pushMode === 'new' ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)'
+                      }}
                     >
                       <Plus className="w-4 h-4" />
                       New Repository
                     </button>
                     <button
                       onClick={() => setPushMode('existing')}
-                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
-                        pushMode === 'existing'
-                          ? 'bg-slate-800 text-white shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200'
-                      }`}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all"
+                      style={{
+                        backgroundColor: pushMode === 'existing' ? 'var(--theme-surface)' : 'transparent',
+                        color: pushMode === 'existing' ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)'
+                      }}
                     >
                       <Link2 className="w-4 h-4" />
                       Existing Repository
@@ -547,15 +550,16 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
 
                   {/* Current Remote Info */}
                   {hasExistingRemote && pushMode === 'existing' && (
-                    <div className="mt-3 flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-                      <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                    <div className="mt-3 flex items-center gap-2 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-success-subtle)', border: '1px solid var(--color-success-border)' }}>
+                      <Check className="w-4 h-4 shrink-0" style={{ color: 'var(--color-success)' }} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-emerald-300 font-medium">Remote configured</p>
-                        <p className="text-xs text-slate-400 truncate">{existingRemoteUrl}</p>
+                        <p className="text-xs font-medium" style={{ color: 'var(--color-success)' }}>Remote configured</p>
+                        <p className="text-xs truncate" style={{ color: 'var(--theme-text-muted)' }}>{existingRemoteUrl}</p>
                       </div>
                       <button
                         onClick={handlePushToCurrent}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-medium transition-colors"
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                        style={{ backgroundColor: 'var(--color-success)', color: 'white' }}
                       >
                         Push Now
                       </button>
@@ -564,16 +568,16 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
 
                   {/* Force Push Option */}
                   {pushMode === 'existing' && (
-                    <label className="mt-3 flex items-center gap-3 p-3 bg-amber-500/5 border border-amber-500/20 rounded-lg cursor-pointer hover:bg-amber-500/10 transition-colors">
+                    <label className="mt-3 flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)' }}>
                       <input
                         type="checkbox"
                         checked={forcePush}
                         onChange={(e) => setForcePush(e.target.checked)}
-                        className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-amber-500 focus:ring-amber-500/50"
+                        className="w-4 h-4 rounded"
                       />
                       <div>
-                        <span className="text-sm text-amber-300 font-medium">Force Push</span>
-                        <p className="text-[10px] text-slate-500">
+                        <span className="text-sm font-medium" style={{ color: 'var(--color-warning)' }}>Force Push</span>
+                        <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                           Overwrite remote history. Use if histories have diverged.
                         </p>
                       </div>
@@ -581,16 +585,16 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                   )}
 
                   {/* Include Context Option */}
-                  <label className="mt-3 flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-800 transition-colors">
+                  <label className="mt-3 flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
                     <input
                       type="checkbox"
                       checked={includeContext}
                       onChange={(e) => setIncludeContext(e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50"
+                      className="w-4 h-4 rounded"
                     />
                     <div>
-                      <span className="text-sm text-slate-300 font-medium">Include Conversation History</span>
-                      <p className="text-[10px] text-slate-500">
+                      <span className="text-sm font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Include Conversation History</span>
+                      <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                         Include AI chat history in .fluidflow/ folder. Useful for backup/restore.
                       </p>
                     </div>
@@ -600,9 +604,9 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
 
               {/* New Repo Form (for push mode) */}
               {isPush && pushMode === 'new' && (
-                <div className="px-6 py-4 border-b border-white/5 space-y-4 flex-shrink-0">
+                <div className="px-6 py-4 space-y-4" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                   <div>
-                    <label className="text-xs font-semibold text-slate-400 uppercase block mb-1.5">
+                    <label className="text-xs font-semibold uppercase block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>
                       Repository Name
                     </label>
                     <input
@@ -610,12 +614,13 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                       value={newRepoName}
                       onChange={(e) => setNewRepoName(e.target.value.replace(/[^a-zA-Z0-9-_]/g, '-'))}
                       placeholder="my-awesome-app"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-slate-600"
+                      className="w-full rounded-lg px-4 py-2.5 text-sm outline-none"
+                      style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-semibold text-slate-400 uppercase block mb-1.5">
+                    <label className="text-xs font-semibold uppercase block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>
                       Description (Optional)
                     </label>
                     <input
@@ -623,7 +628,8 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                       value={newRepoDescription}
                       onChange={(e) => setNewRepoDescription(e.target.value)}
                       placeholder="A project created with FluidFlow"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-slate-600"
+                      className="w-full rounded-lg px-4 py-2.5 text-sm outline-none"
+                      style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
                     />
                   </div>
 
@@ -631,22 +637,24 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                   <div className="flex items-center gap-4">
                     <button
                       onClick={() => setIsPrivate(true)}
-                      className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${
-                        isPrivate
-                          ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                          : 'bg-slate-800/50 border-white/5 text-slate-400 hover:border-white/10'
-                      }`}
+                      className="flex-1 flex items-center justify-center gap-2 p-3 rounded-lg transition-all"
+                      style={{
+                        backgroundColor: isPrivate ? 'var(--color-warning-subtle)' : 'var(--theme-glass-200)',
+                        border: isPrivate ? '1px solid var(--color-warning-border)' : '1px solid var(--theme-border-light)',
+                        color: isPrivate ? 'var(--color-warning)' : 'var(--theme-text-muted)'
+                      }}
                     >
                       <Lock className="w-4 h-4" />
                       <span className="text-sm font-medium">Private</span>
                     </button>
                     <button
                       onClick={() => setIsPrivate(false)}
-                      className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-lg border transition-all ${
-                        !isPrivate
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                          : 'bg-slate-800/50 border-white/5 text-slate-400 hover:border-white/10'
-                      }`}
+                      className="flex-1 flex items-center justify-center gap-2 p-3 rounded-lg transition-all"
+                      style={{
+                        backgroundColor: !isPrivate ? 'var(--color-success-subtle)' : 'var(--theme-glass-200)',
+                        border: !isPrivate ? '1px solid var(--color-success-border)' : '1px solid var(--theme-border-light)',
+                        color: !isPrivate ? 'var(--color-success)' : 'var(--theme-text-muted)'
+                      }}
                     >
                       <Globe className="w-4 h-4" />
                       <span className="text-sm font-medium">Public</span>
@@ -654,17 +662,17 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                   </div>
 
                   {/* Include Context Option */}
-                  <label className="flex items-center gap-3 p-3 bg-slate-800/50 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-800 transition-colors">
+                  <label className="flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors" style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)' }}>
                     <input
                       type="checkbox"
                       checked={includeContext}
                       onChange={(e) => setIncludeContext(e.target.checked)}
-                      className="w-4 h-4 rounded border-slate-600 bg-slate-800 text-blue-500 focus:ring-blue-500/50"
+                      className="w-4 h-4 rounded"
                     />
                     <div>
-                      <span className="text-sm text-slate-300 font-medium">Include Conversation History</span>
-                      <p className="text-[10px] text-slate-500">
-                        Include AI chat history in .fluidflow/ folder. {!isPrivate && <span className="text-amber-400">⚠ Public repo!</span>}
+                      <span className="text-sm font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Include Conversation History</span>
+                      <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
+                        Include AI chat history in .fluidflow/ folder. {!isPrivate && <span style={{ color: 'var(--color-warning)' }}>⚠ Public repo!</span>}
                       </p>
                     </div>
                   </label>
@@ -672,13 +680,14 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                   <button
                     onClick={handleCreateAndPush}
                     disabled={!newRepoName.trim()}
-                    className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors"
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-medium transition-colors disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
                   >
                     <Github className="w-4 h-4" />
                     Create Repository & Push
                   </button>
 
-                  <p className="text-center text-xs text-slate-500">
+                  <p className="text-center text-xs" style={{ color: 'var(--theme-text-dim)' }}>
                     Or select an existing repository below
                   </p>
                 </div>
@@ -686,26 +695,26 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
 
               {/* Import Mode Toggle (My Repos vs Clone URL) */}
               {isImport && (
-                <div className="px-6 py-3 border-b border-white/5 flex-shrink-0">
-                  <div className="flex items-center gap-2 p-1 bg-slate-800/50 rounded-lg">
+                <div className="px-6 py-3" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
+                  <div className="flex items-center gap-2 p-1 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                     <button
                       onClick={() => setImportMode('myRepos')}
-                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-                        importMode === 'myRepos'
-                          ? 'bg-blue-600 text-white'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5'
-                      }`}
+                      className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-all"
+                      style={{
+                        backgroundColor: importMode === 'myRepos' ? 'var(--theme-accent)' : 'transparent',
+                        color: importMode === 'myRepos' ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)'
+                      }}
                     >
                       <FolderGit className="w-4 h-4" />
                       My Repositories
                     </button>
                     <button
                       onClick={() => setImportMode('url')}
-                      className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-all ${
-                        importMode === 'url'
-                          ? 'bg-blue-600 text-white'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5'
-                      }`}
+                      className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-md text-sm font-medium transition-all"
+                      style={{
+                        backgroundColor: importMode === 'url' ? 'var(--theme-accent)' : 'transparent',
+                        color: importMode === 'url' ? 'var(--theme-text-on-accent)' : 'var(--theme-text-muted)'
+                      }}
                     >
                       <Link2 className="w-4 h-4" />
                       Clone URL
@@ -716,9 +725,9 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
 
               {/* Clone by URL Section */}
               {isImport && importMode === 'url' && (
-                <div className="px-6 py-4 border-b border-white/5 space-y-4 flex-shrink-0">
+                <div className="px-6 py-4 space-y-4" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                   <div>
-                    <label className="text-xs font-semibold text-slate-400 uppercase block mb-1.5">
+                    <label className="text-xs font-semibold uppercase block mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>
                       GitHub Repository URL
                     </label>
                     <input
@@ -726,9 +735,10 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                       value={cloneUrl}
                       onChange={(e) => setCloneUrl(e.target.value)}
                       placeholder="https://github.com/username/repository"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-lg px-4 py-2.5 text-sm text-white focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none placeholder-slate-600"
+                      className="w-full rounded-lg px-4 py-2.5 text-sm outline-none"
+                      style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
                     />
-                    <p className="mt-1.5 text-[10px] text-slate-500">
+                    <p className="mt-1.5 text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                       Paste any public GitHub repository URL. For private repos, enter your token first.
                     </p>
                   </div>
@@ -736,16 +746,17 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                   <button
                     onClick={handleCloneByUrl}
                     disabled={!cloneUrl.trim()}
-                    className="w-full flex items-center justify-center gap-2 py-3 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-700 disabled:text-slate-500 text-white rounded-lg font-medium transition-colors"
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-medium transition-colors disabled:opacity-50"
+                    style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
                   >
                     <Download className="w-4 h-4" />
                     Clone Repository
                   </button>
 
-                  <div className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-                    <FolderGit className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                    <p className="text-xs text-emerald-300">
-                      If the repo contains <code className="bg-black/30 px-1 rounded">.fluidflow/</code> folder, project metadata and conversation history will be restored automatically.
+                  <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-success-subtle)', border: '1px solid var(--color-success-border)' }}>
+                    <FolderGit className="w-5 h-5 shrink-0" style={{ color: 'var(--color-success)' }} />
+                    <p className="text-xs" style={{ color: 'var(--color-success)' }}>
+                      If the repo contains <code className="px-1 rounded" style={{ backgroundColor: 'var(--theme-glass-300)' }}>.fluidflow/</code> folder, project metadata and conversation history will be restored automatically.
                     </p>
                   </div>
                 </div>
@@ -754,26 +765,28 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
               {/* Search and Filter Bar (only for My Repos mode) */}
               {(!isImport || importMode === 'myRepos') && (
                 <>
-              <div className="px-6 py-3 border-b border-white/5 flex items-center gap-3 flex-shrink-0">
+              <div className="px-6 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search repositories..."
-                    className="w-full pl-10 pr-4 py-2 bg-slate-800/50 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 transition-colors"
+                    className="w-full pl-10 pr-4 py-2 rounded-lg text-sm outline-none transition-colors"
+                    style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border-light)', color: 'var(--theme-text-primary)' }}
                   />
                 </div>
 
                 {isImport && (
                   <button
                     onClick={() => setShowBackupOnly(!showBackupOnly)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${
-                      showBackupOnly
-                        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                        : 'bg-slate-800/50 text-slate-400 border border-white/10 hover:bg-slate-800'
-                    }`}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors"
+                    style={{
+                      backgroundColor: showBackupOnly ? 'var(--color-success-subtle)' : 'var(--theme-glass-200)',
+                      color: showBackupOnly ? 'var(--color-success)' : 'var(--theme-text-muted)',
+                      border: showBackupOnly ? '1px solid var(--color-success-border)' : '1px solid var(--theme-border-light)'
+                    }}
                   >
                     <FolderGit className="w-4 h-4" />
                     FluidFlow Only
@@ -783,7 +796,8 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                 <button
                   onClick={() => loadRepos(token)}
                   disabled={reposLoading}
-                  className="p-2 hover:bg-white/10 rounded-lg text-slate-400 hover:text-white transition-colors disabled:opacity-50"
+                  className="p-2 rounded-lg transition-colors disabled:opacity-50"
+                  style={{ color: 'var(--theme-text-muted)' }}
                   title="Refresh"
                 >
                   <RefreshCw className={`w-4 h-4 ${reposLoading ? 'animate-spin' : ''}`} />
@@ -791,30 +805,31 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
               </div>
 
               {/* Repository List */}
-              <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 {reposLoading ? (
                   <div className="flex items-center justify-center py-16">
-                    <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+                    <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--theme-accent)' }} />
                   </div>
                 ) : error ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-                    <AlertTriangle className="w-12 h-12 mb-3 text-red-400 opacity-50" />
-                    <p className="text-sm text-red-400">{error}</p>
+                  <div className="flex flex-col items-center justify-center py-16" style={{ color: 'var(--theme-text-muted)' }}>
+                    <AlertTriangle className="w-12 h-12 mb-3 opacity-50" style={{ color: 'var(--color-error)' }} />
+                    <p className="text-sm" style={{ color: 'var(--color-error)' }}>{error}</p>
                     <button
                       onClick={() => loadRepos(token)}
-                      className="mt-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition-colors"
+                      className="mt-4 px-4 py-2 rounded-lg text-sm transition-colors"
+                      style={{ backgroundColor: 'var(--theme-glass-200)' }}
                     >
                       Try Again
                     </button>
                   </div>
                 ) : sortedRepos.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+                  <div className="flex flex-col items-center justify-center py-16" style={{ color: 'var(--theme-text-muted)' }}>
                     <Github className="w-12 h-12 mb-3 opacity-50" />
                     <p className="text-sm">
                       {searchQuery ? 'No repositories found' : 'No repositories available'}
                     </p>
                     {showBackupOnly && (
-                      <p className="text-xs text-slate-500 mt-1">
+                      <p className="text-xs mt-1" style={{ color: 'var(--theme-text-dim)' }}>
                         Try disabling "FluidFlow Only" filter
                       </p>
                     )}
@@ -825,53 +840,51 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                       <button
                         key={repo.id}
                         onClick={() => isImport ? handleImport(repo) : handlePushToExisting(repo)}
-                        className={`w-full group flex items-center gap-4 p-4 rounded-xl border transition-all text-left ${
-                          repo.hasFluidFlowBackup && isImport
-                            ? 'bg-emerald-500/5 border-emerald-500/20 hover:bg-emerald-500/10 hover:border-emerald-500/30'
-                            : 'bg-slate-800/30 border-white/5 hover:bg-slate-800/60 hover:border-white/10'
-                        }`}
+                        className="w-full group flex items-center gap-4 p-4 rounded-xl transition-all text-left"
+                        style={{
+                          backgroundColor: repo.hasFluidFlowBackup && isImport ? 'var(--color-success-subtle)' : 'var(--theme-glass-200)',
+                          border: repo.hasFluidFlowBackup && isImport ? '1px solid var(--color-success-border)' : '1px solid var(--theme-border-light)'
+                        }}
                       >
                         {/* Icon */}
-                        <div className={`p-2.5 rounded-xl ${
-                          repo.hasFluidFlowBackup && isImport
-                            ? 'bg-emerald-500/20'
-                            : 'bg-slate-700/50 group-hover:bg-slate-700'
-                        }`}>
+                        <div className="p-2.5 rounded-xl" style={{
+                          backgroundColor: repo.hasFluidFlowBackup && isImport ? 'var(--color-success-subtle)' : 'var(--theme-glass-300)'
+                        }}>
                           {repo.hasFluidFlowBackup && isImport ? (
-                            <FolderGit className="w-5 h-5 text-emerald-400" />
+                            <FolderGit className="w-5 h-5" style={{ color: 'var(--color-success)' }} />
                           ) : (
-                            <Github className="w-5 h-5 text-slate-400" />
+                            <Github className="w-5 h-5" style={{ color: 'var(--theme-text-muted)' }} />
                           )}
                         </div>
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-medium text-white truncate">
+                            <h3 className="text-sm font-medium truncate" style={{ color: 'var(--theme-text-primary)' }}>
                               {repo.name}
                             </h3>
                             {repo.private ? (
-                              <span title="Private"><Lock className="w-3.5 h-3.5 text-amber-400" /></span>
+                              <span title="Private"><Lock className="w-3.5 h-3.5" style={{ color: 'var(--color-warning)' }} /></span>
                             ) : (
-                              <span title="Public"><Globe className="w-3.5 h-3.5 text-slate-500" /></span>
+                              <span title="Public"><Globe className="w-3.5 h-3.5" style={{ color: 'var(--theme-text-dim)' }} /></span>
                             )}
                             {repo.hasFluidFlowBackup && isImport && (
-                              <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 text-[10px] rounded font-medium">
+                              <span className="px-1.5 py-0.5 text-[10px] rounded font-medium" style={{ backgroundColor: 'var(--color-success-subtle)', color: 'var(--color-success)' }}>
                                 FluidFlow
                               </span>
                             )}
                           </div>
                           {repo.description && (
-                            <p className="text-xs text-slate-500 truncate mt-0.5">
+                            <p className="text-xs truncate mt-0.5" style={{ color: 'var(--theme-text-dim)' }}>
                               {repo.description}
                             </p>
                           )}
                           <div className="flex items-center gap-3 mt-1">
-                            <span className="flex items-center gap-1 text-[10px] text-slate-500">
+                            <span className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                               <Clock className="w-3 h-3" />
                               {formatDate(repo.updatedAt)}
                             </span>
-                            <span className="text-[10px] text-slate-600">
+                            <span className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                               {repo.fullName}
                             </span>
                           </div>
@@ -880,11 +893,11 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                         {/* Action indicator */}
                         <div className="flex items-center gap-2">
                           {isPush && (
-                            <span className="text-xs text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--theme-text-dim)' }}>
                               Push here
                             </span>
                           )}
-                          <ChevronRight className="w-5 h-5 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--theme-text-dim)' }} />
                         </div>
                       </button>
                     ))}
@@ -893,28 +906,28 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
               </div>
                 </>
               )}
-            </>
+            </div>
           )}
 
           {/* Processing Step */}
           {step === 'processing' && (
             <div className="flex flex-col items-center justify-center py-16">
               <div className="relative">
-                <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--theme-accent-subtle)' }}>
                   {isImport ? (
-                    <Download className="w-8 h-8 text-blue-400" />
+                    <Download className="w-8 h-8" style={{ color: 'var(--theme-accent)' }} />
                   ) : (
-                    <Upload className="w-8 h-8 text-blue-400" />
+                    <Upload className="w-8 h-8" style={{ color: 'var(--theme-accent)' }} />
                   )}
                 </div>
                 <div className="absolute -bottom-1 -right-1">
-                  <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
+                  <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--theme-accent)' }} />
                 </div>
               </div>
-              <h4 className="mt-6 text-lg font-medium text-white">
+              <h4 className="mt-6 text-lg font-medium" style={{ color: 'var(--theme-text-primary)' }}>
                 {isImport ? `Importing ${selectedRepo?.name || cloneUrl.split('/').pop()?.replace('.git', '') || 'project'}` : 'Pushing to GitHub'}
               </h4>
-              <p className="mt-2 text-sm text-slate-400">
+              <p className="mt-2 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                 {isImport
                   ? 'Cloning repository and checking for FluidFlow metadata...'
                   : 'Creating repository and pushing files...'}
@@ -927,18 +940,18 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
             <div className="flex flex-col items-center justify-center py-12 px-6">
               {result.success ? (
                 <>
-                  <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center">
-                    <Check className="w-8 h-8 text-emerald-400" />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-success-subtle)' }}>
+                    <Check className="w-8 h-8" style={{ color: 'var(--color-success)' }} />
                   </div>
-                  <h4 className="mt-6 text-lg font-medium text-white">
+                  <h4 className="mt-6 text-lg font-medium" style={{ color: 'var(--theme-text-primary)' }}>
                     {isImport ? 'Import Successful!' : 'Push Successful!'}
                   </h4>
                   {isImport ? (
-                    <p className="mt-2 text-sm text-slate-400">
+                    <p className="mt-2 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                       Project "{result.project?.name}" has been imported.
                     </p>
                   ) : (
-                    <p className="mt-2 text-sm text-slate-400">
+                    <p className="mt-2 text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                       Your project has been pushed to GitHub.
                     </p>
                   )}
@@ -949,7 +962,8 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                       href={result.repoUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-4 flex items-center gap-2 text-blue-400 hover:text-blue-300 underline underline-offset-4"
+                      className="mt-4 flex items-center gap-2 underline underline-offset-4"
+                      style={{ color: 'var(--theme-accent)' }}
                     >
                       View on GitHub <ExternalLink className="w-3.5 h-3.5" />
                     </a>
@@ -958,45 +972,43 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                   {/* Restoration Status (import mode) */}
                   {isImport && result.restored && (
                     <div className="mt-6 w-full max-w-sm space-y-2">
-                      <div className={`flex items-center gap-3 p-3 rounded-lg ${
-                        result.restored.metadata
-                          ? 'bg-emerald-500/10 border border-emerald-500/20'
-                          : 'bg-slate-800/50 border border-white/5'
-                      }`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          result.restored.metadata ? 'bg-emerald-500/20' : 'bg-slate-700'
-                        }`}>
+                      <div className="flex items-center gap-3 p-3 rounded-lg" style={{
+                        backgroundColor: result.restored.metadata ? 'var(--color-success-subtle)' : 'var(--theme-glass-200)',
+                        border: result.restored.metadata ? '1px solid var(--color-success-border)' : '1px solid var(--theme-border-light)'
+                      }}>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{
+                          backgroundColor: result.restored.metadata ? 'var(--color-success-subtle)' : 'var(--theme-glass-300)'
+                        }}>
                           {result.restored.metadata ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
+                            <Check className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                           ) : (
-                            <X className="w-4 h-4 text-slate-500" />
+                            <X className="w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
                           )}
                         </div>
                         <div>
-                          <p className="text-sm text-white">Project Metadata</p>
-                          <p className="text-[10px] text-slate-500">
+                          <p className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>Project Metadata</p>
+                          <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                             {result.restored.metadata ? 'Restored from backup' : 'Not found'}
                           </p>
                         </div>
                       </div>
 
-                      <div className={`flex items-center gap-3 p-3 rounded-lg ${
-                        result.restored.context
-                          ? 'bg-emerald-500/10 border border-emerald-500/20'
-                          : 'bg-slate-800/50 border border-white/5'
-                      }`}>
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          result.restored.context ? 'bg-emerald-500/20' : 'bg-slate-700'
-                        }`}>
+                      <div className="flex items-center gap-3 p-3 rounded-lg" style={{
+                        backgroundColor: result.restored.context ? 'var(--color-success-subtle)' : 'var(--theme-glass-200)',
+                        border: result.restored.context ? '1px solid var(--color-success-border)' : '1px solid var(--theme-border-light)'
+                      }}>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{
+                          backgroundColor: result.restored.context ? 'var(--color-success-subtle)' : 'var(--theme-glass-300)'
+                        }}>
                           {result.restored.context ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
+                            <Check className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                           ) : (
-                            <X className="w-4 h-4 text-slate-500" />
+                            <X className="w-4 h-4" style={{ color: 'var(--theme-text-dim)' }} />
                           )}
                         </div>
                         <div>
-                          <p className="text-sm text-white">Conversation Context</p>
-                          <p className="text-[10px] text-slate-500">
+                          <p className="text-sm" style={{ color: 'var(--theme-text-primary)' }}>Conversation Context</p>
+                          <p className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
                             {result.restored.context ? 'Restored from backup' : 'Not found'}
                           </p>
                         </div>
@@ -1006,13 +1018,13 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                 </>
               ) : (
                 <>
-                  <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
-                    <AlertCircle className="w-8 h-8 text-red-400" />
+                  <div className="w-16 h-16 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--color-error-subtle)' }}>
+                    <AlertCircle className="w-8 h-8" style={{ color: 'var(--color-error)' }} />
                   </div>
-                  <h4 className="mt-6 text-lg font-medium text-white">
+                  <h4 className="mt-6 text-lg font-medium" style={{ color: 'var(--theme-text-primary)' }}>
                     {isImport ? 'Import Failed' : 'Push Failed'}
                   </h4>
-                  <p className="mt-2 text-sm text-red-400 bg-red-950/50 p-3 rounded-lg border border-red-500/20 max-w-md text-center">
+                  <p className="mt-2 text-sm p-3 rounded-lg max-w-md text-center" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)', color: 'var(--color-error)' }}>
                     {result.error}
                   </p>
                   {result.error?.includes('Force Push') && (
@@ -1022,7 +1034,8 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
                         setStep('repos');
                         setResult(null);
                       }}
-                      className="mt-4 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-sm font-medium transition-colors"
+                      className="mt-4 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      style={{ backgroundColor: 'var(--color-warning)', color: 'white' }}
                     >
                       Enable Force Push & Retry
                     </button>
@@ -1034,14 +1047,15 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-slate-950/50 border-t border-white/5 flex justify-between items-center flex-shrink-0">
+        <div className="p-4 flex justify-between items-center shrink-0" style={{ backgroundColor: 'var(--theme-glass-100)', borderTop: '1px solid var(--theme-border)' }}>
           {step === 'repos' && (
             <button
               onClick={() => {
                 setStep('token');
                 setToken('');
               }}
-              className="px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg text-sm transition-colors"
+              className="px-4 py-2 rounded-lg text-sm transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               Change Token
             </button>
@@ -1053,14 +1067,16 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
               <>
                 <button
                   onClick={handleClose}
-                  className="px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg text-sm transition-colors"
+                  className="px-4 py-2 rounded-lg text-sm transition-colors"
+                  style={{ color: 'var(--theme-text-muted)' }}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleTokenSubmit}
                   disabled={!token.trim() || tokenVerifying}
-                  className="px-4 py-2 bg-white text-slate-900 hover:bg-slate-100 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                  className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                  style={{ backgroundColor: 'var(--theme-accent)', color: 'var(--theme-text-on-accent)' }}
                 >
                   {tokenVerifying && <Loader2 className="w-4 h-4 animate-spin" />}
                   Continue
@@ -1071,7 +1087,8 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
             {step === 'repos' && (
               <button
                 onClick={handleClose}
-                className="px-4 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg text-sm transition-colors"
+                className="px-4 py-2 rounded-lg text-sm transition-colors"
+                style={{ color: 'var(--theme-text-muted)' }}
               >
                 Cancel
               </button>
@@ -1080,11 +1097,11 @@ export const GitHubModal: React.FC<GitHubModalProps> = ({
             {step === 'result' && (
               <button
                 onClick={result?.success ? handleComplete : handleClose}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  result?.success
-                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                    : 'bg-slate-800 hover:bg-slate-700 text-white'
-                }`}
+                className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: result?.success ? 'var(--color-success)' : 'var(--theme-glass-200)',
+                  color: result?.success ? 'white' : 'var(--theme-text-primary)'
+                }}
               >
                 {result?.success ? (isImport ? 'Open Project' : 'Done') : 'Close'}
               </button>

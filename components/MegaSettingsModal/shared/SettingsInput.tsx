@@ -32,9 +32,9 @@ export const SettingsInput: React.FC<SettingsInputProps> = ({
   return (
     <div className={`space-y-2 ${disabled ? 'opacity-50' : ''}`}>
       <div>
-        <span className="text-sm text-white block">{label}</span>
+        <span className="text-sm block" style={{ color: 'var(--theme-text-primary)' }}>{label}</span>
         {description && (
-          <span className="text-xs text-slate-500 block mt-0.5">{description}</span>
+          <span className="text-xs block mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{description}</span>
         )}
       </div>
       <div className="relative">
@@ -47,12 +47,13 @@ export const SettingsInput: React.FC<SettingsInputProps> = ({
           min={min}
           max={max}
           step={step}
-          className={`w-full px-3 py-2 bg-slate-800 border border-white/10 rounded-lg text-sm text-white placeholder-slate-500 outline-none focus:border-blue-500/50 disabled:cursor-not-allowed ${
+          className={`w-full px-3 py-2 rounded-lg text-sm outline-none disabled:cursor-not-allowed ${
             monospace ? 'font-mono' : ''
           } ${suffix ? 'pr-12' : ''}`}
+          style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
         />
         {suffix && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
             {suffix}
           </span>
         )}

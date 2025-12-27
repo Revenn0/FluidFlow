@@ -188,12 +188,12 @@ export const AIUsagePanel: React.FC = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg">
-            <BarChart3 className="w-5 h-5 text-blue-400" />
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-info-subtle)' }}>
+            <BarChart3 className="w-5 h-5" style={{ color: 'var(--color-info)' }} />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">AI Usage Analytics</h2>
-            <p className="text-xs text-slate-400">Track token usage, costs, and performance</p>
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>AI Usage Analytics</h2>
+            <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>Track token usage, costs, and performance</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -201,7 +201,8 @@ export const AIUsagePanel: React.FC = () => {
           <select
             value={timeRange}
             onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-            className="px-3 py-1.5 text-xs bg-slate-800 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-1.5 text-xs rounded-lg focus:outline-none"
+            style={{ backgroundColor: 'var(--theme-input-bg)', border: '1px solid var(--theme-input-border)', color: 'var(--theme-text-primary)' }}
           >
             {timeRangeOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -211,23 +212,23 @@ export const AIUsagePanel: React.FC = () => {
           </select>
           <button
             onClick={loadData}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors"
             title="Refresh"
           >
-            <RefreshCw className={`w-4 h-4 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} style={{ color: 'var(--theme-text-muted)' }} />
           </button>
         </div>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <RefreshCw className="w-6 h-6 text-blue-400 animate-spin" />
+          <RefreshCw className="w-6 h-6 animate-spin" style={{ color: 'var(--theme-accent)' }} />
         </div>
       ) : records.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <Activity className="w-12 h-12 text-slate-600 mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">No Usage Data Yet</h3>
-          <p className="text-sm text-slate-400 max-w-md">
+          <Activity className="w-12 h-12 mb-4" style={{ color: 'var(--theme-text-dim)' }} />
+          <h3 className="text-lg font-medium mb-2" style={{ color: 'var(--theme-text-primary)' }}>No Usage Data Yet</h3>
+          <p className="text-sm max-w-md" style={{ color: 'var(--theme-text-muted)' }}>
             AI usage will be tracked automatically when you generate code, commit messages, or use other AI features.
           </p>
         </div>
@@ -243,7 +244,7 @@ export const AIUsagePanel: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {/* Total Cost */}
               <StatCard
-                icon={<DollarSign className="w-4 h-4 text-green-400" />}
+                icon={<DollarSign className="w-4 h-4" style={{ color: 'var(--color-success)' }} />}
                 label="Total Cost"
                 value={formatCost(stats?.totalCost || 0)}
                 subValue="estimated"
@@ -251,7 +252,7 @@ export const AIUsagePanel: React.FC = () => {
               />
               {/* Total Tokens */}
               <StatCard
-                icon={<Zap className="w-4 h-4 text-amber-400" />}
+                icon={<Zap className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />}
                 label="Total Tokens"
                 value={formatNumber(stats?.totalTokens || 0)}
                 subValue={`${formatNumber(stats?.totalInputTokens || 0)} in / ${formatNumber(stats?.totalOutputTokens || 0)} out`}
@@ -259,7 +260,7 @@ export const AIUsagePanel: React.FC = () => {
               />
               {/* Total Requests */}
               <StatCard
-                icon={<Activity className="w-4 h-4 text-blue-400" />}
+                icon={<Activity className="w-4 h-4" style={{ color: 'var(--color-info)' }} />}
                 label="Requests"
                 value={formatNumber(stats?.totalRequests || 0)}
                 subValue={`${stats?.successRate.toFixed(1)}% success`}
@@ -267,7 +268,7 @@ export const AIUsagePanel: React.FC = () => {
               />
               {/* Avg Duration */}
               <StatCard
-                icon={<Clock className="w-4 h-4 text-purple-400" />}
+                icon={<Clock className="w-4 h-4" style={{ color: 'var(--color-feature)' }} />}
                 label="Avg Response"
                 value={formatDuration(stats?.avgDuration || 0)}
                 subValue="per request"
@@ -287,12 +288,12 @@ export const AIUsagePanel: React.FC = () => {
               <div className="h-40 flex items-end gap-2">
                 {chartData.map((day, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                    <div className="text-[10px] text-slate-500">{formatCost(day.totalCost)}</div>
+                    <div className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>{formatCost(day.totalCost)}</div>
                     <div
-                      className="w-full bg-gradient-to-t from-blue-500/50 to-blue-400/20 rounded-t"
-                      style={{ height: `${Math.max(day.heightPercent, 4)}%` }}
+                      className="w-full rounded-t"
+                      style={{ height: `${Math.max(day.heightPercent, 4)}%`, background: 'linear-gradient(to top, var(--theme-accent), var(--theme-accent-subtle))' }}
                     />
-                    <div className="text-[10px] text-slate-400 truncate w-full text-center">{day.date.split(' ')[0]}</div>
+                    <div className="text-[10px] truncate w-full text-center" style={{ color: 'var(--theme-text-muted)' }}>{day.date.split(' ')[0]}</div>
                   </div>
                 ))}
               </div>
@@ -387,7 +388,7 @@ export const AIUsagePanel: React.FC = () => {
                 <ActivityRow key={record.id} record={record} />
               ))}
               {records.length > 20 && (
-                <div className="text-center text-xs text-slate-500 py-2">
+                <div className="text-center text-xs py-2" style={{ color: 'var(--theme-text-muted)' }}>
                   And {records.length - 20} more...
                 </div>
               )}
@@ -399,28 +400,32 @@ export const AIUsagePanel: React.FC = () => {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleExport}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--color-info-subtle)', color: 'var(--color-info)' }}
               >
                 <Download className="w-3.5 h-3.5" />
                 Export Data
               </button>
               <button
                 onClick={handleImport}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-slate-500/20 text-slate-400 hover:bg-slate-500/30 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}
               >
                 <Upload className="w-3.5 h-3.5" />
                 Import Data
               </button>
               <button
                 onClick={() => setShowPruneConfirm(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--color-warning-subtle)', color: 'var(--color-warning)' }}
               >
                 <Clock className="w-3.5 h-3.5" />
                 Prune Old (&gt;90d)
               </button>
               <button
                 onClick={() => setShowClearConfirm(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--color-error-subtle)', color: 'var(--color-error)' }}
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Clear All
@@ -473,24 +478,24 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   children,
   badge,
 }) => (
-  <div className="bg-slate-800/50 rounded-lg overflow-hidden">
+  <div className="rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
     <button
       onClick={onToggle}
-      className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors"
+      className="w-full flex items-center justify-between p-4 transition-colors"
     >
       <div className="flex items-center gap-2">
-        <span className="text-slate-400">{icon}</span>
-        <span className="text-sm font-medium text-white">{title}</span>
+        <span style={{ color: 'var(--theme-text-muted)' }}>{icon}</span>
+        <span className="text-sm font-medium" style={{ color: 'var(--theme-text-primary)' }}>{title}</span>
         {badge && (
-          <span className="px-1.5 py-0.5 text-[10px] bg-slate-700 text-slate-400 rounded">
+          <span className="px-1.5 py-0.5 text-[10px] rounded" style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-muted)' }}>
             {badge}
           </span>
         )}
       </div>
       {expanded ? (
-        <ChevronDown className="w-4 h-4 text-slate-400" />
+        <ChevronDown className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
       ) : (
-        <ChevronRight className="w-4 h-4 text-slate-400" />
+        <ChevronRight className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
       )}
     </button>
     {expanded && <div className="p-4 pt-0">{children}</div>}
@@ -507,21 +512,21 @@ interface StatCardProps {
 }
 
 const StatCard: React.FC<StatCardProps> = ({ icon, label, value, subValue, color }) => {
-  const bgColors = {
-    green: 'bg-green-500/10 border-green-500/20',
-    amber: 'bg-amber-500/10 border-amber-500/20',
-    blue: 'bg-blue-500/10 border-blue-500/20',
-    purple: 'bg-purple-500/10 border-purple-500/20',
+  const colorMap = {
+    green: { bg: 'var(--color-success-subtle)', border: 'var(--color-success-border)' },
+    amber: { bg: 'var(--color-warning-subtle)', border: 'var(--color-warning-border)' },
+    blue: { bg: 'var(--color-info-subtle)', border: 'var(--color-info-border)' },
+    purple: { bg: 'var(--color-feature-subtle)', border: 'var(--color-feature-border)' },
   };
 
   return (
-    <div className={`p-4 rounded-lg border ${bgColors[color]}`}>
+    <div className="p-4 rounded-lg" style={{ backgroundColor: colorMap[color].bg, border: `1px solid ${colorMap[color].border}` }}>
       <div className="flex items-center gap-2 mb-2">
         {icon}
-        <span className="text-xs text-slate-400">{label}</span>
+        <span className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>{label}</span>
       </div>
-      <div className="text-xl font-semibold text-white">{value}</div>
-      {subValue && <div className="text-[10px] text-slate-500 mt-1">{subValue}</div>}
+      <div className="text-xl font-semibold" style={{ color: 'var(--theme-text-primary)' }}>{value}</div>
+      {subValue && <div className="text-[10px] mt-1" style={{ color: 'var(--theme-text-dim)' }}>{subValue}</div>}
     </div>
   );
 };
@@ -537,23 +542,23 @@ interface ProviderRowProps {
 }
 
 const ProviderRow: React.FC<ProviderRowProps> = ({ name, requests, tokens, cost, avgDuration, percentage }) => (
-  <div className="p-3 bg-slate-900/50 rounded-lg">
+  <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-300)' }}>
     <div className="flex items-center justify-between mb-2">
       <div className="flex items-center gap-2">
-        <Cpu className="w-4 h-4 text-blue-400" />
-        <span className="font-medium text-white capitalize">{name}</span>
+        <Cpu className="w-4 h-4" style={{ color: 'var(--color-info)' }} />
+        <span className="font-medium capitalize" style={{ color: 'var(--theme-text-primary)' }}>{name}</span>
       </div>
-      <span className="text-sm font-semibold text-green-400">{formatCost(cost)}</span>
+      <span className="text-sm font-semibold" style={{ color: 'var(--color-success)' }}>{formatCost(cost)}</span>
     </div>
-    <div className="flex items-center gap-4 text-xs text-slate-400">
+    <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--theme-text-muted)' }}>
       <span>{requests} requests</span>
       <span>{(tokens / 1000).toFixed(1)}K tokens</span>
       <span>{(avgDuration / 1000).toFixed(1)}s avg</span>
     </div>
-    <div className="mt-2 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+    <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
       <div
-        className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
-        style={{ width: `${Math.min(percentage, 100)}%` }}
+        className="h-full"
+        style={{ width: `${Math.min(percentage, 100)}%`, background: 'linear-gradient(to right, var(--theme-accent), var(--color-feature))' }}
       />
     </div>
   </div>
@@ -569,18 +574,18 @@ interface ModelRowProps {
 }
 
 const ModelRow: React.FC<ModelRowProps> = ({ name, provider, requests, tokens, cost }) => (
-  <div className="flex items-center justify-between p-2 bg-slate-900/30 rounded-lg">
+  <div className="flex items-center justify-between p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
     <div className="flex items-center gap-2 flex-1 min-w-0">
-      <Target className="w-3 h-3 text-slate-500 shrink-0" />
+      <Target className="w-3 h-3 shrink-0" style={{ color: 'var(--theme-text-dim)' }} />
       <div className="min-w-0">
-        <div className="text-sm text-white truncate">{name.split('/').pop()}</div>
-        <div className="text-[10px] text-slate-500">{provider}</div>
+        <div className="text-sm truncate" style={{ color: 'var(--theme-text-primary)' }}>{name.split('/').pop()}</div>
+        <div className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>{provider}</div>
       </div>
     </div>
     <div className="flex items-center gap-4 text-xs">
-      <span className="text-slate-400">{requests} req</span>
-      <span className="text-slate-400">{(tokens / 1000).toFixed(1)}K</span>
-      <span className="text-green-400 font-medium">{formatCost(cost)}</span>
+      <span style={{ color: 'var(--theme-text-muted)' }}>{requests} req</span>
+      <span style={{ color: 'var(--theme-text-muted)' }}>{(tokens / 1000).toFixed(1)}K</span>
+      <span className="font-medium" style={{ color: 'var(--color-success)' }}>{formatCost(cost)}</span>
     </div>
   </div>
 );
@@ -595,26 +600,27 @@ interface CategoryCardProps {
 }
 
 const CategoryCard: React.FC<CategoryCardProps> = ({ label, color, requests, tokens, cost }) => {
-  const colorClasses: Record<string, string> = {
-    blue: 'border-blue-500/20 text-blue-400',
-    purple: 'border-purple-500/20 text-purple-400',
-    green: 'border-green-500/20 text-green-400',
-    amber: 'border-amber-500/20 text-amber-400',
-    orange: 'border-orange-500/20 text-orange-400',
-    pink: 'border-pink-500/20 text-pink-400',
-    cyan: 'border-cyan-500/20 text-cyan-400',
-    slate: 'border-slate-500/20 text-slate-400',
+  const colorMap: Record<string, { border: string; text: string }> = {
+    blue: { border: 'var(--color-info-border)', text: 'var(--color-info)' },
+    purple: { border: 'var(--color-feature-border)', text: 'var(--color-feature)' },
+    green: { border: 'var(--color-success-border)', text: 'var(--color-success)' },
+    amber: { border: 'var(--color-warning-border)', text: 'var(--color-warning)' },
+    orange: { border: 'var(--color-warning-border)', text: 'var(--color-warning)' },
+    pink: { border: 'var(--color-feature-border)', text: 'var(--color-feature)' },
+    cyan: { border: 'var(--color-info-border)', text: 'var(--color-info)' },
+    slate: { border: 'var(--theme-border-light)', text: 'var(--theme-text-muted)' },
   };
+  const colors = colorMap[color] || colorMap.slate;
 
   return (
-    <div className={`p-3 bg-slate-900/30 border rounded-lg ${colorClasses[color] || colorClasses.slate}`}>
-      <div className="text-sm font-medium text-white mb-1">{label}</div>
+    <div className="p-3 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)', border: `1px solid ${colors.border}`, color: colors.text }}>
+      <div className="text-sm font-medium mb-1" style={{ color: 'var(--theme-text-primary)' }}>{label}</div>
       <div className="flex items-center gap-2 text-xs">
         <span>{requests} req</span>
-        <span className="text-slate-500">|</span>
+        <span style={{ color: 'var(--theme-text-dim)' }}>|</span>
         <span>{(tokens / 1000).toFixed(1)}K tok</span>
-        <span className="text-slate-500">|</span>
-        <span className="text-green-400">{formatCost(cost)}</span>
+        <span style={{ color: 'var(--theme-text-dim)' }}>|</span>
+        <span style={{ color: 'var(--color-success)' }}>{formatCost(cost)}</span>
       </div>
     </div>
   );
@@ -638,24 +644,24 @@ const ActivityRow: React.FC<ActivityRowProps> = ({ record }) => {
   };
 
   return (
-    <div className="flex items-center gap-3 p-2 bg-slate-900/30 rounded-lg">
+    <div className="flex items-center gap-3 p-2 rounded-lg" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
       {record.success ? (
-        <CheckCircle2 className="w-3.5 h-3.5 text-green-400 shrink-0" />
+        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--color-success)' }} />
       ) : (
-        <XCircle className="w-3.5 h-3.5 text-red-400 shrink-0" />
+        <XCircle className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--color-error)' }} />
       )}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-xs text-white truncate">{record.model.split('/').pop()}</span>
-          <span className="text-[10px] text-slate-500">{record.category}</span>
+          <span className="text-xs truncate" style={{ color: 'var(--theme-text-primary)' }}>{record.model.split('/').pop()}</span>
+          <span className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>{record.category}</span>
         </div>
-        <div className="text-[10px] text-slate-500">
+        <div className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>
           {record.totalTokens.toLocaleString()} tokens {record.isEstimated && '(est)'}
         </div>
       </div>
       <div className="text-right shrink-0">
-        <div className="text-xs text-green-400">{formatCost(record.totalCost)}</div>
-        <div className="text-[10px] text-slate-500">{timeAgo(record.timestamp)}</div>
+        <div className="text-xs" style={{ color: 'var(--color-success)' }}>{formatCost(record.totalCost)}</div>
+        <div className="text-[10px]" style={{ color: 'var(--theme-text-dim)' }}>{timeAgo(record.timestamp)}</div>
       </div>
     </div>
   );

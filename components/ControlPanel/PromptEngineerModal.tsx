@@ -18,25 +18,25 @@ const _QUESTION_STRATEGIES = {
   CLARIFICATION: {
     key: 'clarification',
     icon: Target,
-    color: 'text-blue-400',
+    color: 'var(--color-info)',
     label: 'Clarification'
   },
   SPECIFICS: {
     key: 'specifics',
     icon: Zap,
-    color: 'text-purple-400',
+    color: 'var(--color-feature)',
     label: 'Specifics'
   },
   CONTEXT: {
     key: 'context',
     icon: Lightbulb,
-    color: 'text-emerald-400',
+    color: 'var(--color-success)',
     label: 'Context'
   },
   CONSTRAINTS: {
     key: 'constraints',
     icon: Brain,
-    color: 'text-orange-400',
+    color: 'var(--color-warning)',
     label: 'Constraints'
   }
 };
@@ -255,25 +255,25 @@ export const PromptEngineerModal: React.FC<PromptEngineerModalProps> = ({
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 p-4">
-      <div className="w-full max-w-4xl bg-slate-950/98 backdrop-blur-xl rounded-2xl border border-white/10 animate-in zoom-in-95 duration-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-200 p-4" style={{ backgroundColor: 'var(--theme-overlay)' }}>
+      <div className="w-full max-w-4xl backdrop-blur-xl rounded-2xl animate-in zoom-in-95 duration-200 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
+        <div className="flex items-center justify-between p-6" style={{ borderBottom: '1px solid var(--theme-border)' }}>
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg">
-              <Brain className="w-6 h-6 text-purple-400" />
+            <div className="p-3 rounded-lg" style={{ background: 'linear-gradient(135deg, var(--color-feature-subtle), var(--color-error-subtle))' }}>
+              <Brain className="w-6 h-6" style={{ color: 'var(--color-feature)' }} />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-white">AI Prompt Engineer</h2>
-              <p className="text-sm text-slate-400">Get the perfect prompt in 3 questions or less</p>
+              <h2 className="text-xl font-semibold" style={{ color: 'var(--theme-text-primary)' }}>AI Prompt Engineer</h2>
+              <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>Get the perfect prompt in 3 questions or less</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+            className="p-2 rounded-lg transition-colors"
             title="Close"
           >
-            <X className="w-5 h-5 text-slate-400" />
+            <X className="w-5 h-5" style={{ color: 'var(--theme-text-muted)' }} />
           </button>
         </div>
 
@@ -282,11 +282,11 @@ export const PromptEngineerModal: React.FC<PromptEngineerModalProps> = ({
           {currentStep === 0 && (
             <div className="space-y-6">
               <div className="text-center py-8">
-                <Brain className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-                <h3 className="text-2xl font-semibold text-white mb-2">
+                <Brain className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--color-feature)' }} />
+                <h3 className="text-2xl font-semibold mb-2" style={{ color: 'var(--theme-text-primary)' }}>
                   What would you like to build?
                 </h3>
-                <p className="text-slate-400 max-w-md mx-auto">
+                <p className="max-w-md mx-auto" style={{ color: 'var(--theme-text-muted)' }}>
                   Describe your idea in simple terms, and I'll help you create the perfect prompt
                 </p>
               </div>
@@ -296,13 +296,15 @@ export const PromptEngineerModal: React.FC<PromptEngineerModalProps> = ({
                   value={initialIdea}
                   onChange={(e) => setInitialIdea(e.target.value)}
                   placeholder="e.g., I want to build a task management app, or I need a contact form for my website..."
-                  className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="w-full p-4 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                   rows={4}
                 />
                 <button
                   type="submit"
                   disabled={!initialIdea.trim()}
-                  className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(90deg, var(--color-feature), var(--color-error))', color: 'var(--theme-text-primary)' }}
                 >
                   Start Refining
                   <ArrowRight className="w-4 h-4" />
@@ -319,17 +321,17 @@ export const PromptEngineerModal: React.FC<PromptEngineerModalProps> = ({
                   {[1, 2, 3].map((step) => (
                     <div
                       key={step}
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                        step <= currentStep
-                          ? 'bg-purple-500 text-white'
-                          : 'bg-slate-700 text-slate-400'
-                      }`}
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium"
+                      style={{
+                        backgroundColor: step <= currentStep ? 'var(--color-feature)' : 'var(--theme-glass-300)',
+                        color: step <= currentStep ? 'var(--theme-text-primary)' : 'var(--theme-text-muted)'
+                      }}
                     >
                       {step}
                     </div>
                   ))}
                 </div>
-                <span className="text-sm text-slate-400">
+                <span className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>
                   Question {currentStep} of 3
                 </span>
               </div>
@@ -337,15 +339,16 @@ export const PromptEngineerModal: React.FC<PromptEngineerModalProps> = ({
               {/* Conversation History */}
               <div className="space-y-4 mb-6">
                 {conversation.map((step, index) => (
-                  <div key={index} className="bg-slate-800/30 rounded-lg p-4">
-                    <div className="text-sm text-slate-400 mb-1">Q: {step.question}</div>
-                    <div className="text-white">{step.answer}</div>
+                  <div key={index} className="rounded-lg p-4" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
+                    <div className="text-sm mb-1" style={{ color: 'var(--theme-text-muted)' }}>Q: {step.question}</div>
+                    <div style={{ color: 'var(--theme-text-primary)' }}>{step.answer}</div>
                     {step.insights.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-3">
                         {step.insights.map((insight, i) => (
                           <span
                             key={i}
-                            className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded text-xs"
+                            className="px-2 py-1 rounded text-xs"
+                            style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}
                           >
                             {insight}
                           </span>
@@ -359,19 +362,21 @@ export const PromptEngineerModal: React.FC<PromptEngineerModalProps> = ({
               {/* Current Question */}
               <form onSubmit={handleAnswerSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-white mb-2">
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--theme-text-primary)' }}>
                     {currentQuestion}
                   </label>
                   <textarea
                     placeholder="Type your answer here..."
-                    className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="w-full p-4 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    style={{ backgroundColor: 'var(--theme-glass-200)', border: '1px solid var(--theme-border)', color: 'var(--theme-text-primary)' }}
                     rows={3}
                     required
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(90deg, var(--color-feature), var(--color-error))', color: 'var(--theme-text-primary)' }}
                 >
                   {currentStep >= 2 ? 'Generate Prompt' : 'Next Question'}
                   <ArrowRight className="w-4 h-4" />
@@ -383,27 +388,28 @@ export const PromptEngineerModal: React.FC<PromptEngineerModalProps> = ({
           {finalPrompt && (
             <div className="space-y-6">
               <div className="text-center py-6">
-                <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Zap className="w-8 h-8 text-green-400" />
+                <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'var(--color-success-subtle)' }}>
+                  <Zap className="w-8 h-8" style={{ color: 'var(--color-success)' }} />
                 </div>
-                <h3 className="text-2xl font-semibold text-white mb-2">
+                <h3 className="text-2xl font-semibold mb-2" style={{ color: 'var(--theme-text-primary)' }}>
                   Perfect Prompt Generated!
                 </h3>
-                <p className="text-slate-400">
+                <p style={{ color: 'var(--theme-text-muted)' }}>
                   Your optimized prompt is ready to use
                 </p>
               </div>
 
-              <div className="bg-slate-800/50 rounded-lg p-4">
+              <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--theme-glass-200)' }}>
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-white">Generated Prompt</h4>
+                  <h4 className="font-medium" style={{ color: 'var(--theme-text-primary)' }}>Generated Prompt</h4>
                   <button
                     onClick={handleCopyPrompt}
-                    className="flex items-center gap-2 px-3 py-1 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-white transition-colors"
+                    className="flex items-center gap-2 px-3 py-1 rounded-lg text-sm transition-colors"
+                    style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-primary)' }}
                   >
                     {copied ? (
                       <>
-                        <Check className="w-4 h-4 text-green-400" />
+                        <Check className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
                         Copied!
                       </>
                     ) : (
@@ -414,7 +420,7 @@ export const PromptEngineerModal: React.FC<PromptEngineerModalProps> = ({
                     )}
                   </button>
                 </div>
-                <pre className="text-sm text-slate-300 whitespace-pre-wrap font-mono bg-slate-900/50 p-4 rounded border border-slate-700">
+                <pre className="text-sm whitespace-pre-wrap font-mono p-4 rounded" style={{ backgroundColor: 'var(--theme-surface-dark)', color: 'var(--theme-text-secondary)', border: '1px solid var(--theme-border)' }}>
                   {finalPrompt}
                 </pre>
               </div>
@@ -422,13 +428,15 @@ export const PromptEngineerModal: React.FC<PromptEngineerModalProps> = ({
               <div className="flex gap-3">
                 <button
                   onClick={handleUsePrompt}
-                  className="flex-1 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-medium hover:from-purple-600 hover:to-pink-600 transition-all"
+                  className="flex-1 py-3 rounded-lg font-medium transition-all"
+                  style={{ background: 'linear-gradient(90deg, var(--color-feature), var(--color-error))', color: 'var(--theme-text-primary)' }}
                 >
                   Use This Prompt
                 </button>
                 <button
                   onClick={reset}
-                  className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-medium transition-colors"
+                  className="px-6 py-3 rounded-lg font-medium transition-colors"
+                  style={{ backgroundColor: 'var(--theme-glass-300)', color: 'var(--theme-text-primary)' }}
                 >
                   Start Over
                 </button>

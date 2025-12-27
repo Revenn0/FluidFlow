@@ -31,13 +31,13 @@ export const SettingsSlider: React.FC<SettingsSliderProps> = ({
     <div className={`space-y-2 ${disabled ? 'opacity-50' : ''}`}>
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-sm text-white block">{label}</span>
+          <span className="text-sm block" style={{ color: 'var(--theme-text-primary)' }}>{label}</span>
           {description && (
-            <span className="text-xs text-slate-500 block mt-0.5">{description}</span>
+            <span className="text-xs block mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>{description}</span>
           )}
         </div>
         {showValue && (
-          <span className="text-sm text-slate-400 tabular-nums">
+          <span className="text-sm tabular-nums" style={{ color: 'var(--theme-text-secondary)' }}>
             {value}{suffix}
           </span>
         )}
@@ -51,13 +51,13 @@ export const SettingsSlider: React.FC<SettingsSliderProps> = ({
           max={max}
           step={step}
           disabled={disabled}
-          className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
+          className="w-full h-2 rounded-lg appearance-none cursor-pointer disabled:cursor-not-allowed"
           style={{
-            background: `linear-gradient(to right, rgb(59 130 246) 0%, rgb(59 130 246) ${percentage}%, rgb(51 65 85) ${percentage}%, rgb(51 65 85) 100%)`
+            background: `linear-gradient(to right, var(--theme-accent) 0%, var(--theme-accent) ${percentage}%, var(--theme-glass-300) ${percentage}%, var(--theme-glass-300) 100%)`
           }}
         />
       </div>
-      <div className="flex justify-between text-xs text-slate-600">
+      <div className="flex justify-between text-xs" style={{ color: 'var(--theme-text-muted)' }}>
         <span>{min}{suffix}</span>
         <span>{max}{suffix}</span>
       </div>

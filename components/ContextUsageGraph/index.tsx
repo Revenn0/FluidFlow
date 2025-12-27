@@ -58,21 +58,21 @@ export const ContextUsageGraph: React.FC<UsageGraphProps> = ({
             className="w-full h-full"
           >
             {/* Grid lines */}
-            <line x1="0" y1="25" x2="100" y2="25" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
-            <line x1="0" y1="50" x2="100" y2="50" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
-            <line x1="0" y1="75" x2="100" y2="75" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+            <line x1="0" y1="25" x2="100" y2="25" stroke="var(--theme-border-light)" strokeWidth="0.5" />
+            <line x1="0" y1="50" x2="100" y2="50" stroke="var(--theme-border-light)" strokeWidth="0.5" />
+            <line x1="0" y1="75" x2="100" y2="75" stroke="var(--theme-border-light)" strokeWidth="0.5" />
 
             {/* Area fill */}
             <path
               d={`${path} L 100 100 L 0 100 Z`}
-              fill="rgba(59, 130, 246, 0.1)"
+              fill="var(--theme-accent-subtle)"
             />
 
             {/* Line */}
             <path
               d={path}
               fill="none"
-              stroke="rgba(59, 130, 246, 0.8)"
+              stroke="var(--theme-accent)"
               strokeWidth="1"
               vectorEffect="non-scaling-stroke"
             />
@@ -82,11 +82,11 @@ export const ContextUsageGraph: React.FC<UsageGraphProps> = ({
               cx="100"
               cy={100 - ((data.currentTokens - minTokensInPeriod) / (maxTokensInPeriod - minTokensInPeriod || 1)) * 100}
               r="2"
-              fill="#60a5fa"
+              fill="var(--theme-accent)"
             />
           </svg>
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-xs text-slate-600">
+          <div className="w-full h-full flex items-center justify-center text-xs" style={{ color: 'var(--theme-text-muted)' }}>
             Not enough data
           </div>
         )}
@@ -96,36 +96,38 @@ export const ContextUsageGraph: React.FC<UsageGraphProps> = ({
       {showLabels && (
         <div className="flex items-center gap-4 text-xs">
           <div className="flex items-center gap-1.5">
-            <Activity className="w-4 h-4 text-blue-400" />
-            <span className="text-slate-400">Current:</span>
-            <span className="font-mono text-white">{data.currentTokens.toLocaleString()}</span>
-            <span className="text-slate-500">/ {data.maxTokens.toLocaleString()}</span>
+            <Activity className="w-4 h-4" style={{ color: 'var(--theme-accent)' }} />
+            <span style={{ color: 'var(--theme-text-secondary)' }}>Current:</span>
+            <span className="font-mono" style={{ color: 'var(--theme-text-primary)' }}>{data.currentTokens.toLocaleString()}</span>
+            <span style={{ color: 'var(--theme-text-muted)' }}>/ {data.maxTokens.toLocaleString()}</span>
           </div>
 
           <div className="flex items-center gap-1.5">
             {trend > 0 ? (
-              <TrendingUp className="w-4 h-4 text-emerald-400" />
+              <TrendingUp className="w-4 h-4" style={{ color: 'var(--color-success)' }} />
             ) : trend < 0 ? (
-              <TrendingUp className="w-4 h-4 text-red-400 rotate-180" />
+              <TrendingUp className="w-4 h-4 rotate-180" style={{ color: 'var(--color-error)' }} />
             ) : null}
-            <span className={`font-mono ${
-              trend > 0 ? 'text-emerald-400' : trend < 0 ? 'text-red-400' : 'text-slate-400'
-            }`}>
+            <span
+              className="font-mono"
+              style={{ color: trend > 0 ? 'var(--color-success)' : trend < 0 ? 'var(--color-error)' : 'var(--theme-text-secondary)' }}
+            >
               {trend > 0 ? '+' : ''}{(trend / 1000).toFixed(1)}k
             </span>
-            <span className="text-slate-500">from start</span>
+            <span style={{ color: 'var(--theme-text-muted)' }}>from start</span>
           </div>
 
           <div className="flex items-center gap-1.5">
-            <div className="w-16 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+            <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--theme-surface-hover)' }}>
               <div
-                className={`h-full rounded-full transition-all ${
-                  usagePercent > 80 ? 'bg-red-500' : usagePercent > 60 ? 'bg-amber-500' : 'bg-emerald-500'
-                }`}
-                style={{ width: `${Math.min(100, usagePercent)}%` }}
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${Math.min(100, usagePercent)}%`,
+                  backgroundColor: usagePercent > 80 ? 'var(--color-error)' : usagePercent > 60 ? 'var(--color-warning)' : 'var(--color-success)'
+                }}
               />
             </div>
-            <span className="text-slate-400 font-mono">{usagePercent.toFixed(0)}%</span>
+            <span className="font-mono" style={{ color: 'var(--theme-text-secondary)' }}>{usagePercent.toFixed(0)}%</span>
           </div>
         </div>
       )}

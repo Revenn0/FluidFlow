@@ -53,6 +53,7 @@ const getMetaPath = (id: string) => path.join(getProjectPath(id), 'project.json'
 const getFilesDir = (id: string) => path.join(getProjectPath(id), 'files');
 const getContextPath = (id: string) => path.join(getProjectPath(id), 'context.json');
 const getNodeModulesPath = (id: string) => path.join(getFilesDir(id), 'node_modules');
+const getFluidFlowMetaPath = (id: string) => path.join(getFilesDir(id), '.fluidflow', 'project.json');
 
 // Helper to get directory size recursively
 async function getDirectorySize(dirPath: string): Promise<number> {
@@ -87,6 +88,35 @@ async function getNodeModulesInfo(projectId: string): Promise<{ exists: boolean;
     // node_modules doesn't exist
   }
   return { exists: false, size: 0 };
+}
+
+// Screenshot metadata interface (matches frontend types)
+interface ScreenshotMeta {
+  id: string;
+  filename: string;
+  width: number;
+  height: number;
+  format: 'png' | 'jpeg' | 'webp';
+  size: number;
+  capturedAt: number;
+  thumbnail?: string;
+}
+
+interface ProjectScreenshots {
+  latest?: ScreenshotMeta;
+  history: ScreenshotMeta[];
+  maxHistory: number;
+}
+
+// Helper to get FluidFlow metadata (includes screenshots)
+async function getFluidFlowMeta(projectId: string): Promise<{ screenshots?: ProjectScreenshots; lastScreenshot?: number } | null> {
+  const metaPath = getFluidFlowMetaPath(projectId);
+  try {
+    const meta = await safeReadJson<{ screenshots?: ProjectScreenshots; lastScreenshot?: number }>(metaPath, null);
+    return meta;
+  } catch {
+    return null;
+  }
 }
 
 // Per-project locks to prevent concurrent file updates
@@ -197,7 +227,7 @@ interface ProjectContext {
 router.get('/', async (req, res) => {
   try {
     const entries = await fs.readdir(PROJECTS_DIR, { withFileTypes: true });
-    const projects: ProjectMeta[] = [];
+    const projects: (ProjectMeta & { screenshots?: ProjectScreenshots; lastScreenshotAt?: number })[] = [];
 
     for (const entry of entries) {
       if (entry.isDirectory()) {
@@ -209,7 +239,16 @@ router.get('/', async (req, res) => {
           const nodeModulesInfo = await getNodeModulesInfo(entry.name);
           meta.hasNodeModules = nodeModulesInfo.exists;
           meta.nodeModulesSize = nodeModulesInfo.size;
-          projects.push(meta);
+
+          // Get FluidFlow metadata (screenshots)
+          const fluidFlowMeta = await getFluidFlowMeta(entry.name);
+          const projectWithScreenshots = {
+            ...meta,
+            screenshots: fluidFlowMeta?.screenshots,
+            lastScreenshotAt: fluidFlowMeta?.lastScreenshot,
+          };
+
+          projects.push(projectWithScreenshots);
         }
       }
     }
@@ -302,7 +341,7 @@ npm-debug.log*
     const files: Record<string, string> = {};
 
     // Read all files recursively (excluding .git and other system folders)
-    const IGNORED_FOLDERS = ['.git', 'node_modules', '.next', '.nuxt', 'dist', 'build', '.cache'];
+    const IGNORED_FOLDERS = ['.git', '.fluidflow', 'node_modules', '.next', '.nuxt', 'dist', 'build', '.cache'];
     const IGNORED_FILES = ['.DS_Store', 'Thumbs.db'];
     const MAX_DEPTH = 15; // Prevent stack overflow from deeply nested directories
     let totalSize = 0;
@@ -498,8 +537,8 @@ router.put('/:id', async (req, res) => {
       const fileCount = Object.keys(files).length;
       const filesDir = getFilesDir(id);
 
-      // Count existing files to detect suspicious updates (excluding .git, node_modules, etc.)
-      const IGNORED_FOLDERS = ['.git', 'node_modules', '.next', '.nuxt', 'dist', 'build', '.cache'];
+      // Count existing files to detect suspicious updates (excluding .git, .fluidflow, node_modules, etc.)
+      const IGNORED_FOLDERS = ['.git', '.fluidflow', 'node_modules', '.next', '.nuxt', 'dist', 'build', '.cache'];
       const IGNORED_FILES = ['.DS_Store', 'Thumbs.db'];
 
       let existingFileCount = 0;
@@ -991,6 +1030,160 @@ router.delete('/:id/context', async (req, res) => {
   } catch (_error) {
     console.error('Clear context error:', _error);
     res.status(500).json({ error: 'Failed to clear project context' });
+  }
+});
+
+// ============================================================================
+// File Operations (for screenshots and .fluidflow metadata)
+// ============================================================================
+
+// Read a specific file from project
+router.get('/:id/file', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const filePath = req.query.path as string;
+
+    if (!isValidProjectId(id)) {
+      return res.status(400).json({ error: 'Invalid project ID' });
+    }
+
+    if (!filePath || !isValidFilePath(filePath)) {
+      return res.status(400).json({ error: 'Invalid file path' });
+    }
+
+    const sanitizedPath = sanitizeFilePath(filePath);
+    const fullPath = path.join(getFilesDir(id), sanitizedPath);
+
+    // Security: Ensure path is within project directory
+    const projectFilesDir = getFilesDir(id);
+    if (!fullPath.startsWith(projectFilesDir)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    if (!existsSync(fullPath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+
+    // Check if file is binary (image)
+    const ext = path.extname(fullPath).toLowerCase();
+    const binaryExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.ico', '.bmp'];
+
+    if (binaryExtensions.includes(ext)) {
+      // Read as binary and return as data URL
+      const binaryData = await fs.readFile(fullPath);
+      const mimeTypes: Record<string, string> = {
+        '.png': 'image/png',
+        '.jpg': 'image/jpeg',
+        '.jpeg': 'image/jpeg',
+        '.gif': 'image/gif',
+        '.webp': 'image/webp',
+        '.ico': 'image/x-icon',
+        '.bmp': 'image/bmp'
+      };
+      const mimeType = mimeTypes[ext] || 'application/octet-stream';
+      const base64 = binaryData.toString('base64');
+      const content = `data:${mimeType};base64,${base64}`;
+      res.json({ content, path: sanitizedPath });
+    } else {
+      // Read as text
+      const content = await fs.readFile(fullPath, 'utf-8');
+      res.json({ content, path: sanitizedPath });
+    }
+  } catch (error) {
+    console.error('Read file error:', error);
+    res.status(500).json({ error: 'Failed to read file' });
+  }
+});
+
+// Save a specific file to project
+router.put('/:id/file', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { path: filePath, content } = req.body;
+
+    if (!isValidProjectId(id)) {
+      return res.status(400).json({ error: 'Invalid project ID' });
+    }
+
+    if (!filePath || !isValidFilePath(filePath)) {
+      return res.status(400).json({ error: 'Invalid file path' });
+    }
+
+    if (typeof content !== 'string') {
+      return res.status(400).json({ error: 'Content must be a string' });
+    }
+
+    // Check file size
+    if (content.length > MAX_SINGLE_FILE_SIZE) {
+      return res.status(413).json({ error: 'File too large' });
+    }
+
+    const sanitizedPath = sanitizeFilePath(filePath);
+    const fullPath = path.join(getFilesDir(id), sanitizedPath);
+
+    // Security: Ensure path is within project directory
+    const projectFilesDir = getFilesDir(id);
+    if (!fullPath.startsWith(projectFilesDir)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // Ensure directory exists
+    const dir = path.dirname(fullPath);
+    if (!existsSync(dir)) {
+      await fs.mkdir(dir, { recursive: true });
+    }
+
+    // Check if content is a data URL (for images/binary files)
+    const dataUrlMatch = content.match(/^data:([^;]+);base64,(.+)$/);
+    if (dataUrlMatch) {
+      // Convert base64 data URL to binary and save
+      const base64Data = dataUrlMatch[2];
+      const binaryData = Buffer.from(base64Data, 'base64');
+      await fs.writeFile(fullPath, binaryData);
+      console.log(`[Projects] Saved binary file: ${sanitizedPath} (${binaryData.length} bytes)`);
+    } else {
+      // Save as text file
+      await fs.writeFile(fullPath, content, 'utf-8');
+    }
+
+    res.json({ message: 'File saved', path: sanitizedPath });
+  } catch (error) {
+    console.error('Save file error:', error);
+    res.status(500).json({ error: 'Failed to save file' });
+  }
+});
+
+// Delete a specific file from project
+router.delete('/:id/file', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const filePath = req.query.path as string;
+
+    if (!isValidProjectId(id)) {
+      return res.status(400).json({ error: 'Invalid project ID' });
+    }
+
+    if (!filePath || !isValidFilePath(filePath)) {
+      return res.status(400).json({ error: 'Invalid file path' });
+    }
+
+    const sanitizedPath = sanitizeFilePath(filePath);
+    const fullPath = path.join(getFilesDir(id), sanitizedPath);
+
+    // Security: Ensure path is within project directory
+    const projectFilesDir = getFilesDir(id);
+    if (!fullPath.startsWith(projectFilesDir)) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    if (existsSync(fullPath)) {
+      await fs.unlink(fullPath);
+    }
+
+    res.json({ message: 'File deleted', path: sanitizedPath });
+  } catch (error) {
+    console.error('Delete file error:', error);
+    res.status(500).json({ error: 'Failed to delete file' });
   }
 });
 

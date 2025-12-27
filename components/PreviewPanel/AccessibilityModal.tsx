@@ -22,25 +22,25 @@ export const AccessibilityModal: React.FC<AccessibilityModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="absolute inset-0 z-50 flex items-center justify-center p-8 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="w-full max-w-lg bg-slate-900 border border-indigo-500/30 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80%] animate-in slide-in-from-bottom-4 duration-300">
+    <div className="absolute inset-0 z-50 flex items-center justify-center p-8 backdrop-blur-sm animate-in fade-in duration-200" style={{ backgroundColor: 'var(--theme-modal-overlay)' }}>
+      <div className="w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80%] animate-in slide-in-from-bottom-4 duration-300" style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--color-feature-border)' }}>
         {/* Header */}
-        <div className="p-5 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-purple-500/10 to-transparent">
+        <div className="p-5 flex items-center justify-between" style={{ borderBottom: '1px solid var(--theme-border)', background: 'linear-gradient(to right, var(--color-feature-subtle), transparent)' }}>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-purple-500/20 rounded-lg text-purple-300">
+            <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--color-feature-subtle)', color: 'var(--color-feature)' }}>
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-semibold text-purple-100">Accessibility Audit</h3>
-              <p className="text-xs text-purple-400">WCAG 2.1 Compliance</p>
+              <h3 className="font-semibold" style={{ color: 'var(--theme-text-primary)' }}>Accessibility Audit</h3>
+              <p className="text-xs" style={{ color: 'var(--color-feature)' }}>WCAG 2.1 Compliance</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-white/5 rounded-full transition-colors"
+            className="p-2 rounded-full transition-colors"
             aria-label="Close accessibility audit"
           >
-            <X className="w-4 h-4 text-slate-400" />
+            <X className="w-4 h-4" style={{ color: 'var(--theme-text-muted)' }} />
           </button>
         </div>
 
@@ -48,42 +48,41 @@ export const AccessibilityModal: React.FC<AccessibilityModalProps> = ({
         <div className="p-6 overflow-y-auto custom-scrollbar flex flex-col gap-6">
           {isAuditing ? (
             <div className="flex flex-col items-center justify-center py-10 gap-3">
-              <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-              <p className="text-sm text-purple-300">Scanning for violations...</p>
+              <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--color-feature)' }} />
+              <p className="text-sm" style={{ color: 'var(--color-feature)' }}>Scanning for violations...</p>
             </div>
           ) : report ? (
             <>
               {/* Score Card */}
-              <div className="flex items-center gap-6 p-4 rounded-xl bg-white/5 border border-white/5">
+              <div className="flex items-center gap-6 p-4 rounded-xl" style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}>
                 <div className="relative w-20 h-20 flex items-center justify-center">
                   <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
                     <path
-                      className="text-slate-800"
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                       fill="none"
-                      stroke="currentColor"
+                      stroke="var(--theme-glass-300)"
                       strokeWidth="3"
                     />
                     <path
-                      className={`${
-                        report.score > 80
-                          ? 'text-green-500'
+                      className="transition-all duration-1000 ease-out"
+                      style={{
+                        stroke: report.score > 80
+                          ? 'var(--color-success)'
                           : report.score > 50
-                          ? 'text-yellow-500'
-                          : 'text-red-500'
-                      } transition-all duration-1000 ease-out`}
+                          ? 'var(--color-warning)'
+                          : 'var(--color-error)'
+                      }}
                       strokeDasharray={`${report.score}, 100`}
                       d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                       fill="none"
-                      stroke="currentColor"
                       strokeWidth="3"
                     />
                   </svg>
-                  <span className="absolute text-xl font-bold text-white">{report.score}</span>
+                  <span className="absolute text-xl font-bold" style={{ color: 'var(--theme-text-primary)' }}>{report.score}</span>
                 </div>
                 <div>
-                  <h4 className="font-medium text-slate-200">Overall Score</h4>
-                  <p className="text-xs text-slate-400 mt-1">
+                  <h4 className="font-medium" style={{ color: 'var(--theme-text-secondary)' }}>Overall Score</h4>
+                  <p className="text-xs mt-1" style={{ color: 'var(--theme-text-muted)' }}>
                     {report.score === 100
                       ? 'Great job! No obvious accessibility issues found.'
                       : `Found ${report.issues.length} issues that need attention.`}
@@ -97,12 +96,12 @@ export const AccessibilityModal: React.FC<AccessibilityModalProps> = ({
                   {report.issues.map((issue, idx) => (
                     <li
                       key={idx}
-                      className="flex gap-3 text-sm text-slate-300 bg-slate-950/30 p-3 rounded-lg border border-white/5"
+                      className="flex gap-3 text-sm p-3 rounded-lg"
+                      style={{ color: 'var(--theme-text-secondary)', backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}
                     >
                       <AlertTriangle
-                        className={`w-5 h-5 flex-none ${
-                          issue.type === 'error' ? 'text-red-400' : 'text-yellow-400'
-                        }`}
+                        className="w-5 h-5 flex-none"
+                        style={{ color: issue.type === 'error' ? 'var(--color-error)' : 'var(--color-warning)' }}
                       />
                       <span className="leading-relaxed">{issue.message}</span>
                     </li>
@@ -111,15 +110,16 @@ export const AccessibilityModal: React.FC<AccessibilityModalProps> = ({
               )}
             </>
           ) : (
-            <div className="text-center text-slate-500 py-4">Could not load report.</div>
+            <div className="text-center py-4" style={{ color: 'var(--theme-text-dim)' }}>Could not load report.</div>
           )}
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 bg-slate-950/50 border-t border-white/5 flex gap-3">
+        <div className="p-4 flex gap-3" style={{ backgroundColor: 'var(--theme-glass-100)', borderTop: '1px solid var(--theme-border-light)' }}>
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition-colors text-sm font-medium"
+            className="flex-1 py-2.5 rounded-xl transition-colors text-sm font-medium"
+            style={{ border: '1px solid var(--theme-border)', color: 'var(--theme-text-muted)' }}
           >
             Close
           </button>
@@ -127,7 +127,8 @@ export const AccessibilityModal: React.FC<AccessibilityModalProps> = ({
             <button
               onClick={onFix}
               disabled={isFixing}
-              className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-900/20 transition-all text-sm font-medium flex items-center justify-center gap-2"
+              className="flex-1 py-2.5 rounded-xl shadow-lg transition-all text-sm font-medium flex items-center justify-center gap-2"
+              style={{ backgroundColor: 'var(--color-feature)', color: 'white' }}
             >
               {isFixing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               {isFixing ? 'Applying Fixes...' : 'Fix Automatically'}

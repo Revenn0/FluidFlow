@@ -79,34 +79,37 @@ export const PromptLevelModal: React.FC<PromptLevelModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/70 backdrop-blur-sm animate-in fade-in duration-150"
+      className="fixed inset-0 z-[10000] flex items-center justify-center backdrop-blur-sm animate-in fade-in duration-150"
+      style={{ backgroundColor: 'var(--theme-overlay)' }}
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-slate-900 border border-white/10 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        className="w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+        style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl border border-white/5">
-              <Sparkles className="w-5 h-5 text-purple-400" />
+            <div className="p-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl" style={{ border: '1px solid var(--theme-border-light)' }}>
+              <Sparkles className="w-5 h-5" style={{ color: 'var(--color-feature)' }} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">{prompt.label}</h2>
-              <p className="text-xs text-slate-500">Select complexity level</p>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--theme-text-primary)' }}>{prompt.label}</h2>
+              <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>Select complexity level</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Level Tabs */}
-        <div className="px-5 py-3 border-b border-white/5">
+        <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--theme-border-light)' }}>
           <div className="flex gap-2">
             {(Object.keys(LEVEL_CONFIG) as PromptLevel[]).map((level) => {
               const cfg = LEVEL_CONFIG[level];
@@ -114,24 +117,28 @@ export const PromptLevelModal: React.FC<PromptLevelModalProps> = ({
               const isSelected = selectedLevel === level;
               const isDefault = defaultLevel === level;
 
+              const colorMap: Record<string, { bg: string; border: string; text: string }> = {
+                emerald: { bg: 'var(--color-success-subtle)', border: 'var(--color-success-border)', text: 'var(--color-success)' },
+                blue: { bg: 'var(--color-info-subtle)', border: 'var(--color-info-border)', text: 'var(--color-info)' },
+                purple: { bg: 'var(--color-feature-subtle)', border: 'var(--color-feature-border)', text: 'var(--color-feature)' },
+              };
+              const colors = colorMap[cfg.color] || colorMap.purple;
+
               return (
                 <button
                   key={level}
                   onClick={() => setSelectedLevel(level)}
-                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border transition-all ${
-                    isSelected
-                      ? `bg-${cfg.color}-500/20 border-${cfg.color}-500/50 text-${cfg.color}-300`
-                      : 'border-white/5 text-slate-400 hover:bg-white/5 hover:text-white'
-                  }`}
-                  style={isSelected ? {
-                    backgroundColor: `rgb(var(--color-${cfg.color}-500) / 0.2)`,
-                    borderColor: `rgb(var(--color-${cfg.color}-500) / 0.5)`,
-                  } : {}}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl transition-all"
+                  style={{
+                    backgroundColor: isSelected ? colors.bg : 'transparent',
+                    border: isSelected ? `1px solid ${colors.border}` : '1px solid var(--theme-border-light)',
+                    color: isSelected ? colors.text : 'var(--theme-text-muted)'
+                  }}
                 >
                   <Icon className="w-4 h-4" />
                   <span className="font-medium text-sm">{cfg.label}</span>
                   {isDefault && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-slate-400">
+                    <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}>
                       Default
                     </span>
                   )}
@@ -142,28 +149,29 @@ export const PromptLevelModal: React.FC<PromptLevelModalProps> = ({
         </div>
 
         {/* Level Description */}
-        <div className="px-5 py-3 border-b border-white/5 bg-slate-950/30">
-          <p className="text-xs text-slate-500">
-            <span className="font-medium text-slate-400">{config.label}:</span> {config.description}
+        <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-surface-dark)' }}>
+          <p className="text-xs" style={{ color: 'var(--theme-text-dim)' }}>
+            <span className="font-medium" style={{ color: 'var(--theme-text-muted)' }}>{config.label}:</span> {config.description}
           </p>
         </div>
 
         {/* Preview */}
         <div className="px-5 py-4 max-h-64 overflow-y-auto custom-scrollbar">
-          <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
+          <p className="text-sm leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--theme-text-secondary)' }}>
             {prompt[selectedLevel]}
           </p>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-5 py-4 border-t border-white/5 bg-slate-950/50">
+        <div className="flex items-center justify-between px-5 py-4" style={{ borderTop: '1px solid var(--theme-border-light)', backgroundColor: 'var(--theme-surface-dark)' }}>
           <button
             onClick={handleSetDefault}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
-              showSetDefault
-                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                : 'text-slate-400 hover:text-white hover:bg-white/5'
-            }`}
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all"
+            style={{
+              backgroundColor: showSetDefault ? 'var(--color-success-subtle)' : 'transparent',
+              color: showSetDefault ? 'var(--color-success)' : 'var(--theme-text-muted)',
+              border: showSetDefault ? '1px solid var(--color-success-border)' : '1px solid transparent'
+            }}
           >
             {showSetDefault ? (
               <>
@@ -181,13 +189,15 @@ export const PromptLevelModal: React.FC<PromptLevelModalProps> = ({
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors"
+              className="px-4 py-2 text-sm transition-colors"
+              style={{ color: 'var(--theme-text-muted)' }}
             >
               Cancel
             </button>
             <button
               onClick={handleSelect}
-              className="px-5 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm font-medium rounded-lg transition-all"
+              className="px-5 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-sm font-medium rounded-lg transition-all"
+              style={{ color: 'var(--theme-text-primary)' }}
             >
               Use Prompt
             </button>
@@ -218,25 +228,28 @@ export const QuickLevelToggle: React.FC<QuickLevelToggleProps> = ({
 
   return (
     <div
-      className={`inline-flex items-center rounded-lg bg-slate-800/50 border border-white/5 ${
-        size === 'sm' ? 'p-0.5' : 'p-1'
-      }`}
+      className={`inline-flex items-center rounded-lg ${size === 'sm' ? 'p-0.5' : 'p-1'}`}
+      style={{ backgroundColor: 'var(--theme-glass-100)', border: '1px solid var(--theme-border-light)' }}
       title="Prompt complexity level"
     >
-      {levels.map((level) => (
-        <button
-          key={level}
-          onClick={() => onChange(level)}
-          className={`${size === 'sm' ? 'px-2 py-1 text-[10px]' : 'px-3 py-1.5 text-xs'} font-medium rounded-md transition-all ${
-            value === level
-              ? 'bg-purple-500/30 text-purple-300 border border-purple-500/30'
-              : 'text-slate-500 hover:text-slate-300'
-          }`}
-          title={fullLabels[level]}
-        >
-          {size === 'sm' ? labels[level] : fullLabels[level]}
-        </button>
-      ))}
+      {levels.map((level) => {
+        const isSelected = value === level;
+        return (
+          <button
+            key={level}
+            onClick={() => onChange(level)}
+            className={`${size === 'sm' ? 'px-2 py-1 text-[10px]' : 'px-3 py-1.5 text-xs'} font-medium rounded-md transition-all`}
+            style={{
+              backgroundColor: isSelected ? 'var(--color-feature-subtle)' : 'transparent',
+              color: isSelected ? 'var(--color-feature)' : 'var(--theme-text-dim)',
+              border: isSelected ? '1px solid var(--color-feature-border)' : '1px solid transparent'
+            }}
+            title={fullLabels[level]}
+          >
+            {size === 'sm' ? labels[level] : fullLabels[level]}
+          </button>
+        );
+      })}
     </div>
   );
 };
