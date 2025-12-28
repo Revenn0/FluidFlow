@@ -261,7 +261,6 @@ export function getFetchMockingScript(): string {
             ? mock.response(url, init)
             : mock.response;
 
-          console.log('[MockAPI] ' + method + ' ' + url + ' -> (registered mock)');
 
           return new Response(JSON.stringify(responseData), {
             status: mock.status,
@@ -284,7 +283,6 @@ export function getFetchMockingScript(): string {
 
           const mockData = generateMockData(url, method);
 
-          console.log('[MockAPI] ' + method + ' ' + url + ' -> (auto-mock)');
 
           return new Response(JSON.stringify(mockData), {
             status: 200,
@@ -297,7 +295,6 @@ export function getFetchMockingScript(): string {
           return await originalFetch.apply(this, arguments);
         } catch (err) {
           // If fetch fails (CORS, network), return a mock response
-          console.warn('[MockAPI] Fetch failed for ' + url + ', returning mock');
 
           const mockData = generateMockData(url, method);
           return new Response(JSON.stringify(mockData), {
@@ -344,7 +341,6 @@ export function getFetchMockingScript(): string {
               Object.defineProperty(xhr, 'responseText', { value: JSON.stringify(mockData) });
               Object.defineProperty(xhr, 'response', { value: JSON.stringify(mockData) });
 
-              console.log('[MockAPI] XHR ' + method + ' ' + url + ' -> (auto-mock)');
 
               if (xhr.onreadystatechange) xhr.onreadystatechange();
               if (xhr.onload) xhr.onload();
@@ -366,7 +362,6 @@ export function getFetchMockingScript(): string {
       window.XMLHttpRequest.LOADING = 3;
       window.XMLHttpRequest.DONE = 4;
 
-      console.log('[Sandbox] Fetch mocking system initialized');
     })();
   `;
 }

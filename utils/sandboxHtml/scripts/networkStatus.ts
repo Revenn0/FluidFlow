@@ -227,7 +227,6 @@ export function getNetworkStatusScript(): string {
         return networkState.online;
       };
 
-      console.log('[Sandbox] Network status initialized (online: ' + networkState.online + ')');
     })();
   `;
 }

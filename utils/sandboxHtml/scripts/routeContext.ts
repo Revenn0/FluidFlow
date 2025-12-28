@@ -270,7 +270,6 @@ export function getRouteContextScript(): string {
         // Notify subscribers
         this.notifySubscribers();
 
-        console.log('[RouteContext] Updated matches for', pathname, ':', newMatches.length, 'matches, params:', allParams);
         return newMatches;
       },
 
@@ -279,7 +278,6 @@ export function getRouteContextScript(): string {
        */
       registerRoutes: function(routes) {
         this.routes = routes;
-        console.log('[RouteContext] Registered', routes.length, 'routes');
 
         // Update matches for current path
         var currentPath = window.__SANDBOX_ROUTER__?.currentPath || '/';
@@ -389,6 +387,5 @@ export function getRouteContextScript(): string {
       }
     });
 
-    console.log('[Sandbox] Route context initialized');
   `;
 }

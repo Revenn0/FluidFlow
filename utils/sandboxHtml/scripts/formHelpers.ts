@@ -331,7 +331,6 @@ export function getFormHelpersScript(): string {
         }
       };
 
-      console.log('[Sandbox] Form helpers initialized');
     })();
   `;
 }

@@ -208,7 +208,6 @@ export function getTimerManagementScript(): string {
         }
       };
 
-      console.log('[Sandbox] Timer management system initialized');
     })();
   `;
 }

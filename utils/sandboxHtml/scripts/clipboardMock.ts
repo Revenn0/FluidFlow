@@ -32,7 +32,6 @@ export function getClipboardMockScript(): string {
           // Try a test write to see if it's actually available
           navigator.clipboard.writeText('').then(function() {
             hasNativeAccess = true;
-            console.log('[Clipboard] Native clipboard API available');
           }).catch(function() {
             hasNativeAccess = false;
           });
@@ -56,7 +55,6 @@ export function getClipboardMockScript(): string {
                 timestamp: Date.now()
               }, '*');
 
-              console.log('[Clipboard] Text copied: ' + (text.length > 50 ? text.substring(0, 50) + '...' : text));
               resolve();
             } catch (e) {
               reject(new DOMException('Failed to write to clipboard', 'NotAllowedError'));
@@ -199,8 +197,6 @@ export function getClipboardMockScript(): string {
               text: selectedText,
               timestamp: Date.now()
             }, '*');
-
-            console.log('[Clipboard] ' + command + ': ' + (selectedText.length > 50 ? selectedText.substring(0, 50) + '...' : selectedText));
 
             // For cut, try to delete the selection
             if (lowerCommand === 'cut') {
@@ -350,7 +346,6 @@ export function getClipboardMockScript(): string {
         }
       };
 
-      console.log('[Sandbox] Clipboard API mock initialized' + (hasNativeAccess ? ' (native available)' : ' (mock mode)'));
     })();
   `;
 }

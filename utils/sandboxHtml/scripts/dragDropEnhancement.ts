@@ -414,7 +414,6 @@ export function getDragDropEnhancementScript(): string {
         }
       };
 
-      console.log('[Sandbox] Drag & drop enhancement initialized');
     })();
   `;
 }

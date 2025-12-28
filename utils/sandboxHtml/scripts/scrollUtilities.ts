@@ -294,7 +294,6 @@ export function getScrollUtilitiesScript(): string {
       window.scrollToTop = scrollToTop;
       window.scrollToElement = scrollToElement;
 
-      console.log('[Sandbox] Scroll utilities initialized');
     })();
   `;
 }

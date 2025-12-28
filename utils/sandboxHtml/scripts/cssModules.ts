@@ -76,7 +76,6 @@ export function getCssModulesScript(): string {
         hashString: hashString
       };
 
-      console.log('[Sandbox] CSS Modules support initialized');
     })();
   `;
 }

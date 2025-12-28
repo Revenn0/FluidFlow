@@ -332,7 +332,6 @@ export function getMediaQueryHooksScript(): string {
       // Also expose as window.matchesBreakpoint for convenience
       window.matchesBreakpoint = matchesBreakpoint;
 
-      console.log('[Sandbox] Media query hooks initialized (breakpoint: ' + viewportState.breakpoint + ')');
     })();
   `;
 }

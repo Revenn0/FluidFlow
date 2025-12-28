@@ -93,7 +93,6 @@ export function getHistoryEmulationScript(): string {
           get: function() { return customHistory; },
           configurable: true
         });
-        console.log('[Sandbox] History API fully overridden');
       } catch (e) {
         // If we can't override window.history, at least override its methods
         try {
@@ -102,9 +101,8 @@ export function getHistoryEmulationScript(): string {
           window.history.back = customHistory.back;
           window.history.forward = customHistory.forward;
           window.history.go = customHistory.go;
-          console.log('[Sandbox] History methods overridden');
         } catch (e2) {
-          console.warn('[Sandbox] Could not override history API, using fallback');
+          // Fallback - history API couldn't be overridden
         }
       }
 
@@ -121,7 +119,6 @@ export function getHistoryEmulationScript(): string {
         }
       });
 
-      console.log('[Sandbox] History API emulation initialized');
     })();
   `;
 }
@@ -144,7 +141,6 @@ export function getLinkInterceptionScript(): string {
           if (href.startsWith('http://') || href.startsWith('https://')) {
             // External links - open in new tab
             window.open(href, '_blank', 'noopener,noreferrer');
-            console.log('[Sandbox] External link opened in new tab: ' + href);
           } else if (href.startsWith('mailto:') || href.startsWith('tel:')) {
             // Allow mailto/tel links
             window.open(href, '_self');
@@ -169,8 +165,6 @@ export function getLinkInterceptionScript(): string {
       if (form.tagName === 'FORM') {
         e.preventDefault();
         const action = form.getAttribute('action') || '/';
-        const method = form.getAttribute('method') || 'GET';
-        console.log('[Sandbox] Form submitted: ' + method + ' ' + action);
         // Use our custom history
         window.__SANDBOX_HISTORY__.pushState(null, '', action);
       }
@@ -198,7 +192,7 @@ export function getLocationOverrideScript(): string {
         get protocol() { return 'http:'; },
         assign: function(url) { window.__SANDBOX_HISTORY__.pushState(null, '', url); },
         replace: function(url) { window.__SANDBOX_HISTORY__.replaceState(null, '', url); },
-        reload: function() { console.log('[Sandbox] Reload blocked'); },
+        reload: function() { /* Reload blocked in sandbox */ },
         toString: function() { return this.href; }
       };
 
@@ -208,9 +202,8 @@ export function getLocationOverrideScript(): string {
           set: function(url) { window.__SANDBOX_HISTORY__.pushState(null, '', url); },
           configurable: true
         });
-        console.log('[Sandbox] Location override successful');
       } catch (e) {
-        console.warn('[Sandbox] Could not override location:', e.message);
+        // Location override failed - expected in some browsers
       }
     })();
   `;

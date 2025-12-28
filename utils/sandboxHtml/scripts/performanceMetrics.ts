@@ -301,7 +301,6 @@ export function getPerformanceMetricsScript(): string {
         }, '*');
       }, 2000);
 
-      console.log('[Sandbox] Performance metrics system initialized');
     })();
   `;
 }

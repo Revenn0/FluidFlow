@@ -355,7 +355,6 @@ export function getIntersectionObserverScript(): string {
         }
       };
 
-      console.log('[Sandbox] Intersection Observer enhancement initialized');
     })();
   `;
 }

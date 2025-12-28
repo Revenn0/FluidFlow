@@ -370,7 +370,6 @@ export function getScreenshotCaptureScript(): string {
         }
       };
 
-      console.log('[Sandbox] Screenshot capture initialized');
     })();
   `;
 }

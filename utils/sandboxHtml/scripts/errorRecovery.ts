@@ -152,7 +152,6 @@ export function getErrorRecoveryScript(): string {
           // Check if app has rendered content
           if (scrollContainer && scrollContainer.children.length > 0) {
             clearInterval(checkInterval);
-            console.log('[Recovery] App rendered successfully');
             window.parent.postMessage({ type: 'RENDER_COMPLETE' }, '*');
             return;
           }
@@ -192,7 +191,6 @@ export function getErrorRecoveryScript(): string {
         }
       };
 
-      console.log('[Sandbox] Error recovery system initialized');
     })();
   `;
 }

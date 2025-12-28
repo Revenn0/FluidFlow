@@ -32,7 +32,6 @@ export function getBootstrapScript(files: FileSystem): string {
       // Cleanup function to revoke all blob URLs
       const cleanupBlobURLs = () => {
         const urls = window.__SANDBOX_BLOB_URLS__ || [];
-        console.log('[Sandbox] Cleaning up ' + urls.length + ' blob URLs');
         urls.forEach(url => {
           try {
             URL.revokeObjectURL(url);
@@ -60,8 +59,6 @@ export function getBootstrapScript(files: FileSystem): string {
       const routerShimCode = \`
         import * as ReactRouterDom from 'https://esm.sh/react-router-dom@6.28.0?external=react,react-dom';
         import React from 'https://esm.sh/react@19.0.0';
-        console.log('[RouterShim] === ROUTER SHIM MODULE LOADED ===');
-        console.log('[RouterShim] ReactRouterDom keys:', Object.keys(ReactRouterDom));
 
         // Re-export utility functions that do not need Router context
         export {
@@ -77,11 +74,8 @@ export function getBootstrapScript(files: FileSystem): string {
         const _originalUseInRouterContext = ReactRouterDom.useInRouterContext;
         export function useInRouterContext() {
           try {
-            const result = _originalUseInRouterContext();
-            console.log('[RouterShim] useInRouterContext() =', result);
-            return result;
+            return _originalUseInRouterContext();
           } catch (e) {
-            console.log('[RouterShim] useInRouterContext() threw, returning false');
             return false;
           }
         }
@@ -129,7 +123,6 @@ export function getBootstrapScript(files: FileSystem): string {
             if (window.__SANDBOX_ROUTE_CONTEXT__ && props.children) {
               const routeConfigs = extractRouteConfig(props.children);
               window.__SANDBOX_ROUTE_CONTEXT__.registerRoutes(routeConfigs);
-              console.log('[RouterShim] Registered routes with context:', routeConfigs);
             }
           }, [props.children]);
 
@@ -321,11 +314,8 @@ export function getBootstrapScript(files: FileSystem): string {
         // Standalone useLocation - uses sandbox router, doesn't need Router context
         // This is always safe to call and provides reactive updates
         export function useLocation() {
-          console.log('[RouterShim] useLocation called (our safe version)');
           const [location, setLocation] = React.useState(() => {
-            const loc = window.__SANDBOX_ROUTER__?.getLocation() || { pathname: '/', search: '', hash: '', state: null, key: 'default' };
-            console.log('[RouterShim] useLocation initial state:', loc);
-            return loc;
+            return window.__SANDBOX_ROUTER__?.getLocation() || { pathname: '/', search: '', hash: '', state: null, key: 'default' };
           });
 
           React.useEffect(() => {
@@ -470,12 +460,9 @@ export function getBootstrapScript(files: FileSystem): string {
         // Custom NavLink that updates both MemoryRouter AND sandbox router
         // Safe version that works even without Router context
         export function NavLink({ to, replace, state, children, className, style, end, ...props }) {
-          console.log('[RouterShim] NavLink rendering, to=', to);
           // Use our safe hooks which handle missing Router context internally
           const location = useLocation();
-          console.log('[RouterShim] NavLink got location=', location);
           const navigate = useNavigate();
-          console.log('[RouterShim] NavLink got navigate function');
 
           // Determine if this NavLink is active
           const toPath = typeof to === 'string' ? to : to.pathname;
@@ -555,11 +542,7 @@ export function getBootstrapScript(files: FileSystem): string {
         }
       };
 
-      // Log dynamic imports for debugging
       const dynamicKeys = Object.keys(dynamicImports);
-      if (dynamicKeys.length > 0) {
-        console.log('[Sandbox] Auto-resolved imports:', dynamicKeys.join(', '));
-      }
 
       // Helper to resolve relative paths to absolute
       function resolvePath(fromFile, importPath) {
@@ -605,7 +588,6 @@ export function getBootstrapScript(files: FileSystem): string {
                 return icon; // Keep as is
               }
               // Replace unknown icon with HelpCircle
-              console.warn('[Lucide] Unknown icon "' + iconName + '" replaced with HelpCircle');
               return alias ? 'HelpCircle as ' + alias : 'HelpCircle as ' + iconName;
             });
             return 'import { ' + transformed.join(', ') + " } from 'lucide-react'";
@@ -739,7 +721,6 @@ export function getBootstrapScript(files: FileSystem): string {
 
       // Process all files
       const errors = [];
-      console.log('[Sandbox] Processing ' + Object.keys(files).length + ' files...');
 
       // Comprehensive auto-fix function for common syntax errors
       function autoFixCode(code) {
@@ -839,9 +820,6 @@ export function getBootstrapScript(files: FileSystem): string {
             const wholeWordPattern = new RegExp('\\\\b' + reserved + '\\\\b', 'g');
             const beforeReplace = fixed;
             fixed = fixed.replace(wholeWordPattern, replacement);
-            if (fixed !== beforeReplace) {
-              console.log('[AutoFix] Renamed reserved component "' + reserved + '" to "' + replacement + '"');
-            }
           }
         }
 
@@ -857,19 +835,16 @@ export function getBootstrapScript(files: FileSystem): string {
 
         // Pattern 1: Simple case - no params: function Name() => {
         fixed = fixed.replace(/function\\s+(\\w+)\\s*\\(\\)\\s*=>\\s*\\{/g, function(m, name) {
-          console.log('[AutoFix] Fixed hybrid function: ' + name);
           return 'function ' + name + '() {';
         });
 
         // Pattern 2: With params but no nested parens: function Name(a, b) => {
         fixed = fixed.replace(/function\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*=>\\s*\\{/g, function(m, name, params) {
-          console.log('[AutoFix] Fixed hybrid function with params: ' + name);
           return 'function ' + name + '(' + params + ') {';
         });
 
         // Pattern 3: Complex - any content between function and => { (non-greedy)
         fixed = fixed.replace(/(\\bfunction\\s+\\w+[\\s\\S]*?)\\s*=>\\s*\\{/g, function(m, decl) {
-          console.log('[AutoFix] Fixed complex hybrid function');
           return decl + ' {';
         });
 
@@ -881,7 +856,6 @@ export function getBootstrapScript(files: FileSystem): string {
         // This catches: const fn = () {, const fn = async () {, but NOT function Name() {
         fixed = fixed.replace(/(=\\s*)(async\\s+)?\\(([^)]*)\\)\\s*\\{/g, function(match, eq, asyncKw, params) {
           if (match.includes('=>')) return match;
-          console.log('[AutoFix] Fixed missing arrow after =');
           return eq + (asyncKw || '') + '(' + params + ') => {';
         });
 
@@ -889,14 +863,12 @@ export function getBootstrapScript(files: FileSystem): string {
         // Pattern: identifier( followed by (() { - callback without arrow
         fixed = fixed.replace(/(\\w+)\\s*\\(\\s*\\(([^)]*)\\)\\s*\\{(?!\\s*=>)/g, function(match, fnName, params) {
           if (fnName === 'function') return match;
-          console.log('[AutoFix] Fixed missing arrow in callback: ' + fnName);
           return fnName + '((' + params + ') => {';
         });
 
         // Fix: return () { → return () => { (useEffect cleanup functions)
         fixed = fixed.replace(/return\\s+\\(([^)]*)\\)\\s*\\{/g, function(match, params) {
           if (match.includes('=>')) return match;
-          console.log('[AutoFix] Fixed missing arrow in return');
           return 'return (' + params + ') => {';
         });
 
@@ -904,7 +876,6 @@ export function getBootstrapScript(files: FileSystem): string {
         // Pattern: ={ followed by (params) and { without =>
         fixed = fixed.replace(/=\\{\\s*\\(([^)]*)\\)\\s*\\{(?!\\s*=>)/g, function(match, params) {
           if (match.includes('=>')) return match;
-          console.log('[AutoFix] Fixed missing arrow in JSX event handler');
           return '={(' + params + ') => {';
         });
 
@@ -914,7 +885,6 @@ export function getBootstrapScript(files: FileSystem): string {
           if (match.includes('=>')) return match;
           // Skip if it looks like a destructuring pattern
           if (/^\\s*\\{/.test(params)) return match;
-          console.log('[AutoFix] Fixed missing arrow in object property: ' + prop);
           return prop + ': (' + params + ') => {';
         });
 
@@ -1014,16 +984,12 @@ export function getBootstrapScript(files: FileSystem): string {
         // ALWAYS apply auto-fix first - this catches common AI syntax errors
         // like "function Name() => {" before they cause compile errors
         let currentCode = autoFixCode(code);
-        if (currentCode !== code) {
-          console.log('[Sandbox] Pre-applied auto-fix for ' + filename);
-        }
         let lastError = null;
 
         // If .ts file contains JSX, treat it as .tsx for Babel
         let babelFilename = filename;
         if (filename.endsWith('.ts') && !filename.endsWith('.tsx') && containsJSX(currentCode)) {
           babelFilename = filename.replace(/\\.ts$/, '.tsx');
-          console.log('[Sandbox] Detected JSX in .ts file, treating as .tsx: ' + filename);
         }
 
         for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -1039,7 +1005,6 @@ export function getBootstrapScript(files: FileSystem): string {
             if (attempt < maxRetries) {
               const fixedCode = autoFixCode(currentCode);
               if (fixedCode !== currentCode) {
-                console.log('[Sandbox] Attempting additional auto-fix for ' + filename + ' (attempt ' + (attempt + 1) + ')');
                 currentCode = fixedCode;
               } else {
                 break;
@@ -1102,7 +1067,6 @@ export function getBootstrapScript(files: FileSystem): string {
               }
             }
 
-            console.log('[Sandbox] Compiled: ' + filename);
           } else {
             console.error('[Sandbox] Transpilation failed for ' + filename + ': ' + result.error);
             errors.push({ file: filename, error: result.error });
@@ -1137,7 +1101,6 @@ export function getBootstrapScript(files: FileSystem): string {
             importMap.imports[relativePath.replace(/\\.module\\.css$/, '.module')] = url;
           }
 
-          console.log('[Sandbox] Loaded CSS Module: ' + filename + ' (scoped ' + Object.keys(processedCss.mapping).length + ' classes)');
         } else if (/\\.css$/.test(filename)) {
           // Handle regular CSS files - inject as style tag
           const style = document.createElement('style');
@@ -1149,7 +1112,6 @@ export function getBootstrapScript(files: FileSystem): string {
           const url = createTrackedBlobURL(new Blob([cssModule], { type: 'application/javascript' }));
           importMap.imports[filename] = url;
           importMap.imports[filename.replace(/\\.css$/, '')] = url;
-          console.log('[Sandbox] Loaded CSS: ' + filename);
         } else if (/\\.json$/.test(filename)) {
           // Handle JSON files
           try {
@@ -1164,7 +1126,6 @@ export function getBootstrapScript(files: FileSystem): string {
       }
 
       if (errors.length > 0) {
-        console.warn('[Sandbox] ' + errors.length + ' file(s) failed to compile');
         // Show compilation errors prominently
         errors.forEach(e => {
           console.error('[Sandbox] COMPILE ERROR in ' + e.file + ': ' + e.error);
@@ -1216,12 +1177,10 @@ export function getBootstrapScript(files: FileSystem): string {
         return; // do not try to mount app if compilation failed
       }
 
-      console.log('[Sandbox] Creating import map with react-router-dom:', importMap.imports['react-router-dom']);
       const mapScript = document.createElement('script');
       mapScript.type = "importmap";
       mapScript.textContent = JSON.stringify(importMap);
       document.head.appendChild(mapScript);
-      console.log('[Sandbox] Import map added to head');
 
       // Find App entry point - try multiple possible paths
       const appPaths = ['src/App.tsx', 'src/App.jsx', 'src/App.ts', 'src/App.js', 'App.tsx', 'App.jsx', 'App.ts', 'App.js'];
@@ -1236,9 +1195,7 @@ export function getBootstrapScript(files: FileSystem): string {
         // Last resort - find any file with "App" in the name
         const appKey = Object.keys(importMap.imports).find(k => k.includes('App') && /\\.(tsx|jsx|ts|js)$/.test(k));
         appPath = appKey || 'src/App.tsx'; // Default fallback
-        console.warn('[Sandbox] Could not find App entry point, trying:', appPath);
       }
-      console.log('[Sandbox] Using App entry point:', appPath);
 
       // Bootstrap code that makes React hooks globally available
       const bootstrapCode = \`
@@ -1352,7 +1309,6 @@ export function getBootstrapScript(files: FileSystem): string {
             )
           );
           window.__SANDBOX_READY__ = true;
-          console.log('[Sandbox] App mounted successfully');
         } catch (err) {
           console.error('[Sandbox] Failed to mount app:', err.message);
           showSafeError('Error', err);

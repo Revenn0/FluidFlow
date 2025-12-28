@@ -321,7 +321,6 @@ export function getEventListenerCleanupScript(): string {
         }
       }, 30000);
 
-      console.log('[Sandbox] Event listener cleanup system initialized');
     })();
   `;
 }

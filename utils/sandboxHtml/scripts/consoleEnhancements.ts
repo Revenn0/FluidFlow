@@ -346,8 +346,6 @@ export function getConsoleEnhancementsScript(): string {
 
       // Expose original console for debugging
       window.__ORIGINAL_CONSOLE__ = originalConsole;
-
-      console.log('[Sandbox] Enhanced console initialized');
     })();
   `;
 }

@@ -84,8 +84,6 @@ export function getEnvVariablesScript(
 
       // Store for later access
       window.__SANDBOX_ENV__ = envVars;
-
-      console.log('[Sandbox] Environment variables initialized:', Object.keys(envVars).length, 'vars');
     })();
   `;
 }

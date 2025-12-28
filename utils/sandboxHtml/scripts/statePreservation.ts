@@ -38,14 +38,8 @@ export function getStatePreservationScript(): string {
         // Store in sessionStorage (survives refresh within session)
         try {
           sessionStorage.setItem(STATE_KEY, JSON.stringify(state));
-          console.log('[StatePreserve] State captured:', {
-            forms: state.forms.length,
-            scrollPositions: state.scroll.length,
-            hasFocus: !!state.focus,
-            route: state.route
-          });
         } catch (e) {
-          console.warn('[StatePreserve] Failed to save state:', e);
+          // Failed to save state - ignore silently
         }
 
         return state;
@@ -58,7 +52,6 @@ export function getStatePreservationScript(): string {
         try {
           const stateJson = sessionStorage.getItem(STATE_KEY);
           if (!stateJson) {
-            console.log('[StatePreserve] No saved state found');
             return false;
           }
 
@@ -66,7 +59,6 @@ export function getStatePreservationScript(): string {
 
           // Check if state is too old (> 30 seconds)
           if (Date.now() - state.timestamp > 30000) {
-            console.log('[StatePreserve] State too old, skipping restore');
             sessionStorage.removeItem(STATE_KEY);
             return false;
           }
@@ -81,8 +73,6 @@ export function getStatePreservationScript(): string {
               if (state.scroll) restoreScrollState(state.scroll);
               if (state.focus) restoreFocusState(state.focus);
 
-              console.log('[StatePreserve] State restored successfully');
-
               // Clear stored state after restore
               sessionStorage.removeItem(STATE_KEY);
             }, 100);
@@ -90,7 +80,6 @@ export function getStatePreservationScript(): string {
 
           return true;
         } catch (e) {
-          console.warn('[StatePreserve] Failed to restore state:', e);
           return false;
         }
       }
@@ -418,7 +407,6 @@ export function getStatePreservationScript(): string {
         });
       }
 
-      console.log('[StatePreserve] State preservation system initialized');
     })();
   `;
 }

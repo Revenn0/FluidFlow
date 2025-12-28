@@ -143,7 +143,6 @@ export function getAssetHandlingScript(): string {
           }
 
           target.src = placeholder;
-          console.log('[Assets] Replaced broken image with placeholder');
         }
       }, true);
 
@@ -165,7 +164,6 @@ export function getAssetHandlingScript(): string {
         });
       };
 
-      console.log('[Sandbox] Asset handling system initialized');
     })();
   `;
 }

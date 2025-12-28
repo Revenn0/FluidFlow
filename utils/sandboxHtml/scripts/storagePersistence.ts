@@ -38,7 +38,6 @@ export function getStoragePersistenceScript(): string {
               }
             }
             synced = true;
-            console.log('[Storage] Received ' + storageType + ' data:', Object.keys(received).length, 'keys');
           }
         });
 
@@ -104,7 +103,6 @@ export function getStoragePersistenceScript(): string {
         // Test if we can access storage
         window.localStorage.getItem('__test__');
         // Native storage works, enhance it with sync capabilities
-        console.log('[Storage] Native storage available, adding persistence sync');
 
         // Store original references
         var originalLocalStorage = window.localStorage;
@@ -167,8 +165,6 @@ export function getStoragePersistenceScript(): string {
           writable: false,
           configurable: false
         });
-
-        console.log('[Storage] Persistent storage shim installed');
       }
 
       // Expose storage sync API for manual operations
@@ -202,7 +198,6 @@ export function getStoragePersistenceScript(): string {
         }
       };
 
-      console.log('[Sandbox] Storage persistence system initialized');
     })();
   `;
 }
