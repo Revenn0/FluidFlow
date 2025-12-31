@@ -55,10 +55,14 @@ describe('OpenAIProvider', () => {
     vi.clearAllMocks();
 
     config = {
+      id: 'test-openai',
       type: 'openai',
+      name: 'Test OpenAI',
       apiKey: 'test-api-key',
       baseUrl: 'https://api.openai.com/v1',
       headers: {},
+      models: [{ id: 'gpt-4', name: 'GPT-4' }],
+      defaultModel: 'gpt-4',
     };
 
     provider = new OpenAIProvider(config);
@@ -402,12 +406,13 @@ describe('OpenAIProvider', () => {
       mockCreateEstimatedUsage.mockReturnValueOnce({
         inputTokens: 100,
         outputTokens: 50,
-      });
+        isEstimated: true,
+      } as { inputTokens: number; outputTokens: number; isEstimated: true });
 
       const result = await provider.generateStream({ prompt: 'Test' }, 'gpt-4', vi.fn());
 
       expect(mockCreateEstimatedUsage).toHaveBeenCalled();
-      expect(result.usage).toEqual({ inputTokens: 100, outputTokens: 50 });
+      expect(result.usage).toEqual({ inputTokens: 100, outputTokens: 50, isEstimated: true });
     });
 
     it('should handle images in streaming request', async () => {
@@ -493,10 +498,14 @@ describe('OpenAIProvider', () => {
 
     it('should list OpenRouter models with different structure', async () => {
       const openRouterConfig: ProviderConfig = {
+        id: 'test-openrouter',
         type: 'openrouter',
+        name: 'Test OpenRouter',
         apiKey: 'test-key',
         baseUrl: 'https://openrouter.ai/api/v1',
         headers: {},
+        models: [],
+        defaultModel: 'anthropic/claude-3',
       };
       const openRouterProvider = new OpenAIProvider(openRouterConfig);
 
@@ -551,10 +560,14 @@ describe('OpenAIProvider', () => {
 
     it('should limit OpenRouter models to 100', async () => {
       const openRouterConfig: ProviderConfig = {
+        id: 'test-openrouter-2',
         type: 'openrouter',
+        name: 'Test OpenRouter 2',
         apiKey: 'test-key',
         baseUrl: 'https://openrouter.ai/api/v1',
         headers: {},
+        models: [],
+        defaultModel: 'model-0',
       };
       const openRouterProvider = new OpenAIProvider(openRouterConfig);
 

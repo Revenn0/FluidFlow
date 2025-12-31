@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   GitBranch, GitCommit, Check, X, Plus, RefreshCw, Loader2,
   FileText, FilePlus, FileX, ChevronDown, ChevronUp,
-  AlertCircle, Clock, AlertTriangle, Sparkles, RotateCcw
+  AlertCircle, Clock, AlertTriangle, Sparkles, RotateCcw,
+  Github, Upload
 } from 'lucide-react';
 import { GitStatus, GitCommit as GitCommitType, CommitDetails, gitApi } from '@/services/projectApi';
 import { FileSystem } from '@/types';
@@ -28,6 +29,10 @@ interface GitPanelProps {
   onDiscardChanges?: () => Promise<void>;
   // Revert to a specific commit
   onRevertToCommit?: (commitHash: string) => Promise<boolean>;
+  // GitHub integration
+  onPushToGithub?: () => void;
+  hasRemote?: boolean;
+  remoteUrl?: string;
 }
 
 export const GitPanel: React.FC<GitPanelProps> = ({
@@ -41,6 +46,9 @@ export const GitPanel: React.FC<GitPanelProps> = ({
   files = {},
   onDiscardChanges,
   onRevertToCommit,
+  onPushToGithub,
+  hasRemote = false,
+  remoteUrl,
 }) => {
   // Git initialization state comes from gitStatus - single source of truth
   const isGitInitialized = gitStatus?.initialized ?? false;
@@ -369,15 +377,38 @@ ${changedFilesContext}`;
               {totalChanges} change{totalChanges !== 1 ? 's' : ''}
             </span>
           )}
+          {hasRemote && remoteUrl && (
+            <span className="px-2 py-0.5 text-xs rounded flex items-center gap-1" style={{ backgroundColor: 'var(--theme-glass-200)', color: 'var(--theme-text-muted)' }}>
+              <Github className="w-3 h-3" />
+              linked
+            </span>
+          )}
         </div>
-        <button
-          onClick={onRefreshStatus}
-          className="p-2 rounded-lg transition-colors"
-          style={{ color: 'var(--theme-text-muted)' }}
-          title="Refresh git status"
-        >
-          <RefreshCw className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          {onPushToGithub && (
+            <button
+              onClick={onPushToGithub}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              style={{
+                backgroundColor: 'var(--theme-glass-200)',
+                color: 'var(--theme-text-secondary)',
+                border: '1px solid var(--theme-border-light)'
+              }}
+              title={hasRemote ? "Push to GitHub" : "Push to GitHub (Create new repo)"}
+            >
+              <Github className="w-3.5 h-3.5" />
+              <Upload className="w-3 h-3" />
+            </button>
+          )}
+          <button
+            onClick={onRefreshStatus}
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--theme-text-muted)' }}
+            title="Refresh git status"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* Two Column Layout */}

@@ -41,11 +41,14 @@ describe('GeminiProvider', () => {
     vi.clearAllMocks();
 
     config = {
+      id: 'test-gemini',
       type: 'gemini',
+      name: 'Test Gemini',
       apiKey: 'test-api-key',
       defaultModel: 'gemini-pro',
       baseUrl: '',
       headers: {},
+      models: [{ id: 'gemini-pro', name: 'Gemini Pro' }],
     };
 
     provider = new GeminiProvider(config);

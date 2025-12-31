@@ -983,6 +983,9 @@ export const PreviewPanel = memo(function PreviewPanel({
               files={files}
               onDiscardChanges={onDiscardChanges}
               onRevertToCommit={onRevertToCommit}
+              onPushToGithub={() => setShowGithubModal(true)}
+              hasRemote={hasRemote}
+              remoteUrl={currentRemoteUrl}
             />
           </div>
         ) : activeTab === 'run' ? (
@@ -1267,7 +1270,7 @@ export const PreviewPanel = memo(function PreviewPanel({
         )}
 
         {/* Modals */}
-        <ExportModal isOpen={showExportModal} onClose={() => setShowExportModal(false)} onDownloadZip={downloadAsZip} onPushToGithub={() => { setShowExportModal(false); setShowGithubModal(true); }} isDownloading={isDownloading} />
+        <ExportModal isOpen={showExportModal} onClose={() => setShowExportModal(false)} onDownloadZip={downloadAsZip} isDownloading={isDownloading} />
         <GithubModal
           isOpen={showGithubModal}
           onClose={() => { setShowGithubModal(false); setPushResult(null); }}
