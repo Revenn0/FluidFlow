@@ -5,10 +5,12 @@
  */
 
 import React, { useRef, useEffect } from 'react';
-import { Terminal, Sparkles, Loader2, Check } from 'lucide-react';
+import { Terminal, Sparkles, Loader2, Check, Undo2 } from 'lucide-react';
+import { useToast } from '../../Toast';
 import type { ConsoleTabProps } from './types';
 
-export const ConsoleTab: React.FC<ConsoleTabProps> = ({ logs, onFixError }) => {
+export const ConsoleTab: React.FC<ConsoleTabProps> = ({ logs, onFixError, onRevert, canRevert }) => {
+  const toast = useToast();
   const consoleEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom on new logs
@@ -74,19 +76,38 @@ export const ConsoleTab: React.FC<ConsoleTabProps> = ({ logs, onFixError }) => {
                     Fixed
                   </span>
                 ) : (
-                  <button
-                    onClick={() => onFixError(log.id, log.message)}
-                    disabled={log.isFixing}
-                    className="inline-flex items-center gap-1.5 px-2 py-1 rounded transition-all text-[10px] font-medium"
-                    style={{ backgroundColor: 'var(--color-error-subtle)', color: 'var(--color-error)', border: '1px solid var(--color-error-border)' }}
-                  >
-                    {log.isFixing ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : (
-                      <Sparkles className="w-3 h-3" />
+                  <>
+                    {/* Revert button - undo last changes */}
+                    {canRevert && onRevert && (
+                      <button
+                        onClick={() => {
+                          const success = onRevert();
+                          if (success) {
+                            toast.success('Reverted to previous state');
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded transition-all text-[10px] font-medium"
+                        style={{ backgroundColor: 'var(--color-warning)', color: 'white' }}
+                        title="Undo last AI changes"
+                      >
+                        <Undo2 className="w-3 h-3" />
+                        Revert
+                      </button>
                     )}
-                    {log.isFixing ? 'Fixing with AI...' : 'Fix with AI'}
-                  </button>
+                    <button
+                      onClick={() => onFixError(log.id, log.message)}
+                      disabled={log.isFixing}
+                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded transition-all text-[10px] font-medium"
+                      style={{ backgroundColor: 'var(--color-error-subtle)', color: 'var(--color-error)', border: '1px solid var(--color-error-border)' }}
+                    >
+                      {log.isFixing ? (
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-3 h-3" />
+                      )}
+                      {log.isFixing ? 'Fixing with AI...' : 'Fix with AI'}
+                    </button>
+                  </>
                 )}
               </div>
             )}

@@ -20,6 +20,7 @@ interface ChatInputProps {
   onOpenTemplateSettings?: () => void;
   externalPrompt?: string; // For auto-filling from continuation
   historyPrompt?: string; // For auto-filling from prompt history
+  hasProjectContext?: boolean; // Whether AI has generated style guide + summary
 }
 
 export const ChatInput = memo(function ChatInput({
@@ -32,7 +33,8 @@ export const ChatInput = memo(function ChatInput({
   onOpenHistory,
   onOpenTemplateSettings,
   externalPrompt,
-  historyPrompt
+  historyPrompt,
+  hasProjectContext = false
 }: ChatInputProps) {
   const [prompt, setPrompt] = useState('');
   const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
@@ -152,8 +154,9 @@ export const ChatInput = memo(function ChatInput({
     : (!!sketchAttachment || prompt.trim().length > 0);
 
   // Check if AI has seen the codebase yet
+  // Show warning if: existing app with files, no project context (style guide), and no tracked files
   const fileCount = Object.keys(files).length;
-  const needsCodebaseAnalysis = hasExistingApp && fileCount > 0 && !hasMainChatContext();
+  const needsCodebaseAnalysis = hasExistingApp && fileCount > 0 && !hasProjectContext && !hasMainChatContext();
 
   return (
     <div className="flex-shrink-0" style={{ borderTop: '1px solid var(--theme-border)', backgroundColor: 'var(--theme-surface)' }}>

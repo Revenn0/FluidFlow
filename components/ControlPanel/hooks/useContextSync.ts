@@ -5,30 +5,60 @@
  * - Session ID management per project
  * - Message sync with deduplication
  * - Token tracking from message content
+ * - Smart context reset when project has existing AI context
  */
 
 import { useEffect, useRef } from 'react';
 import { ChatMessage } from '@/types';
 import { getContextManager, CONTEXT_IDS } from '@/services/conversationContext';
+import { getProjectContext } from '@/services/projectContext';
 
 interface UseContextSyncOptions {
   projectId: string | undefined;
   messages: ChatMessage[];
+  /** When true, skip syncing restored messages (they won't count toward token usage) */
+  skipRestoredMessages?: boolean;
 }
 
-export function useContextSync({ projectId, messages }: UseContextSyncOptions) {
+export function useContextSync({ projectId, messages, skipRestoredMessages = false }: UseContextSyncOptions) {
   const contextManager = getContextManager();
   const sessionIdRef = useRef<string>(`${CONTEXT_IDS.MAIN_CHAT}-${projectId || 'default'}`);
   // Track which messages have been synced to prevent duplicates on batch updates
   const syncedMessageIdsRef = useRef<Set<string>>(new Set());
+  // Track if we've done the initial context setup for this project
+  const hasInitializedRef = useRef<string | null>(null);
 
-  // Update session ID when project changes
+  // Update session ID and handle context reset when project changes
   useEffect(() => {
-    sessionIdRef.current = `${CONTEXT_IDS.MAIN_CHAT}-${projectId || 'default'}`;
-    // Clear synced message IDs when project changes (different projects have different contexts)
-    syncedMessageIdsRef.current.clear();
-    console.log(`[ContextSync] Project changed, new session: ${sessionIdRef.current}`);
-  }, [projectId]);
+    const newSessionId = `${CONTEXT_IDS.MAIN_CHAT}-${projectId || 'default'}`;
+    sessionIdRef.current = newSessionId;
+
+    // Check if project has existing AI context (style guide + summary)
+    // If so, clear the conversation context and mark existing messages as synced
+    // This prevents re-counting tokens for historical messages
+    if (projectId && projectId !== hasInitializedRef.current) {
+      const existingContext = getProjectContext(projectId);
+      if (existingContext) {
+        console.log(`[ContextSync] Project has existing AI context (generated at ${new Date(existingContext.generatedAt).toLocaleString()})`);
+        console.log(`[ContextSync] Clearing conversation context to avoid token bloat from restored messages`);
+        contextManager.clearContext(newSessionId);
+
+        // Mark all current messages as synced so they don't get re-added
+        // This is key: restored messages won't inflate token count
+        messages.forEach(msg => syncedMessageIdsRef.current.add(msg.id));
+        console.log(`[ContextSync] Marked ${messages.length} restored messages as synced (won't count toward tokens)`);
+      } else {
+        // No existing context - clear synced IDs so messages get counted
+        syncedMessageIdsRef.current.clear();
+      }
+      hasInitializedRef.current = projectId;
+    } else if (!projectId) {
+      // Scratch project - clear synced IDs
+      syncedMessageIdsRef.current.clear();
+    }
+
+    console.log(`[ContextSync] Project changed, new session: ${newSessionId}`);
+  }, [projectId, contextManager, messages]);
 
   // Sync messages with context manager
   // BUG FIX: Sync ALL new messages, not just the last one

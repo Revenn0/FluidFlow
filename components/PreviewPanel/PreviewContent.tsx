@@ -728,6 +728,9 @@ export const PreviewContent = memo(function PreviewContent(props: PreviewContent
           onClearLogs={() => setLogs([])}
           onClearNetwork={() => setNetworkLogs([])}
           onFixError={fixError}
+          // Revert functionality for console errors
+          onRevert={onRevertOnly}
+          canRevert={canRevert}
           // Elements tab props
           componentTree={componentTree}
           selectedNodeId={selectedNodeId}

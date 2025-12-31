@@ -32,6 +32,9 @@ export const DevToolsPanel = memo(function DevToolsPanel({
   onClearLogs,
   onClearNetwork,
   onFixError,
+  // Revert functionality
+  onRevert,
+  canRevert,
   // Elements tab props
   componentTree,
   selectedNodeId,
@@ -149,7 +152,7 @@ export const DevToolsPanel = memo(function DevToolsPanel({
       {/* Panel Content */}
       {isOpen && (
         <div className="flex-1 overflow-y-auto font-mono text-[11px] custom-scrollbar" style={{ backgroundColor: 'var(--theme-code-bg)' }}>
-          {activeTab === 'console' && <ConsoleTab logs={logs} onClear={onClearLogs} onFixError={onFixError} />}
+          {activeTab === 'console' && <ConsoleTab logs={logs} onClear={onClearLogs} onFixError={onFixError} onRevert={onRevert} canRevert={canRevert} />}
           {activeTab === 'network' && <NetworkTab requests={networkLogs} onClear={onClearNetwork} />}
           {activeTab === 'elements' && (
             <ElementsTab

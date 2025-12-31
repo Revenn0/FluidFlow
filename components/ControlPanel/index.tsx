@@ -921,6 +921,7 @@ Fix the error in src/App.tsx.`;
         onOpenHistory={onOpenPromptHistory}
         externalPrompt={externalPrompt}
         historyPrompt={historyPrompt}
+        hasProjectContext={hasProjectContext}
       />
 
       {/* Settings Panel */}

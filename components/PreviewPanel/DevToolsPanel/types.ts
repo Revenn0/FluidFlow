@@ -21,6 +21,9 @@ export interface ConsoleTabProps {
   logs: LogEntry[];
   onClear: () => void;
   onFixError: (logId: string, message: string) => void;
+  // Revert functionality
+  onRevert?: () => boolean;
+  canRevert?: boolean;
 }
 
 export interface NetworkTabProps {
@@ -49,6 +52,9 @@ export interface DevToolsPanelProps {
   onClearLogs: () => void;
   onClearNetwork: () => void;
   onFixError: (logId: string, message: string) => void;
+  // Revert functionality
+  onRevert?: () => boolean;
+  canRevert?: boolean;
   // Elements tab props
   componentTree?: ComponentTreeNode | null;
   selectedNodeId?: string | null;
