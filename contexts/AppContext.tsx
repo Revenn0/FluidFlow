@@ -314,8 +314,8 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
       if (options?.incompleteFiles && options.incompleteFiles.length > 0) {
         console.warn('[reviewChange] Auto-accepting changes with incomplete files:', options.incompleteFiles);
       }
-      // Pass skipHistory option to setFiles
-      setFiles(newFiles, options?.skipHistory ? { skipHistory: true } : undefined);
+      // Pass label and skipHistory option to setFiles for proper history tracking
+      setFiles(newFiles, options?.skipHistory ? { skipHistory: true } : { label });
       if (!newFiles[activeFile]) {
         const firstSrc = Object.keys(newFiles).find(f => f.startsWith('src/'));
         setActiveFile(firstSrc || 'package.json');
@@ -332,10 +332,10 @@ export function AppProvider({ children, defaultFiles }: AppProviderProps) {
 
   const confirmChange = useCallback(() => {
     if (pendingReview) {
-      // Respect skipHistory option from pending review
+      // Respect skipHistory option from pending review, pass label for proper history tracking
       setFiles(
         pendingReview.newFiles,
-        pendingReview.skipHistory ? { skipHistory: true } : undefined
+        pendingReview.skipHistory ? { skipHistory: true } : { label: pendingReview.label }
       );
       if (!pendingReview.newFiles[activeFile]) {
         const firstSrc = Object.keys(pendingReview.newFiles).find(f => f.startsWith('src/'));

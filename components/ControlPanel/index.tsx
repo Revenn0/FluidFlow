@@ -46,7 +46,10 @@ export interface ControlPanelRef {
   handleInspectEdit: (prompt: string, element: InspectedElement, scope: EditScope) => Promise<void>;
   sendErrorToChat: (errorMessage: string) => void;
   revertAndRetry: () => void;
+  revertOnly: () => boolean; // Returns true if reverted successfully
   canRevertAndRetry: boolean;
+  canRevert: boolean;
+  lastPrompt: string | null; // The last user prompt (for showing in UI)
 }
 
 /**
@@ -585,16 +588,33 @@ Fix the error in src/App.tsx.`;
     handleSend(prompt, attachments);
   }, [lastUserPrompt, canUndo, undo, handleSend]);
 
+  // Revert only (no retry) - returns true if reverted successfully
+  const revertOnly = useCallback((): boolean => {
+    if (!canUndo) {
+      console.warn('[revertOnly] Cannot revert: no undo available');
+      return false;
+    }
+
+    // Just undo the last file changes
+    undo();
+    console.log('[revertOnly] Reverted to previous state');
+    return true;
+  }, [canUndo, undo]);
+
   // Check if revert and retry is available
   const canRevertAndRetry = Boolean(lastUserPrompt && canUndo);
+  const canRevert = canUndo;
 
   // Expose methods to parent via ref
   useImperativeHandle(ref, () => ({
     handleInspectEdit,
     sendErrorToChat,
     revertAndRetry,
+    revertOnly,
     canRevertAndRetry,
-  }), [handleInspectEdit, sendErrorToChat, revertAndRetry, canRevertAndRetry]);
+    canRevert,
+    lastPrompt: lastUserPrompt?.prompt ?? null,
+  }), [handleInspectEdit, sendErrorToChat, revertAndRetry, revertOnly, canRevertAndRetry, canRevert, lastUserPrompt]);
 
   const handleResetClick = () => {
     modals.openResetConfirm();

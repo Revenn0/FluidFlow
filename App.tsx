@@ -292,7 +292,10 @@ export default function App() {
             onPreviewErrorsChange={setPreviewHasErrors}
             onRunnerStatusChange={setHasRunningServer}
             onRevertAndRetry={() => controlPanelRef.current?.revertAndRetry()}
+            onRevertOnly={() => controlPanelRef.current?.revertOnly() ?? false}
             canRevertAndRetry={controlPanelRef.current?.canRevertAndRetry ?? false}
+            canRevert={controlPanelRef.current?.canRevert ?? false}
+            lastPrompt={controlPanelRef.current?.lastPrompt ?? null}
           />
           </div>
         </IDEFrame>

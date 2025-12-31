@@ -18,6 +18,7 @@ import {
   Globe,
   MessageSquare,
   RotateCcw,
+  Undo2,
 } from 'lucide-react';
 import { LogEntry, NetworkRequest, PreviewDevice, TerminalTab } from '../../types';
 import { DevToolsPanel } from './DevToolsPanel';
@@ -28,6 +29,7 @@ import type { ComponentTreeNode, ComputedStylesResult } from '../../utils/sandbo
 import type { TailwindClassInfo } from '../../utils/tailwindParser';
 import type { EditScope } from './InspectorPanel/types';
 import { ComponentInspector, InspectionOverlay, InspectedElement } from './ComponentInspector';
+import { useToast } from '../Toast';
 
 export interface PreviewContentProps {
   appCode: string | undefined;
@@ -102,7 +104,10 @@ export interface PreviewContentProps {
   isQuickStylesProcessing?: boolean;
   // Revert and retry when AI changes break the app
   onRevertAndRetry?: () => void;
+  onRevertOnly?: () => boolean;
   canRevertAndRetry?: boolean;
+  canRevert?: boolean;
+  lastPrompt?: string | null;
 }
 
 export const PreviewContent = memo(function PreviewContent(props: PreviewContentProps) {
@@ -178,8 +183,14 @@ export const PreviewContent = memo(function PreviewContent(props: PreviewContent
     isQuickStylesProcessing = false,
     // Revert and retry
     onRevertAndRetry,
+    onRevertOnly,
     canRevertAndRetry = false,
+    canRevert = false,
+    lastPrompt,
   } = props;
+
+  // Toast for notifications
+  const toast = useToast();
 
   // Local state for URL input
   const [urlInput, setUrlInput] = useState(currentUrl);
@@ -289,7 +300,7 @@ export const PreviewContent = memo(function PreviewContent(props: PreviewContent
 
       {/* Auto-fix Confirmation Dialog - AI assistance (simple fix already tried) */}
       {pendingAutoFix && !isAutoFixing && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[100] px-4 py-3 rounded-xl shadow-lg backdrop-blur-xl animate-in slide-in-from-top-2 duration-300 max-w-md" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)' }}>
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-100 px-4 py-3 rounded-xl shadow-lg backdrop-blur-xl animate-in slide-in-from-top-2 duration-300 max-w-lg" style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)' }}>
           <div className="flex items-start gap-3">
             <div className="p-1.5 rounded-lg shrink-0" style={{ backgroundColor: 'var(--color-warning-subtle)' }}>
               <AlertTriangle className="w-4 h-4" style={{ color: 'var(--color-warning)' }} />
@@ -301,13 +312,41 @@ export const PreviewContent = memo(function PreviewContent(props: PreviewContent
                   AI Fix
                 </span>
               </div>
-              <p className="text-xs mb-3 line-clamp-2" style={{ color: 'var(--theme-text-muted)' }}>{pendingAutoFix}</p>
+              <p className="text-xs mb-2 line-clamp-2" style={{ color: 'var(--theme-text-muted)' }}>{pendingAutoFix}</p>
+
+              {/* Show last prompt if available for context */}
+              {lastPrompt && canRevert && (
+                <p className="text-[10px] mb-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--theme-glass-100)', color: 'var(--theme-text-dim)' }}>
+                  Last prompt: "{lastPrompt.length > 60 ? lastPrompt.slice(0, 60) + '...' : lastPrompt}"
+                </p>
+              )}
+
               <div className="flex items-center gap-2 flex-wrap">
+                {/* Revert Only - just undo without retry */}
+                {canRevert && onRevertOnly && (
+                  <button
+                    onClick={() => {
+                      handleDeclineAutoFix();
+                      const success = onRevertOnly();
+                      if (success) {
+                        toast.success('Reverted to previous state');
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
+                    style={{ backgroundColor: 'var(--color-warning)', color: 'white' }}
+                    title="Undo the last AI changes"
+                  >
+                    <Undo2 className="w-3 h-3" />
+                    Revert
+                  </button>
+                )}
+                {/* Revert & Retry - undo and resend the prompt */}
                 {canRevertAndRetry && onRevertAndRetry && (
                   <button
                     onClick={() => {
                       handleDeclineAutoFix();
                       onRevertAndRetry();
+                      toast.info('Reverting and retrying with AI...');
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors"
                     style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)', color: 'var(--theme-text)' }}
@@ -375,7 +414,7 @@ export const PreviewContent = memo(function PreviewContent(props: PreviewContent
 
       {/* Failed Auto-fix Notification - Persistent with Send to Chat option */}
       {failedAutoFixError && !autoFixToast && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-100 max-w-md w-full px-4 animate-in slide-in-from-top-2 duration-300">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-100 max-w-lg w-full px-4 animate-in slide-in-from-top-2 duration-300">
           <div className="rounded-xl shadow-2xl backdrop-blur-xl overflow-hidden" style={{ backgroundColor: 'var(--color-error-subtle)', border: '1px solid var(--color-error-border)' }}>
             <div className="p-4">
               <div className="flex items-start gap-3">
@@ -384,19 +423,46 @@ export const PreviewContent = memo(function PreviewContent(props: PreviewContent
                 </div>
                 <div className="flex-1 min-w-0">
                   <h4 className="text-sm font-semibold mb-1" style={{ color: 'var(--color-error)' }}>Auto-fix Failed</h4>
-                  <p className="text-xs line-clamp-2 mb-3" style={{ color: 'var(--color-error)', opacity: 0.7 }}>
+                  <p className="text-xs line-clamp-2 mb-2" style={{ color: 'var(--color-error)', opacity: 0.7 }}>
                     {failedAutoFixError.slice(0, 150)}
                     {failedAutoFixError.length > 150 ? '...' : ''}
                   </p>
+
+                  {/* Show last prompt if available for context */}
+                  {lastPrompt && canRevert && (
+                    <p className="text-[10px] mb-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--theme-glass-100)', color: 'var(--theme-text-dim)' }}>
+                      Last prompt: "{lastPrompt.length > 60 ? lastPrompt.slice(0, 60) + '...' : lastPrompt}"
+                    </p>
+                  )}
+
                   <div className="flex items-center gap-2 flex-wrap">
+                    {/* Revert Only - most prominent as primary recovery option */}
+                    {canRevert && onRevertOnly && (
+                      <button
+                        onClick={() => {
+                          handleDismissFailedError();
+                          const success = onRevertOnly();
+                          if (success) {
+                            toast.success('Reverted to previous state');
+                          }
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                        style={{ backgroundColor: 'var(--color-warning)', color: 'white' }}
+                        title="Undo the last AI changes"
+                      >
+                        <Undo2 className="w-3.5 h-3.5" />
+                        Revert
+                      </button>
+                    )}
                     {canRevertAndRetry && onRevertAndRetry && (
                       <button
                         onClick={() => {
                           handleDismissFailedError();
                           onRevertAndRetry();
+                          toast.info('Reverting and retrying with AI...');
                         }}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                        style={{ backgroundColor: 'var(--color-warning-subtle)', border: '1px solid var(--color-warning-border)', color: 'var(--color-warning)' }}
+                        style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)', color: 'var(--theme-text)' }}
                         title="Undo changes and resend the last prompt"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />

@@ -59,7 +59,10 @@ interface PreviewPanelProps {
   onRunnerStatusChange?: (isRunning: boolean) => void;
   // Revert and retry when AI changes break the app
   onRevertAndRetry?: () => void;
+  onRevertOnly?: () => boolean;
   canRevertAndRetry?: boolean;
+  canRevert?: boolean;
+  lastPrompt?: string | null;
 }
 
 export const PreviewPanel = memo(function PreviewPanel({
@@ -68,7 +71,10 @@ export const PreviewPanel = memo(function PreviewPanel({
   onPreviewErrorsChange,
   onRunnerStatusChange,
   onRevertAndRetry,
+  onRevertOnly,
   canRevertAndRetry,
+  canRevert,
+  lastPrompt,
 }: PreviewPanelProps) {
   // ============ Context Consumption ============
   // Get data directly from contexts instead of props (reduced from 28 to 4 props)
@@ -1109,7 +1115,10 @@ export const PreviewPanel = memo(function PreviewPanel({
               onClearTempStyles={clearTempStyles}
               isQuickStylesProcessing={isQuickStylesProcessing}
               onRevertAndRetry={onRevertAndRetry}
+              onRevertOnly={onRevertOnly}
               canRevertAndRetry={canRevertAndRetry}
+              canRevert={canRevert}
+              lastPrompt={lastPrompt}
             />
           )
         ) : (
